@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Menu, X, Home, Briefcase, User, Mail, Code } from "lucide-react";
+import { scrollToElement } from "../utils/scrollUtils";
 
 const NavigationBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +15,13 @@ const NavigationBar: React.FC = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const sectionId = href.replace('#', '');
+    scrollToElement(sectionId);
+    if (isOpen) setIsOpen(false);
+  };
 
   const navLinks = [
     { name: "Home", icon: Home, href: "#home" },
@@ -36,6 +44,7 @@ const NavigationBar: React.FC = () => {
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <a
           href="#home"
+          onClick={(e) => handleNavClick(e, "#home")}
           className="text-2xl font-display font-bold text-primary hover:text-accent transition-colors"
         >
           <span className="magic-text">LidlDev</span>
@@ -47,6 +56,7 @@ const NavigationBar: React.FC = () => {
             <a
               key={link.name}
               href={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
               className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors group"
             >
               <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
@@ -72,7 +82,7 @@ const NavigationBar: React.FC = () => {
             <a
               key={link.name}
               href={link.href}
-              onClick={() => setIsOpen(false)}
+              onClick={(e) => handleNavClick(e, link.href)}
               className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors"
             >
               <link.icon className="h-5 w-5 text-primary" />

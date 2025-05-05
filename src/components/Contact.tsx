@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Mail, MapPin, Phone, Send } from "lucide-react";
+import emailjs from '@emailjs/browser';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +9,12 @@ const Contact: React.FC = () => {
     subject: "",
     message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -17,17 +24,46 @@ const Contact: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the form data to your backend or a service
-    console.log("Form submitted:", formData);
-    alert("Thanks for your message! I'll get back to you soon.");
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      // Replace these with your actual EmailJS service ID, template ID, and public key
+      const serviceId = 'service_lidldev';
+      const templateId = 'template_contact_form';
+      const publicKey = 'your_public_key';
+
+      if (formRef.current) {
+        await emailjs.sendForm(
+          serviceId,
+          templateId,
+          formRef.current,
+          publicKey
+        );
+
+        setSubmitStatus({
+          success: true,
+          message: "Thanks for your message! I'll get back to you soon."
+        });
+
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      setSubmitStatus({
+        success: false,
+        message: "Sorry, there was an error sending your message. Please try again or email me directly."
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -127,7 +163,14 @@ const Contact: React.FC = () => {
 
           <div className="md:col-span-3 glass-card p-6 rounded-2xl">
             <h3 className="text-xl font-display font-semibold mb-6">Send Me a Message</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+
+            {submitStatus && (
+              <div className={`p-4 mb-4 rounded-lg ${submitStatus.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {submitStatus.message}
+              </div>
+            )}
+
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-sm font-medium">
@@ -136,7 +179,7 @@ const Contact: React.FC = () => {
                   <input
                     type="text"
                     id="name"
-                    name="name"
+                    name="user_name" // Changed to match EmailJS template parameters
                     value={formData.name}
                     onChange={handleChange}
                     required
@@ -151,7 +194,7 @@ const Contact: React.FC = () => {
                   <input
                     type="email"
                     id="email"
-                    name="email"
+                    name="user_email" // Changed to match EmailJS template parameters
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -193,11 +236,19 @@ const Contact: React.FC = () => {
                 ></textarea>
               </div>
 
+              {/* Hidden field for recipient email */}
+              <input type="hidden" name="to_email" value="harry@lidldev.com" />
+
               <button
                 type="submit"
-                className="inline-flex items-center justify-center rounded-lg bg-primary text-white px-6 py-3 font-medium hover:bg-primary/90 transition-colors"
+                disabled={isSubmitting}
+                className={`inline-flex items-center justify-center rounded-lg bg-primary text-white px-6 py-3 font-medium transition-colors ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-primary/90'}`}
               >
-                Send Message <Send className="ml-2 h-4 w-4" />
+                {isSubmitting ? (
+                  <>Sending... <span className="ml-2 animate-spin">⟳</span></>
+                ) : (
+                  <>Send Message <Send className="ml-2 h-4 w-4" /></>
+                )}
               </button>
             </form>
           </div>
