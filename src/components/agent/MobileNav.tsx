@@ -21,14 +21,23 @@ const MobileNav: React.FC<MobileNavProps> = ({ activePage, setActivePage }) => {
           <button
             key={item.id}
             onClick={() => setActivePage(item.id)}
-            className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all relative ${
               activePage === item.id
-                ? 'text-white bg-primary/80 shadow-md'
-                : 'text-white/80 hover:text-white hover:bg-primary/70'
+                ? 'text-primary bg-white shadow-md border-t-2 border-accent tab-active-glow animate-pulse-subtle'
+                : 'text-white/90 hover:text-white hover:bg-primary/70'
             }`}
           >
-            {item.icon}
-            <span className="text-xs mt-1 font-medium">{item.label}</span>
+            <div className="relative">
+              <div className={`transition-transform duration-200 ${activePage === item.id ? 'scale-125' : ''}`}>
+                {item.icon}
+              </div>
+              {activePage === item.id && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full"></span>
+              )}
+            </div>
+            <span className={`text-xs mt-1 font-medium ${activePage === item.id ? 'font-bold' : ''}`}>
+              {item.label}
+            </span>
           </button>
         ))}
       </div>

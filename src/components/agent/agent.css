@@ -69,6 +69,32 @@
   animation: slideInLeft 0.3s ease-out forwards;
 }
 
+.animate-pulse-subtle {
+  animation: pulseSlight 2s ease-in-out infinite;
+}
+
+.active-tab-indicator {
+  position: relative;
+}
+
+.active-tab-indicator::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #F3E5C3; /* accent color */
+  border-radius: 0 4px 4px 0;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.3s ease;
+}
+
+.active-tab-indicator.active::before {
+  transform: scaleY(1);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -117,4 +143,19 @@
   to {
     transform: translateX(0);
   }
+}
+
+@keyframes pulseSlight {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Active tab glow effect */
+.tab-active-glow {
+  box-shadow: 0 0 15px rgba(243, 229, 195, 0.5);
+  transition: box-shadow 0.3s ease;
 }

@@ -41,16 +41,29 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
             <button
               key={item.id}
               onClick={() => setActivePage(item.id)}
-              className={`flex items-center ${collapsed ? 'justify-center' : 'justify-start'} space-x-3 p-3 rounded-xl transition-all ${
+              className={`flex items-center ${collapsed ? 'justify-center' : 'justify-start'} space-x-3 p-3 rounded-xl transition-all relative active-tab-indicator ${
                 activePage === item.id
-                  ? 'bg-primary/80 text-white shadow-md'
-                  : 'text-white/80 hover:bg-primary/70 hover:text-white'
+                  ? 'bg-white text-primary font-bold shadow-md border-l-4 border-accent tab-active-glow active'
+                  : 'text-white/90 hover:bg-primary/70 hover:text-white'
               }`}
             >
-              <div className={`${collapsed ? 'bg-primary/70 p-2 rounded-lg' : ''}`}>
-                {item.icon}
+              <div className="relative">
+                <div className={`transition-all duration-200 ${
+                  collapsed
+                    ? `${activePage === item.id ? 'bg-white p-2 rounded-lg text-primary' : 'bg-primary/70 p-2 rounded-lg'}`
+                    : ''
+                }`}>
+                  {item.icon}
+                </div>
+                {activePage === item.id && !collapsed && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full"></span>
+                )}
               </div>
-              {!collapsed && <span className="font-medium">{item.label}</span>}
+              {!collapsed && (
+                <span className={`font-medium ${activePage === item.id ? 'scale-105 transform' : ''}`}>
+                  {item.label}
+                </span>
+              )}
             </button>
           ))}
         </nav>
