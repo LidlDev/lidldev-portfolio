@@ -1,5 +1,8 @@
 # LidlDev Portfolio
 
+*Repository renamed from funky-flow-folio to lidldev-portfolio*
+
+
 ## Project info
 
 **URL**: https://www.lidldev.com
@@ -18,10 +21,10 @@ Follow these steps:
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/LidlDev/lidldev-portfolio.git
 
 # Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+cd lidldev-portfolio
 
 # Step 3: Install the necessary dependencies.
 npm i
