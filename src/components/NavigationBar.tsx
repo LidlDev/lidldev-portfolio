@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Menu, X, Home, Briefcase, User, Mail, Code } from "lucide-react";
+import { Menu, X, Home, Briefcase, User, Mail, Code, Bot } from "lucide-react";
 import { scrollToElement } from "../utils/scrollUtils";
+import { Link } from "react-router-dom";
 
 const NavigationBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,6 +65,15 @@ const NavigationBar: React.FC = () => {
               <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary"></span>
             </a>
           ))}
+
+          <Link
+            to="/agent"
+            className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors group"
+          >
+            <Bot className="h-4 w-4 group-hover:text-primary transition-colors" />
+            Agent
+            <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary"></span>
+          </Link>
         </div>
 
         {/* Mobile menu button */}
@@ -89,6 +99,14 @@ const NavigationBar: React.FC = () => {
               {link.name}
             </a>
           ))}
+          <Link
+            to="/agent"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            <Bot className="h-5 w-5 text-primary" />
+            Agent
+          </Link>
         </div>
       )}
     </nav>
