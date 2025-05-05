@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ExternalLink, Github, Star } from "lucide-react";
 
@@ -86,45 +85,29 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 const Projects: React.FC = () => {
   const projects: ProjectCardProps[] = [
     {
-      title: "E-commerce Platform",
-      description: "A full-featured online store with cart, checkout, and payment processing functionalities.",
-      tags: ["React", "Node.js", "MongoDB", "Stripe"],
-      imageUrl: "https://images.unsplash.com/photo-1661956602944-249bcd04b63f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
-      projectUrl: "https://example.com/ecommerce",
-      githubUrl: "https://github.com/username/ecommerce",
+      title: "Spike! Volleyball App",
+      description: "Interactive app for volleyball teams, communication, and training.",
+      tags: ["Flutter", "Firebase", "Mobile"],
+      imageUrl: "https://images.unsplash.com/photo-1592656094267-764a45160876?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
+      projectUrl: "https://example.com/spike",
+      githubUrl: "https://github.com/username/spike",
       featured: true,
     },
     {
-      title: "Weather Dashboard",
-      description: "Real-time weather forecasting app with interactive maps and alerts.",
-      tags: ["React", "REST API", "Chart.js"],
-      imageUrl: "https://images.unsplash.com/photo-1526743655626-e3d757b13db3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
-      projectUrl: "https://example.com/weather",
-      githubUrl: "https://github.com/username/weather",
+      title: "Chess App",
+      description: "A classic chess game implementation with AI opponent.",
+      tags: ["Java", "Android", "Game Dev"],
+      imageUrl: "https://images.unsplash.com/photo-1586165368502-1bad197a6461?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
+      projectUrl: "https://example.com/chess",
+      githubUrl: "https://github.com/username/chess",
     },
     {
-      title: "Task Manager",
-      description: "Productivity app with task tracking, reminders and collaboration features.",
-      tags: ["TypeScript", "Firebase", "Tailwind CSS"],
-      imageUrl: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=872&q=80",
-      projectUrl: "https://example.com/tasks",
-      githubUrl: "https://github.com/username/tasks",
-    },
-    {
-      title: "Portfolio Website",
-      description: "Personal website showcasing projects and skills with modern design.",
-      tags: ["React", "Tailwind CSS", "Framer Motion"],
-      imageUrl: "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
-      projectUrl: "https://example.com",
-      githubUrl: "https://github.com/username/portfolio",
-    },
-    {
-      title: "Social Media App",
-      description: "Connect with friends, share updates, and discover new content.",
-      tags: ["React Native", "GraphQL", "AWS"],
-      imageUrl: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-      projectUrl: "https://example.com/social",
-      githubUrl: "https://github.com/username/social",
+      title: "Project X",
+      description: "Another awesome project showcasing different skills.",
+      tags: ["React", "Node.js", "Web"],
+      imageUrl: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
+      projectUrl: "https://example.com/projectx",
+      githubUrl: "https://github.com/username/projectx",
     },
   ];
 

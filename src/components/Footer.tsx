@@ -1,6 +1,4 @@
-
 import React from "react";
-import { Heart } from "lucide-react";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -11,14 +9,8 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
             <p className="text-sm text-muted-foreground">
-              © {currentYear} L.Dev. All rights reserved.
+              © {currentYear} LidlDev. All rights reserved.
             </p>
-          </div>
-          
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <span>Made with</span>
-            <Heart className="w-4 h-4 text-accent fill-accent" />
-            <span>using React & Tailwind CSS</span>
           </div>
           
           <div className="mt-4 md:mt-0 flex gap-6">

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Mail, MapPin, Phone, Send } from "lucide-react";
 
@@ -62,10 +61,10 @@ const Contact: React.FC = () => {
                 <div>
                   <h4 className="font-medium">Email</h4>
                   <a
-                    href="mailto:contact@example.com"
+                    href="mailto:harry@lidldev.com"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    contact@example.com
+                    harry@lidldev.com
                   </a>
                 </div>
               </div>
@@ -91,7 +90,7 @@ const Contact: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium">Location</h4>
-                  <p className="text-muted-foreground">San Francisco, CA</p>
+                  <p className="text-muted-foreground">Sydney, Australia</p>
                 </div>
               </div>
             </div>

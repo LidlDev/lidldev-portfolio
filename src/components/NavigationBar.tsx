@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Menu, X, Home, Briefcase, User, Mail, Code } from "lucide-react";
 
@@ -39,7 +38,7 @@ const NavigationBar: React.FC = () => {
           href="#home"
           className="text-2xl font-display font-bold text-primary hover:text-accent transition-colors"
         >
-          <span className="magic-text">L.Dev</span>
+          <span className="magic-text">LidlDev</span>
         </a>
 
         {/* Desktop Navigation */}

@@ -1,5 +1,4 @@
-
-import React from "react";
+import * as React from "react";
 import { ArrowRight } from "lucide-react";
 
 const Hero: React.FC = () => {
@@ -16,7 +15,7 @@ const Hero: React.FC = () => {
           <div className="space-y-2 animate-fade-in">
             <p className="text-lg md:text-xl font-medium text-primary">Hello, I'm</p>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-balance">
-              <span className="magic-text">Creative Developer</span> 
+              <span className="magic-text">Harry</span> 
               <br />Crafting Digital Experiences
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl">
