@@ -1,22 +1,16 @@
-# Welcome to your Lovable project
+# LidlDev Portfolio
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/aa7eadde-df4f-404d-90d5-e8cb8feeeaf4
+**URL**: https://www.lidldev.com
 
 ## How can I edit this code?
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/aa7eadde-df4f-404d-90d5-e8cb8feeeaf4) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
+There are several ways of editing this portfolio application.
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push changes.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -60,14 +54,12 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## How is this project deployed?
 
-Simply open [Lovable](https://lovable.dev/projects/aa7eadde-df4f-404d-90d5-e8cb8feeeaf4) and click on Share -> Publish.
+This project is deployed using GitHub Pages with a custom domain (www.lidldev.com).
 
-## Can I connect a custom domain to my Lovable project?
+When changes are pushed to the main branch, a GitHub Actions workflow automatically builds and deploys the site.
 
-Yes, you can!
+## Custom Domain
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project uses a custom domain (www.lidldev.com) configured in the GitHub Pages settings.
