@@ -6,11 +6,11 @@ const Header: React.FC = () => {
   const today = new Date();
 
   return (
-    <header className="px-4 md:px-6 py-4 bg-indigo-600 shadow-md z-10 text-white flex items-center justify-between animate-fade-in">
+    <header className="px-4 md:px-6 py-4 bg-primary shadow-md z-10 text-white flex items-center justify-between animate-fade-in">
       <div className="flex items-center space-x-3">
         <Link
           to="/"
-          className="flex items-center space-x-2 hover:text-white/80 transition-colors bg-indigo-700 px-3 py-1.5 rounded-lg"
+          className="flex items-center space-x-2 hover:text-white/80 transition-colors bg-primary/80 px-3 py-1.5 rounded-lg"
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="text-sm md:text-base">Back to Portfolio</span>
@@ -19,7 +19,7 @@ const Header: React.FC = () => {
         <h1 className="text-lg md:text-xl font-semibold">Agent Dashboard</h1>
       </div>
       <div className="flex items-center">
-        <div className="flex items-center space-x-2 text-white/90 bg-indigo-700/50 px-3 py-1.5 rounded-lg">
+        <div className="flex items-center space-x-2 text-white/90 bg-primary/70 px-3 py-1.5 rounded-lg">
           <CalendarCheck className="h-4 w-4" />
           <span className="text-sm">
             {today.toLocaleDateString('en-US', {

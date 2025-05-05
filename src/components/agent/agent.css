@@ -17,6 +17,17 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+.frosted-glass {
+  background-color: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+
 /* Custom scrollbar for webkit browsers */
 ::-webkit-scrollbar {
   width: 8px;
@@ -29,12 +40,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(79, 70, 229, 0.5);
+  background: rgba(23, 78, 79, 0.5); /* Using teal color from the site */
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(79, 70, 229, 0.7);
+  background: rgba(23, 78, 79, 0.7);
 }
 
 /* Animations */

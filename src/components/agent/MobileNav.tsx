@@ -15,7 +15,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ activePage, setActivePage }) => {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-indigo-800 shadow-lg z-10">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-primary shadow-lg z-10">
       <div className="flex justify-around items-center py-3 px-2">
         {menuItems.map((item) => (
           <button
@@ -23,8 +23,8 @@ const MobileNav: React.FC<MobileNavProps> = ({ activePage, setActivePage }) => {
             onClick={() => setActivePage(item.id)}
             className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
               activePage === item.id
-                ? 'text-white bg-indigo-600 shadow-md'
-                : 'text-white/80 hover:text-white hover:bg-indigo-700'
+                ? 'text-white bg-primary/80 shadow-md'
+                : 'text-white/80 hover:text-white hover:bg-primary/70'
             }`}
           >
             {item.icon}
@@ -32,7 +32,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ activePage, setActivePage }) => {
           </button>
         ))}
       </div>
-      <div className="h-1 bg-indigo-600"></div>
+      <div className="h-1 bg-primary/80"></div>
     </div>
   );
 };

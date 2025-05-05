@@ -39,19 +39,19 @@ const Agent = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
       {/* Fixed header at the top */}
-      <div className="fixed top-0 left-0 right-0 z-20">
+      <div className="fixed top-0 left-0 right-0 z-20 w-full">
         <Header />
       </div>
 
-      <div className="flex flex-1 pt-16">
-        {/* Sidebar */}
+      <div className="flex flex-1 pt-16 w-full">
+        {/* Sidebar - hidden on mobile */}
         <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
         {/* Main content area */}
-        <main className="flex-1 p-4 md:p-6 overflow-auto pb-24 md:pb-6 md:ml-20">
-          <div className="glass-card p-4 md:p-6 h-full rounded-xl shadow-lg">
+        <main className="flex-1 p-2 md:p-6 overflow-auto pb-24 md:pb-6 md:ml-0 w-full">
+          <div className="frosted-glass p-3 md:p-6 h-full rounded-xl shadow-lg">
             {renderActivePage()}
           </div>
         </main>
