@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  Expense, 
-  initialExpenses, 
-  expenseCategories, 
-  generateId, 
-  formatCurrency 
+import {
+  Expense,
+  initialExpenses,
+  expenseCategories,
+  generateId,
+  formatCurrency
 } from '@/utils/agentData';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 const SpendingTracker: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
@@ -18,7 +19,7 @@ const SpendingTracker: React.FC = () => {
 
   const handleAddExpense = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newExpense.amount > 0) {
       const expense: Expense = {
         id: generateId(),
@@ -26,7 +27,7 @@ const SpendingTracker: React.FC = () => {
         amount: newExpense.amount,
         date: new Date(newExpense.date)
       };
-      
+
       setExpenses([expense, ...expenses]);
       setNewExpense({
         category: 'Housing',
@@ -39,7 +40,7 @@ const SpendingTracker: React.FC = () => {
 
   const getTotalByCategory = () => {
     const totals: Record<string, number> = {};
-    
+
     expenses.forEach(expense => {
       if (totals[expense.category]) {
         totals[expense.category] += expense.amount;
@@ -47,7 +48,7 @@ const SpendingTracker: React.FC = () => {
         totals[expense.category] = expense.amount;
       }
     });
-    
+
     return Object.keys(totals).map(category => {
       const categoryInfo = expenseCategories.find(c => c.name === category);
       return {
@@ -65,8 +66,8 @@ const SpendingTracker: React.FC = () => {
     <div className="h-full overflow-y-auto pb-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-primary">Spending Tracker</h2>
-        <button 
-          onClick={() => setShowForm(!showForm)} 
+        <button
+          onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           {showForm ? 'Cancel' : 'Add Expense'}
@@ -91,7 +92,7 @@ const SpendingTracker: React.FC = () => {
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium mb-1">Amount</label>
               <input
@@ -105,7 +106,7 @@ const SpendingTracker: React.FC = () => {
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium mb-1">Date</label>
               <input
@@ -116,9 +117,9 @@ const SpendingTracker: React.FC = () => {
                 required
               />
             </div>
-            
-            <button 
-              type="submit" 
+
+            <button
+              type="submit"
               className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
               Add Expense
@@ -131,12 +132,39 @@ const SpendingTracker: React.FC = () => {
       <div className="glass-card p-4 mb-6 animate-fade-in">
         <h3 className="font-medium mb-2">Spending Breakdown</h3>
         <p className="text-2xl font-bold mb-4">{formatCurrency(totalExpenses)}</p>
-        
-        <div className="h-64 flex items-center justify-center">
-          <div className="text-center text-primary/70">
-            <p>Pie chart visualization would appear here</p>
-            <p className="text-sm mt-2">Using data from {pieData.length} categories</p>
-          </div>
+
+        <div className="h-64">
+          {pieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  innerRadius={40}
+                  fill="#8884d8"
+                  dataKey="value"
+                  nameKey="name"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value: number) => formatCurrency(value)}
+                  labelFormatter={(name) => `Category: ${name}`}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-center text-primary/70">
+              <p>No spending data to display</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -147,11 +175,11 @@ const SpendingTracker: React.FC = () => {
           {expenses.slice(0, 5).map(expense => (
             <div key={expense.id} className="glass p-3 rounded-lg flex justify-between items-center">
               <div className="flex items-center">
-                <div 
+                <div
                   className="w-3 h-3 rounded-full mr-3"
-                  style={{ 
+                  style={{
                     backgroundColor: expenseCategories.find(c => c.name === expense.category)?.color || '#174E4F'
-                  }} 
+                  }}
                 />
                 <span>{expense.category}</span>
               </div>
@@ -163,7 +191,7 @@ const SpendingTracker: React.FC = () => {
               </div>
             </div>
           ))}
-          
+
           {expenses.length === 0 && (
             <p className="text-center text-primary/50 py-4">No expenses recorded yet.</p>
           )}

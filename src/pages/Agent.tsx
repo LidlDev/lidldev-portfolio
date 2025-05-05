@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import '../components/agent/agent.css';
 
-// We'll import the components from Frosted Focus Flow
-// These will be copied over in subsequent steps
+// Import components
 import Header from '@/components/agent/Header';
 import Sidebar from '@/components/agent/Sidebar';
+import MobileNav from '@/components/agent/MobileNav';
 import TodoList from '@/components/agent/todo/TodoList';
 import FinancialGoals from '@/components/agent/finance/FinancialGoals';
 import SpendingTracker from '@/components/agent/finance/SpendingTracker';
@@ -46,12 +46,15 @@ const Agent = () => {
         <div className="flex flex-1 overflow-hidden">
           <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
-          <main className="flex-1 p-6 overflow-hidden">
-            <div className="glass-card p-6 h-full overflow-hidden">
+          <main className="flex-1 p-4 md:p-6 overflow-hidden pb-20 md:pb-6">
+            <div className="glass-card p-4 md:p-6 h-full overflow-hidden">
               {renderActivePage()}
             </div>
           </main>
         </div>
+
+        {/* Mobile bottom navigation */}
+        <MobileNav activePage={activePage} setActivePage={setActivePage} />
       </div>
     </>
   );
