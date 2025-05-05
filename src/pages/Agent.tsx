@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Helmet } from 'react-helmet';
+import React, { useState, useEffect } from 'react';
 import '../components/agent/agent.css';
 
 // We'll import the components from Frosted Focus Flow
@@ -13,6 +12,16 @@ import UpcomingPayments from '@/components/agent/finance/UpcomingPayments';
 
 const Agent = () => {
   const [activePage, setActivePage] = useState('tasks');
+
+  // Set document title when component mounts
+  useEffect(() => {
+    document.title = 'Agent | LidlDev Portfolio';
+
+    // Restore original title when component unmounts
+    return () => {
+      document.title = 'Portfolio';
+    };
+  }, []);
 
   const renderActivePage = () => {
     switch (activePage) {
@@ -31,9 +40,6 @@ const Agent = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Agent | LidlDev Portfolio</title>
-      </Helmet>
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
         <Header />
 
