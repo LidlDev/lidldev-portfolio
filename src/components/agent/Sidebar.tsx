@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
       <aside
         className={`
           hidden md:flex flex-col bg-primary shadow-lg
-          h-[calc(100vh-4rem)] transition-all duration-300 mt-16
+          h-[calc(100vh-4rem)] transition-all duration-300
           ${collapsed ? 'w-20' : 'w-64'}
         `}
       >

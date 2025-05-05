@@ -50,8 +50,8 @@ const Agent = () => {
         <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
         {/* Main content area */}
-        <main className="flex-1 p-2 md:p-6 overflow-auto pb-24 md:pb-6 md:ml-0 w-full">
-          <div className="frosted-glass p-3 md:p-6 h-full rounded-xl shadow-lg">
+        <main className="flex-1 p-2 md:p-6 overflow-auto pb-24 md:pb-6 w-full">
+          <div className="bg-white p-3 md:p-6 h-full rounded-xl shadow-lg">
             {renderActivePage()}
           </div>
         </main>
