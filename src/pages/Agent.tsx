@@ -10,8 +10,14 @@ import FinancialGoals from '@/components/agent/finance/FinancialGoals';
 import SpendingTracker from '@/components/agent/finance/SpendingTracker';
 import UpcomingPayments from '@/components/agent/finance/UpcomingPayments';
 
+// Import auth redirect utility
+import { useAuthRedirect } from '@/utils/authRedirect';
+
 const Agent = () => {
   const [activePage, setActivePage] = useState('tasks');
+
+  // Use the auth redirect hook to handle OAuth redirects
+  useAuthRedirect();
 
   // Set document title when component mounts
   useEffect(() => {

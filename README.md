@@ -105,18 +105,20 @@ For database setup instructions, see [supabase/README.md](supabase/README.md).
 
 ## How is this project deployed?
 
-This project is deployed using GitHub Pages with a custom domain (www.lidldev.com).
+This project is deployed using Vercel with a custom domain (www.lidldev.com).
 
-When changes are pushed to the main branch, a GitHub Actions workflow automatically builds and deploys the site.
+When changes are pushed to the main branch, Vercel automatically builds and deploys the site.
 
 **Important Note**: When deploying to production, make sure to:
-1. Set up the proper environment variables in your CI/CD pipeline
+1. Set up the proper environment variables in Vercel
 2. Configure OAuth providers with the production domain
 3. Update the Supabase project settings for production use
 
+For detailed deployment instructions, see [docs/VERCEL_SETUP.md](docs/VERCEL_SETUP.md).
+
 ## Custom Domain
 
-This project uses a custom domain (www.lidldev.com) configured in the GitHub Pages settings.
+This project uses a custom domain (www.lidldev.com) configured in the Vercel settings.
 
 ## Security Considerations
 

@@ -10,12 +10,12 @@ export const isProduction = (): boolean => {
   if (import.meta.env.PROD) {
     return true;
   }
-  
+
   // Check if we're running on the production domain
   const hostname = window.location.hostname;
-  return hostname === 'www.lidldev.com' || 
-         hostname === 'lidldev.com' || 
-         hostname === 'lidldev.github.io';
+  return hostname === 'www.lidldev.com' ||
+         hostname === 'lidldev.com' ||
+         hostname.endsWith('vercel.app');
 };
 
 /**
@@ -23,10 +23,15 @@ export const isProduction = (): boolean => {
  */
 export const getBaseUrl = (): string => {
   if (isProduction()) {
-    // Use the actual domain in production
-    return 'https://www.lidldev.com';
+    // For Vercel deployments, use the current hostname
+    const hostname = window.location.hostname;
+    if (hostname === 'www.lidldev.com' || hostname === 'lidldev.com') {
+      return 'https://www.lidldev.com';
+    }
+    // For preview deployments on Vercel
+    return `${window.location.protocol}//${window.location.host}`;
   }
-  
+
   // Use localhost with the current port in development
   return `${window.location.protocol}//${window.location.host}`;
 };

@@ -101,6 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           redirectTo: redirectUrl,
           // Specify scopes explicitly
           scopes: 'email profile',
+          queryParams: {
+            // Force the redirect to go to /agent
+            redirect_to: redirectUrl
+          }
         },
       });
 
@@ -133,6 +137,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           redirectTo: redirectUrl,
           // Specify scopes explicitly
           scopes: 'user:email',
+          queryParams: {
+            // Force the redirect to go to /agent
+            redirect_to: redirectUrl
+          }
         },
       });
 
