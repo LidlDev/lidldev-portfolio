@@ -70,10 +70,10 @@ const Hero: React.FC = () => {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-balance">
               <span className="magic-text">Harry</span>
               <br />
-              <span className="relative">
-                {text}
-                <span className="absolute -right-2 animate-pulse">|</span>
-              </span>
+              <div className="h-[1.25em] relative">
+                <span>{text}</span>
+                <span className="absolute inline-block animate-pulse">|</span>
+              </div>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl">
               I build beautiful, interactive web applications with modern technologies.
