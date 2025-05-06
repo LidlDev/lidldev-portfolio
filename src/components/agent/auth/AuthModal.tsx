@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
+import EnvDebug from './EnvDebug';
 import { X } from 'lucide-react';
 
 type AuthView = 'login' | 'signup' | 'forgotPassword';
@@ -13,6 +14,7 @@ interface AuthModalProps {
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [view, setView] = useState<AuthView>('login');
+  const [showDebug, setShowDebug] = useState(false);
 
   if (!isOpen) return null;
 
@@ -37,18 +39,28 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         >
           <X className="h-6 w-6" />
         </button>
-        
+
+        {/* Debug button - only for development */}
+        <button
+          onClick={() => setShowDebug(!showDebug)}
+          className="absolute top-4 left-4 text-xs text-gray-500 hover:text-gray-700 z-10"
+        >
+          Debug
+        </button>
+
+        {showDebug && <EnvDebug />}
+
         {view === 'login' && (
-          <LoginForm 
-            onToggleForm={handleToggleForm} 
-            onForgotPassword={handleForgotPassword} 
+          <LoginForm
+            onToggleForm={handleToggleForm}
+            onForgotPassword={handleForgotPassword}
           />
         )}
-        
+
         {view === 'signup' && (
           <SignupForm onToggleForm={handleToggleForm} />
         )}
-        
+
         {view === 'forgotPassword' && (
           <ForgotPasswordForm onBack={handleBackToLogin} />
         )}

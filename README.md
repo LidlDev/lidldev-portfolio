@@ -32,7 +32,9 @@ This project uses environment variables for configuration. Before running the ap
    VITE_SUPABASE_ANON_KEY=your-anon-key
    ```
 
-3. For OAuth setup (Google and GitHub authentication), follow the instructions in [docs/OAUTH_SETUP.md](docs/OAUTH_SETUP.md)
+3. For detailed environment setup instructions, see [docs/ENV_SETUP.md](docs/ENV_SETUP.md)
+
+4. For OAuth setup (Google and GitHub authentication), follow the instructions in [docs/OAUTH_SETUP.md](docs/OAUTH_SETUP.md)
 
 ## How can I edit this code?
 

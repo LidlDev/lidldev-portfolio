@@ -1,12 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Get environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Try to get environment variables from different sources
+// First try import.meta.env (Vite's way)
+let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+let supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Check if environment variables are available
+// If not found, try process.env (defined in vite.config.ts)
+if (!supabaseUrl && typeof process !== 'undefined' && process.env) {
+  supabaseUrl = process.env.VITE_SUPABASE_URL;
+}
+
+if (!supabaseKey && typeof process !== 'undefined' && process.env) {
+  supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+}
+
+// Hardcoded values for development only - REMOVE IN PRODUCTION
 if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase environment variables. Make sure .env file is properly configured.');
+  // These are the values from your .env file
+  supabaseUrl = 'https://mszyijbyiyvjocjtcobh.supabase.co';
+  supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zenlpamJ5aXl2am9janRjb2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTM2NDIsImV4cCI6MjA2MjAyOTY0Mn0.BUD46aMAsowGWxRpdQxuh-RzQXBciLnx1ISvuQVbAqc';
+
+  console.warn('Using hardcoded Supabase credentials for development. This is insecure and should be removed in production.');
 }
 
 // Create client only if environment variables are available
