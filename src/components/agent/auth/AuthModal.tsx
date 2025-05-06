@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
-import EnvDebug from './EnvDebug';
+import AuthSuccess from './AuthSuccess';
 import { X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-type AuthView = 'login' | 'signup' | 'forgotPassword';
+type AuthView = 'login' | 'signup' | 'forgotPassword' | 'success';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,7 +15,16 @@ interface AuthModalProps {
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [view, setView] = useState<AuthView>('login');
-  const [showDebug, setShowDebug] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const { user } = useAuth();
+
+  // Check if user is logged in
+  useEffect(() => {
+    if (user && isOpen) {
+      setSuccessMessage('You have successfully signed in!');
+      setView('success');
+    }
+  }, [user, isOpen]);
 
   if (!isOpen) return null;
 
@@ -30,6 +40,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setView('login');
   };
 
+  const handleSuccessComplete = () => {
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 animate-fade-in">
       <div className="relative w-full max-w-md mx-4 animate-scale-in">
@@ -39,16 +53,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         >
           <X className="h-6 w-6" />
         </button>
-
-        {/* Debug button - only for development */}
-        <button
-          onClick={() => setShowDebug(!showDebug)}
-          className="absolute top-4 left-4 text-xs text-gray-500 hover:text-gray-700 z-10"
-        >
-          Debug
-        </button>
-
-        {showDebug && <EnvDebug />}
 
         {view === 'login' && (
           <LoginForm
@@ -63,6 +67,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
         {view === 'forgotPassword' && (
           <ForgotPasswordForm onBack={handleBackToLogin} />
+        )}
+
+        {view === 'success' && (
+          <AuthSuccess
+            message={successMessage}
+            onComplete={handleSuccessComplete}
+          />
         )}
       </div>
     </div>

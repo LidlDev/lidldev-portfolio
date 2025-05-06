@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Github } from 'lucide-react';
+import { toast } from 'sonner';
 
 const signupSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -44,11 +45,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
 
       if (error) throw error;
 
-      setSuccessMessage(
-        'Registration successful! Please check your email for confirmation.'
-      );
+      const successMsg = 'Registration successful! Please check your email for confirmation.';
+      setSuccessMessage(successMsg);
+      toast.success(successMsg);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to sign up');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -143,7 +146,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
             type="button"
             onClick={signInWithGoogle}
             disabled={loading}
-            className="w-full py-2 px-4 flex justify-center items-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
+            className="w-full py-2 px-4 flex justify-center items-center bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path
@@ -151,7 +154,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
                 fill="#4285F4"
               />
             </svg>
-            <span className="ml-2">Google</span>
+            <span className="ml-2 text-gray-700 font-medium">Google</span>
           </button>
 
           <button

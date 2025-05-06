@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -39,11 +40,13 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
 
       if (error) throw error;
 
-      setSuccessMessage(
-        'Password reset instructions have been sent to your email.'
-      );
+      const successMsg = 'Password reset instructions have been sent to your email.';
+      setSuccessMessage(successMsg);
+      toast.success(successMsg);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send reset email');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

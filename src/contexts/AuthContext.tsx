@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 type AuthContextType = {
   session: Session | null;
@@ -93,8 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { getRedirectUrl } = await import('@/utils/environment');
       const redirectUrl = getRedirectUrl('/agent');
 
-      console.log('Using redirect URL:', redirectUrl);
-
+      // Use popup mode for a better user experience
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -104,21 +104,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           queryParams: {
             // Force the redirect to go to /agent
             redirect_to: redirectUrl
-          }
+          },
+          // Use popup mode instead of redirect
+          flowType: 'popup'
         },
       });
 
       if (error) {
         console.error('Supabase Google OAuth error:', error);
-        alert(`Google sign-in error: ${error.message}`);
+        toast.error(`Google sign-in error: ${error.message}`);
         return;
       }
 
+      // The popup will close automatically and the user will be signed in
       console.log('Google OAuth initiated:', data);
-      // The user will be redirected to Google's OAuth page
+
+      // Show success toast if we get here (popup flow completed)
+      if (data) {
+        toast.success('Successfully signed in with Google!');
+      }
     } catch (error) {
       console.error('Error signing in with Google:', error);
-      alert(`Failed to initiate Google sign-in: ${error instanceof Error ? error.message : String(error)}`);
+      toast.error(`Failed to sign in with Google: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -129,8 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { getRedirectUrl } = await import('@/utils/environment');
       const redirectUrl = getRedirectUrl('/agent');
 
-      console.log('Using redirect URL:', redirectUrl);
-
+      // Use popup mode for a better user experience
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
@@ -140,21 +146,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           queryParams: {
             // Force the redirect to go to /agent
             redirect_to: redirectUrl
-          }
+          },
+          // Use popup mode instead of redirect
+          flowType: 'popup'
         },
       });
 
       if (error) {
         console.error('Supabase GitHub OAuth error:', error);
-        alert(`GitHub sign-in error: ${error.message}`);
+        toast.error(`GitHub sign-in error: ${error.message}`);
         return;
       }
 
+      // The popup will close automatically and the user will be signed in
       console.log('GitHub OAuth initiated:', data);
-      // The user will be redirected to GitHub's OAuth page
+
+      // Show success toast if we get here (popup flow completed)
+      if (data) {
+        toast.success('Successfully signed in with GitHub!');
+      }
     } catch (error) {
       console.error('Error signing in with GitHub:', error);
-      alert(`Failed to initiate GitHub sign-in: ${error instanceof Error ? error.message : String(error)}`);
+      toast.error(`Failed to sign in with GitHub: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
