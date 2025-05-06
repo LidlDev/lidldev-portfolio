@@ -87,7 +87,7 @@ const Projects: React.FC = () => {
     {
       title: "Spike! Volleyball App",
       description: "Interactive app for volleyball teams, communication, and training.",
-      tags: ["Flutter", "Firebase", "Mobile"],
+      tags: ["Java", "Swift", "Firebase",],
       imageUrl: "https://images.unsplash.com/photo-1592656094267-764a45160876?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
       projectUrl: "https://example.com/spike",
       githubUrl: "https://github.com/username/spike",
