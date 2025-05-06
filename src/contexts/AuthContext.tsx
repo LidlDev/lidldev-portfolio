@@ -89,10 +89,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       console.log('Attempting to sign in with Google...');
+      // Import the environment utility dynamically to avoid circular dependencies
+      const { getRedirectUrl } = await import('@/utils/environment');
+      const redirectUrl = getRedirectUrl('/agent');
+
+      console.log('Using redirect URL:', redirectUrl);
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/agent`,
+          redirectTo: redirectUrl,
+          // Specify scopes explicitly
+          scopes: 'email profile',
         },
       });
 
@@ -113,10 +121,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGithub = async () => {
     try {
       console.log('Attempting to sign in with GitHub...');
+      // Import the environment utility dynamically to avoid circular dependencies
+      const { getRedirectUrl } = await import('@/utils/environment');
+      const redirectUrl = getRedirectUrl('/agent');
+
+      console.log('Using redirect URL:', redirectUrl);
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/agent`,
+          redirectTo: redirectUrl,
+          // Specify scopes explicitly
+          scopes: 'user:email',
         },
       });
 
@@ -136,11 +152,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     try {
+      // Import the environment utility dynamically to avoid circular dependencies
+      const { getRedirectUrl } = await import('@/utils/environment');
+      const redirectUrl = getRedirectUrl('/agent');
+
+      console.log('Using email redirect URL:', redirectUrl);
+
       return await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/agent`,
+          emailRedirectTo: redirectUrl,
         },
       });
     } catch (error) {
@@ -159,8 +181,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
+      // Import the environment utility dynamically to avoid circular dependencies
+      const { getRedirectUrl } = await import('@/utils/environment');
+      const redirectUrl = getRedirectUrl('/agent/reset-password');
+
+      console.log('Using password reset redirect URL:', redirectUrl);
+
       return await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/agent/reset-password`,
+        redirectTo: redirectUrl,
       });
     } catch (error) {
       console.error('Error resetting password:', error);

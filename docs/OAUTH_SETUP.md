@@ -29,14 +29,14 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 3. Navigate to "APIs & Services" > "Credentials"
 4. Click "Create Credentials" > "OAuth client ID"
 5. Select "Web application" as the application type
-6. Add a name for your OAuth client (e.g., "My App Authentication")
+6. Add a name for your OAuth client (e.g., "LidlDev Portfolio Authentication")
 7. Add authorized JavaScript origins:
-   - For development: `http://localhost:8080`
-   - For production: `https://your-domain.com`
+   - For development: `http://localhost:8080` and `http://localhost:8081`
+   - For production: `https://www.lidldev.com` and `https://lidldev.com`
 8. Add authorized redirect URIs:
-   - For development: `http://localhost:8080/agent`
-   - For production: `https://your-domain.com/agent`
-   - Also add your Supabase URL: `https://your-project-id.supabase.co/auth/v1/callback`
+   - For development: `http://localhost:8080/agent` and `http://localhost:8081/agent`
+   - For production: `https://www.lidldev.com/agent` and `https://lidldev.com/agent`
+   - Also add your Supabase URL: `https://mszyijbyiyvjocjtcobh.supabase.co/auth/v1/callback`
 9. Click "Create"
 10. Note down the "Client ID" and "Client Secret"
 
@@ -55,12 +55,12 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
 2. Click on "OAuth Apps" > "New OAuth App"
 3. Fill in the application details:
-   - Application name: Your app name
-   - Homepage URL: 
+   - Application name: LidlDev Portfolio
+   - Homepage URL:
      - For development: `http://localhost:8080`
-     - For production: `https://your-domain.com`
-   - Authorization callback URL: 
-     - `https://your-project-id.supabase.co/auth/v1/callback`
+     - For production: `https://www.lidldev.com`
+   - Authorization callback URL:
+     - `https://mszyijbyiyvjocjtcobh.supabase.co/auth/v1/callback`
 4. Click "Register application"
 5. Generate a new client secret
 6. Note down the "Client ID" and "Client Secret"
@@ -153,7 +153,38 @@ await supabase.auth.signInWithOAuth({
 
 1. Update all OAuth redirect URIs to use your production domain.
 2. Ensure your production environment variables are properly set.
-3. Test the authentication flow in production before releasing to users.
-4. Monitor authentication logs for any unusual activity.
+3. Add the Supabase environment variables as GitHub repository secrets:
+   - Go to your GitHub repository
+   - Navigate to Settings > Secrets and variables > Actions
+   - Add the following repository secrets:
+     - `VITE_SUPABASE_URL`: `https://mszyijbyiyvjocjtcobh.supabase.co`
+     - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+4. Test the authentication flow in production before releasing to users.
+5. Monitor authentication logs for any unusual activity.
+
+## 8. Troubleshooting OAuth Redirect Issues
+
+If you encounter OAuth redirect issues in production:
+
+1. **Check the redirect URLs in your OAuth providers**:
+   - Make sure both `https://www.lidldev.com` and `https://lidldev.com` are added as authorized origins
+   - Make sure both `https://www.lidldev.com/agent` and `https://lidldev.com/agent` are added as authorized redirect URIs
+
+2. **Check the redirect URLs in Supabase**:
+   - Go to Authentication > URL Configuration
+   - Make sure the Site URL is set to your production domain (`https://www.lidldev.com`)
+   - Make sure the Redirect URLs include both development and production URLs:
+     - `http://localhost:8080/agent`
+     - `http://localhost:8081/agent`
+     - `https://www.lidldev.com/agent`
+     - `https://lidldev.com/agent`
+
+3. **Check for hardcoded localhost URLs in your code**:
+   - Make sure all redirect URLs are using the environment utility functions
+   - Check for any hardcoded `localhost` URLs in your code
+
+4. **Clear browser cache and cookies**:
+   - Sometimes OAuth issues can be caused by cached tokens or cookies
+   - Try clearing your browser cache and cookies before testing again
 
 For more detailed information, refer to the [Supabase Authentication documentation](https://supabase.com/docs/guides/auth).
