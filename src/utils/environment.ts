@@ -42,3 +42,11 @@ export const getBaseUrl = (): string => {
 export const getRedirectUrl = (path: string = '/agent'): string => {
   return `${getBaseUrl()}${path}`;
 };
+
+/**
+ * Gets the auth callback URL for OAuth authentication
+ * This is a special page that will close the popup and notify the parent window
+ */
+export const getAuthCallbackUrl = (): string => {
+  return `${getBaseUrl()}/auth-callback.html?autoclose=true`;
+};
