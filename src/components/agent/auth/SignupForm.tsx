@@ -39,11 +39,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
       setLoading(true);
       setError(null);
       setSuccessMessage(null);
-      
+
       const { error } = await signUp(data.email, data.password);
-      
+
       if (error) throw error;
-      
+
       setSuccessMessage(
         'Registration successful! Please check your email for confirmation.'
       );
@@ -57,19 +57,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
   return (
     <div className="w-full max-w-md p-6 bg-white rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold text-primary mb-6 text-center">Create Account</h2>
-      
+
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
         </div>
       )}
-      
+
       {successMessage && (
         <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
           {successMessage}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-primary mb-1">
@@ -79,14 +79,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
             id="email"
             type="email"
             {...register('email')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
             disabled={loading}
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
           )}
         </div>
-        
+
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-primary mb-1">
             Password
@@ -95,14 +95,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
             id="password"
             type="password"
             {...register('password')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
             disabled={loading}
           />
           {errors.password && (
             <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
           )}
         </div>
-        
+
         <div>
           <label htmlFor="confirmPassword" className="block text-sm font-medium text-primary mb-1">
             Confirm Password
@@ -111,14 +111,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
             id="confirmPassword"
             type="password"
             {...register('confirmPassword')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
             disabled={loading}
           />
           {errors.confirmPassword && (
             <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
           )}
         </div>
-        
+
         <button
           type="submit"
           disabled={loading}
@@ -127,7 +127,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
           {loading ? 'Creating account...' : 'Sign Up'}
         </button>
       </form>
-      
+
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
@@ -137,7 +137,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
             <span className="px-2 bg-white text-gray-500">Or continue with</span>
           </div>
         </div>
-        
+
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button
             type="button"
@@ -153,7 +153,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
             </svg>
             <span className="ml-2">Google</span>
           </button>
-          
+
           <button
             type="button"
             onClick={signInWithGithub}
@@ -165,7 +165,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
           </button>
         </div>
       </div>
-      
+
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
           Already have an account?{' '}

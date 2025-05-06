@@ -1,14 +1,59 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Get environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Use default values for development if environment variables are not available
-const url = supabaseUrl || 'https://mszyijbyiyvjocjtcobh.supabase.co';
-const key = supabaseKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zenlpamJ5aXl2am9janRjb2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTM2NDIsImV4cCI6MjA2MjAyOTY0Mn0.BUD46aMAsowGWxRpdQxuh-RzQXBciLnx1ISvuQVbAqc';
-
-if (!url || !key) {
-  console.warn('Missing Supabase environment variables, using fallback values');
+// Check if environment variables are available
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase environment variables. Make sure .env file is properly configured.');
 }
 
-export const supabase = createClient(url, key);
+// Create client only if environment variables are available
+let supabase: ReturnType<typeof createClient>;
+
+try {
+  if (supabaseUrl && supabaseKey) {
+    supabase = createClient(supabaseUrl, supabaseKey);
+  } else {
+    // Create a mock client that will throw errors when used
+    // This prevents the app from crashing but ensures no operations succeed without proper setup
+    supabase = {
+      auth: {
+        getSession: () => Promise.resolve({ data: { session: null } }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+        signInWithPassword: () => Promise.resolve({ error: new Error('Supabase not configured'), data: { user: null, session: null } }),
+        signInWithOAuth: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+        signUp: () => Promise.resolve({ error: new Error('Supabase not configured'), data: { user: null, session: null } }),
+        signOut: () => Promise.resolve({ error: null }),
+        resetPasswordForEmail: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            order: () => Promise.resolve({ data: [], error: new Error('Supabase not configured') }),
+          }),
+        }),
+        insert: () => ({
+          select: () => Promise.resolve({ data: [], error: new Error('Supabase not configured') }),
+        }),
+        update: () => ({
+          eq: () => ({
+            eq: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+          }),
+        }),
+        delete: () => ({
+          eq: () => ({
+            eq: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+          }),
+        }),
+      }),
+    } as any;
+  }
+} catch (error) {
+  console.error('Error initializing Supabase client:', error);
+  // Create the mock client as above
+  supabase = {} as any;
+}
+
+export { supabase };

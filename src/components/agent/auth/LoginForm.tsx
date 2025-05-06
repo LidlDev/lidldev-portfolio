@@ -46,13 +46,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
   return (
     <div className="w-full max-w-md p-6 bg-white rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold text-primary mb-6 text-center">Sign In</h2>
-      
+
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-primary mb-1">
@@ -62,14 +62,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
             id="email"
             type="email"
             {...register('email')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
             disabled={loading}
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
           )}
         </div>
-        
+
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-primary mb-1">
             Password
@@ -78,14 +78,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
             id="password"
             type="password"
             {...register('password')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
             disabled={loading}
           />
           {errors.password && (
             <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
           )}
         </div>
-        
+
         <div className="flex justify-end">
           <button
             type="button"
@@ -95,7 +95,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
             Forgot password?
           </button>
         </div>
-        
+
         <button
           type="submit"
           disabled={loading}
@@ -104,7 +104,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
-      
+
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
@@ -114,7 +114,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
             <span className="px-2 bg-white text-gray-500">Or continue with</span>
           </div>
         </div>
-        
+
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button
             type="button"
@@ -130,7 +130,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
             </svg>
             <span className="ml-2">Google</span>
           </button>
-          
+
           <button
             type="button"
             onClick={signInWithGithub}
@@ -142,7 +142,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
           </button>
         </div>
       </div>
-      
+
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
           Don't have an account?{' '}
