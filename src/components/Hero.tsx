@@ -5,6 +5,7 @@ import { scrollToElement } from "../utils/scrollUtils";
 const Hero: React.FC = () => {
   const phrases = [
     "Crafting Digital Experiences",
+    "Designing Mobile Interfaces",
     "Building ML-Powered Solutions",
     "Creating Intuitive UI/UX"
   ];
@@ -31,7 +32,7 @@ const Hero: React.FC = () => {
     setText(updatedText);
 
     if (isDeleting) {
-      setDelta(prevDelta => prevDelta / 1.1);
+      setDelta(30); // Much faster deletion speed
     }
 
     if (!isDeleting && updatedText === currentPhrase) {
@@ -43,7 +44,7 @@ const Hero: React.FC = () => {
       setPhraseIndex((prevIndex) => (prevIndex + 1) % phrases.length);
       setDelta(500);
     } else if (isDeleting) {
-      setDelta(150);
+      setDelta(30); // Consistent fast deletion
     } else {
       setDelta(200 - Math.random() * 100);
     }
