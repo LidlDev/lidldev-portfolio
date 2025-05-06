@@ -5,7 +5,6 @@ import { scrollToElement } from "../utils/scrollUtils";
 const Hero: React.FC = () => {
   const phrases = [
     "Crafting Digital Experiences",
-    "Designing Mobile Interfaces",
     "Building ML-Powered Solutions",
     "Creating Intuitive UI/UX"
   ];
