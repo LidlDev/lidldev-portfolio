@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
@@ -17,20 +17,35 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [view, setView] = useState<AuthView>('login');
   const [successMessage, setSuccessMessage] = useState('');
   const { user } = useAuth();
+  const previousAuthState = useRef<{ isOpen: boolean; user: any }>({ isOpen, user });
+  const hasShownSuccess = useRef<boolean>(false);
 
   // Check if user is logged in
   useEffect(() => {
-    if (user && isOpen) {
+    // Only show success animation when:
+    // 1. The modal is open
+    // 2. The user just signed in (user changed from null to non-null)
+    // 3. We haven't shown the success animation for this session yet
+    const userJustSignedIn = !previousAuthState.current.user && user && isOpen;
+
+    if (userJustSignedIn && !hasShownSuccess.current) {
+      console.log('User just signed in, showing success animation');
       setSuccessMessage('You have successfully signed in!');
       setView('success');
+      hasShownSuccess.current = true;
 
       // Close the modal after a short delay
       const timer = setTimeout(() => {
         onClose();
+        // Reset the success flag when the modal closes
+        hasShownSuccess.current = false;
       }, 1500);
 
       return () => clearTimeout(timer);
     }
+
+    // Update previous state for next comparison
+    previousAuthState.current = { isOpen, user };
   }, [user, isOpen, onClose]);
 
   if (!isOpen) return null;

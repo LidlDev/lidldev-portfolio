@@ -66,11 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Show success message when user signs in
-        if (event === 'SIGNED_IN') {
-          console.log('User signed in successfully');
-          toast.success('Successfully signed in!');
-        } else if (event === 'SIGNED_OUT') {
+        // Only show toast notifications for sign-out events
+        // (sign-in success will be handled by the modal)
+        if (event === 'SIGNED_OUT') {
           console.log('User signed out');
           toast.success('Successfully signed out');
         }

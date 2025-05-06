@@ -26,6 +26,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -39,8 +40,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm, onForgotPassword })
 
       if (error) throw error;
 
-      // Success - show toast notification
-      toast.success('Successfully signed in!');
+      // Success - reset form
+      reset();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
       setError(errorMessage);

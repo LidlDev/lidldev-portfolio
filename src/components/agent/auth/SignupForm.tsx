@@ -30,6 +30,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -48,6 +49,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onToggleForm }) => {
       const successMsg = 'Registration successful! Please check your email for confirmation.';
       setSuccessMessage(successMsg);
       toast.success(successMsg);
+
+      // Reset form on success
+      reset();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
       setError(errorMessage);

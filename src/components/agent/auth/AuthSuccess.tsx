@@ -10,6 +10,9 @@ const AuthSuccess: React.FC<AuthSuccessProps> = ({ message, onComplete }) => {
   const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
+    // Force a layout reflow to ensure animation plays
+    const forceReflow = document.body.offsetHeight;
+
     // Trigger the completion callback after the animation finishes
     const timer = setTimeout(() => {
       setAnimationComplete(true);
@@ -21,7 +24,7 @@ const AuthSuccess: React.FC<AuthSuccessProps> = ({ message, onComplete }) => {
 
   return (
     <div className="w-full max-w-md p-6 bg-white rounded-xl shadow-lg flex flex-col items-center justify-center">
-      <div className="animate-bounce-in">
+      <div className="animate-bounce-in" key={Date.now()}>
         <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
       </div>
       <h2 className="text-xl font-bold text-primary mb-2 animate-fade-in">Success!</h2>

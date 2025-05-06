@@ -25,6 +25,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -43,6 +44,9 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
       const successMsg = 'Password reset instructions have been sent to your email.';
       setSuccessMessage(successMsg);
       toast.success(successMsg);
+
+      // Reset form on success
+      reset();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email';
       setError(errorMessage);
