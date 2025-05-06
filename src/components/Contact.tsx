@@ -137,7 +137,7 @@ const Contact: React.FC = () => {
                 {["github", "twitter", "linkedin", "instagram"].map((social) => (
                   <a
                     key={social}
-                    href={`https://${social}.com/username`}
+                    href={`https://${social}.com/LidlDev`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-3 bg-secondary/80 hover:bg-primary hover:text-white rounded-full transition-colors"
