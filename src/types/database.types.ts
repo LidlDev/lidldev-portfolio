@@ -1,0 +1,165 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export interface Database {
+  public: {
+    Tables: {
+      tasks: {
+        Row: {
+          id: string
+          created_at: string
+          title: string
+          completed: boolean
+          due_date: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          title: string
+          completed?: boolean
+          due_date?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          title?: string
+          completed?: boolean
+          due_date?: string | null
+          user_id?: string
+        }
+      }
+      financial_goals: {
+        Row: {
+          id: string
+          created_at: string
+          title: string
+          target: number
+          current: number
+          target_date: string | null
+          color: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          title: string
+          target: number
+          current: number
+          target_date?: string | null
+          color?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          title?: string
+          target?: number
+          current?: number
+          target_date?: string | null
+          color?: string
+          user_id?: string
+        }
+      }
+      expenses: {
+        Row: {
+          id: string
+          created_at: string
+          category: string
+          amount: number
+          date: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          category: string
+          amount: number
+          date: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          category?: string
+          amount?: number
+          date?: string
+          user_id?: string
+        }
+      }
+      payments: {
+        Row: {
+          id: string
+          created_at: string
+          title: string
+          amount: number
+          due_date: string
+          recurring: boolean
+          category: string
+          paid: boolean
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          title: string
+          amount: number
+          due_date: string
+          recurring?: boolean
+          category: string
+          paid?: boolean
+          user_id: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          title?: string
+          amount?: number
+          due_date?: string
+          recurring?: boolean
+          category?: string
+          paid?: boolean
+          user_id?: string
+        }
+      }
+      profiles: {
+        Row: {
+          id: string
+          created_at: string
+          email: string
+          display_name: string | null
+          avatar_url: string | null
+        }
+        Insert: {
+          id: string
+          created_at?: string
+          email: string
+          display_name?: string | null
+          avatar_url?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          email?: string
+          display_name?: string | null
+          avatar_url?: string | null
+        }
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+  }
+}
