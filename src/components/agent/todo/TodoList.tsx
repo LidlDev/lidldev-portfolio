@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import TodoItem from '@/components/agent/todo/TodoItem';
 import AddTodo from '@/components/agent/todo/AddTodo';
-import { Task, initialTasks } from '@/utils/agentData';
+import { Task, initialTasks, generateId } from '@/utils/agentData';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
@@ -17,51 +17,111 @@ interface DatabaseTask {
 
 const TodoList: React.FC = () => {
   const { user } = useAuth();
+  const [localTasks, setLocalTasks] = useState<Task[]>(initialTasks);
 
-  const {
-    data: tasks,
-    loading,
-    addItem,
-    updateItem,
-    deleteItem
-  } = useSupabaseData<DatabaseTask>({
-    table: 'tasks',
-    initialData: initialTasks.map(task => ({
-      id: task.id,
-      title: task.title,
-      completed: task.completed,
-      due_date: task.dueDate ? task.dueDate.toISOString() : null,
-      user_id: 'anonymous',
-      created_at: new Date().toISOString()
-    })),
-    orderBy: { column: 'created_at', ascending: false }
-  });
+  // Try to use Supabase data if available, otherwise fall back to local state
+  let useLocalData = true;
 
-  const handleAddTask = async (title: string, dueDate?: Date) => {
+  try {
+    var {
+      data: tasks,
+      loading,
+      addItem,
+      updateItem,
+      deleteItem
+    } = useSupabaseData<DatabaseTask>({
+      table: 'tasks',
+      initialData: initialTasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        completed: task.completed,
+        due_date: task.dueDate ? task.dueDate.toISOString() : null,
+        user_id: 'anonymous',
+        created_at: new Date().toISOString()
+      })),
+      orderBy: { column: 'created_at', ascending: false }
+    });
+
+    useLocalData = false;
+  } catch (error) {
+    console.error('Error using Supabase data:', error);
+    // Fall back to local state
+  }
+
+  // Local handlers (used when Supabase is not available)
+  const handleAddTaskLocal = (title: string, dueDate?: Date) => {
+    const newTask: Task = {
+      id: generateId(),
+      title,
+      completed: false,
+      dueDate
+    };
+
+    setLocalTasks([newTask, ...localTasks]);
+  };
+
+  const handleCompleteTaskLocal = (id: string) => {
+    setLocalTasks(
+      localTasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const handleDeleteTaskLocal = (id: string) => {
+    setLocalTasks(localTasks.filter(task => task.id !== id));
+  };
+
+  // Supabase handlers
+  const handleAddTaskSupabase = async (title: string, dueDate?: Date) => {
     if (!user) {
-      // If not logged in, show a message or prompt to log in
+      // If not logged in, fall back to local state
+      handleAddTaskLocal(title, dueDate);
       return;
     }
 
-    await addItem({
-      title,
-      completed: false,
-      due_date: dueDate ? dueDate.toISOString() : null
-    });
-  };
-
-  const handleCompleteTask = async (id: string) => {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-      await updateItem(id, { completed: !task.completed });
+    try {
+      await addItem({
+        title,
+        completed: false,
+        due_date: dueDate ? dueDate.toISOString() : null
+      });
+    } catch (error) {
+      console.error('Error adding task to Supabase:', error);
+      // Fall back to local state
+      handleAddTaskLocal(title, dueDate);
     }
   };
 
-  const handleDeleteTask = async (id: string) => {
-    await deleteItem(id);
+  const handleCompleteTaskSupabase = async (id: string) => {
+    try {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        await updateItem(id, { completed: !task.completed });
+      }
+    } catch (error) {
+      console.error('Error completing task in Supabase:', error);
+      // Fall back to local state
+      handleCompleteTaskLocal(id);
+    }
   };
 
-  // Convert database tasks to UI tasks
+  const handleDeleteTaskSupabase = async (id: string) => {
+    try {
+      await deleteItem(id);
+    } catch (error) {
+      console.error('Error deleting task from Supabase:', error);
+      // Fall back to local state
+      handleDeleteTaskLocal(id);
+    }
+  };
+
+  // Use the appropriate handlers based on whether we're using local data or Supabase
+  const handleAddTask = useLocalData ? handleAddTaskLocal : handleAddTaskSupabase;
+  const handleCompleteTask = useLocalData ? handleCompleteTaskLocal : handleCompleteTaskSupabase;
+  const handleDeleteTask = useLocalData ? handleDeleteTaskLocal : handleDeleteTaskSupabase;
+
+  // Convert database tasks to UI tasks if using Supabase
   const convertToUITask = (dbTask: DatabaseTask): Task => ({
     id: dbTask.id,
     title: dbTask.title,
@@ -69,12 +129,12 @@ const TodoList: React.FC = () => {
     dueDate: dbTask.due_date ? new Date(dbTask.due_date) : undefined
   });
 
-  // Split tasks into active and completed
-  const uiTasks = tasks.map(convertToUITask);
+  // Use the appropriate tasks based on whether we're using local data or Supabase
+  const uiTasks = useLocalData ? localTasks : tasks.map(convertToUITask);
   const activeTasks = uiTasks.filter(task => !task.completed);
   const completedTasks = uiTasks.filter(task => task.completed);
 
-  if (loading) {
+  if (!useLocalData && loading) {
     return (
       <div className="h-full flex items-center justify-center">
         <Loader2 className="h-8 w-8 text-primary animate-spin" />

@@ -20,71 +20,130 @@ type AuthContextType = {
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create a default context value to prevent errors
+const defaultContextValue: AuthContextType = {
+  session: null,
+  user: null,
+  loading: false,
+  signIn: async () => ({ error: null, data: null }),
+  signInWithGoogle: async () => {},
+  signInWithGithub: async () => {},
+  signUp: async () => ({ error: null, data: null }),
+  signOut: async () => {},
+  resetPassword: async () => ({ error: null }),
+};
+
+const AuthContext = createContext<AuthContextType>(defaultContextValue);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Wrap in try-catch to prevent app from crashing if Supabase is not available
+    try {
+      // Get initial session
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+        setInitialized(true);
+      }).catch(error => {
+        console.error('Error getting session:', error);
+        setLoading(false);
+        setInitialized(true);
+      });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
 
-    return () => subscription.unsubscribe();
+      return () => {
+        try {
+          subscription.unsubscribe();
+        } catch (error) {
+          console.error('Error unsubscribing from auth changes:', error);
+        }
+      };
+    } catch (error) {
+      console.error('Error initializing auth context:', error);
+      setLoading(false);
+      setInitialized(true);
+    }
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    return await supabase.auth.signInWithPassword({ email, password });
+    try {
+      return await supabase.auth.signInWithPassword({ email, password });
+    } catch (error) {
+      console.error('Error signing in:', error);
+      return { error: error as Error, data: null };
+    }
   };
 
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/agent`,
-      },
-    });
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/agent`,
+        },
+      });
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+    }
   };
 
   const signInWithGithub = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/agent`,
-      },
-    });
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/agent`,
+        },
+      });
+    } catch (error) {
+      console.error('Error signing in with GitHub:', error);
+    }
   };
 
   const signUp = async (email: string, password: string) => {
-    return await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/agent`,
-      },
-    });
+    try {
+      return await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/agent`,
+        },
+      });
+    } catch (error) {
+      console.error('Error signing up:', error);
+      return { error: error as Error, data: null };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const resetPassword = async (email: string) => {
-    return await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/agent/reset-password`,
-    });
+    try {
+      return await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/agent/reset-password`,
+      });
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      return { error: error as Error };
+    }
   };
 
   const value = {
@@ -99,13 +158,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetPassword,
   };
 
+  // Only render children once the auth context is initialized
+  if (!initialized && loading) {
+    return <div>Loading authentication...</div>;
+  }
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
   return context;
 }
