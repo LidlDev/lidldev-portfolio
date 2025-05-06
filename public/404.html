@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  <script>
+    // Single Page Apps for GitHub Pages
+    // MIT License
+    // https://github.com/rafgraph/spa-github-pages
+    // This script takes the current URL and converts the path and query
+    // string into just a query string, and then redirects the browser
+    // to the new URL with only a query string and hash fragment
+
+    // Parse the URL
+    var pathSegmentsToKeep = 0;
+    var l = window.location;
+    
+    // Save the URL hash if there is one (important for OAuth redirects with tokens)
+    var hash = l.hash;
+    
+    // Remove the hash before processing the URL
+    l.hash = '';
+    
+    var cleanUrl = l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/');
+    
+    // If there's a hash, we need to handle it specially to preserve OAuth tokens
+    if (hash) {
+      // Extract the path from the current URL
+      var path = l.pathname;
+      // Remove leading slash if present
+      if (path.startsWith('/')) {
+        path = path.substr(1);
+      }
+      
+      // Redirect to the root with both path and hash information
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        cleanUrl + '?p=' + encodeURIComponent(path) +
+        (l.search ? '&q=' + encodeURIComponent(l.search.slice(1)) : '') +
+        '&h=' + encodeURIComponent(hash.slice(1))
+      );
+    } else {
+      // Standard redirect for non-hash URLs
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        cleanUrl + '?p=' + encodeURIComponent(l.pathname.slice(1)) +
+        (l.search ? '&q=' + encodeURIComponent(l.search.slice(1)) : '')
+      );
+    }
+  </script>
+</head>
+<body>
+  Redirecting to the homepage...
+</body>
+</html>
