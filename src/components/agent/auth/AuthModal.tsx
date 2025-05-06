@@ -23,8 +23,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     if (user && isOpen) {
       setSuccessMessage('You have successfully signed in!');
       setView('success');
+
+      // Close the modal after a short delay
+      const timer = setTimeout(() => {
+        onClose();
+      }, 1500);
+
+      return () => clearTimeout(timer);
     }
-  }, [user, isOpen]);
+  }, [user, isOpen, onClose]);
 
   if (!isOpen) return null;
 

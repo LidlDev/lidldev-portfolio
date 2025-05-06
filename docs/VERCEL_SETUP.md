@@ -88,7 +88,10 @@ After deploying to Vercel, you need to update your OAuth provider settings:
    - `https://lidldev.com`
    - Keep the development URLs if needed
 
-**Important**: Make sure to include both the `/agent` paths and the root paths to ensure proper redirection after authentication.
+**Important Notes**:
+- Make sure to include both the `/agent` paths and the root paths to ensure proper redirection after authentication
+- For mobile devices, users will need to manually return to the app after authentication
+- The authentication flow uses a full-page redirect rather than a popup to ensure compatibility with all devices
 
 ## Vercel Deployment Features
 
