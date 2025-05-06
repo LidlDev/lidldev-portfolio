@@ -3,11 +3,59 @@ import { ArrowRight } from "lucide-react";
 import { scrollToElement } from "../utils/scrollUtils";
 
 const Hero: React.FC = () => {
+  const phrases = [
+    "Crafting Digital Experiences",
+    "Designing Mobile Interfaces",
+    "Building ML-Powered Solutions",
+    "Creating Intuitive UI/UX"
+  ];
+  
+  const [text, setText] = React.useState("");
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [phraseIndex, setPhraseIndex] = React.useState(0);
+  const [delta, setDelta] = React.useState(200 - Math.random() * 100);
+  
+  React.useEffect(() => {
+    const ticker = setInterval(() => {
+      tick();
+    }, delta);
+
+    return () => clearInterval(ticker);
+  }, [text, isDeleting, phraseIndex, delta]);
+
+  const tick = () => {
+    const currentPhrase = phrases[phraseIndex];
+    const updatedText = isDeleting
+      ? currentPhrase.substring(0, text.length - 1)
+      : currentPhrase.substring(0, text.length + 1);
+
+    setText(updatedText);
+
+    if (isDeleting) {
+      setDelta(prevDelta => prevDelta / 1.1);
+    }
+
+    if (!isDeleting && updatedText === currentPhrase) {
+      // Pause at complete phrase
+      setDelta(2000);
+      setIsDeleting(true);
+    } else if (isDeleting && updatedText === "") {
+      setIsDeleting(false);
+      setPhraseIndex((prevIndex) => (prevIndex + 1) % phrases.length);
+      setDelta(500);
+    } else if (isDeleting) {
+      setDelta(150);
+    } else {
+      setDelta(200 - Math.random() * 100);
+    }
+  };
+
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     const sectionId = href.replace('#', '');
     scrollToElement(sectionId);
   };
+  
   return (
     <section
       id="home"
@@ -15,21 +63,23 @@ const Hero: React.FC = () => {
     >
       <div className="absolute top-40 right-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-float"></div>
       <div className="absolute bottom-40 left-20 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-float"></div>
-
       <div className="container mx-auto px-4 md:px-6 py-10 md:py-20">
         <div className="flex flex-col gap-8 max-w-4xl">
           <div className="space-y-2 animate-fade-in">
             <p className="text-lg md:text-xl font-medium text-primary">Hello, I'm</p>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-balance">
               <span className="magic-text">Harry</span>
-              <br />Crafting Digital Experiences
+              <br />
+              <span className="relative">
+                {text}
+                <span className="absolute -right-2 animate-pulse">|</span>
+              </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl">
               I build beautiful, interactive web applications with modern technologies.
               Turning ideas into exceptional digital experiences.
             </p>
           </div>
-
           <div className="flex flex-col sm:flex-row gap-4 animate-fade-in">
             <a
               href="#projects"
@@ -47,7 +97,6 @@ const Hero: React.FC = () => {
               Contact Me
             </a>
           </div>
-
           <div className="animate-bounce-subtle mt-12 text-center sm:text-left">
             <a
               href="#about"
