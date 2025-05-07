@@ -148,6 +148,9 @@ async function handleOAuthWithUserId(userId, code, res) {
 
     const { access_token, refresh_token, expires_in } = tokenData;
 
+    // Calculate the expiration time
+    const expiresAt = new Date(Date.now() + (expires_in * 1000)).toISOString();
+
     // Store the tokens in Supabase
     const { error: updateError } = await supabase
       .from('email_auth')
@@ -155,7 +158,7 @@ async function handleOAuthWithUserId(userId, code, res) {
         user_id: userId,
         access_token,
         refresh_token,
-        expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
+        expires_at: expiresAt,
         provider: 'google',
       });
 

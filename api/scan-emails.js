@@ -1,4 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
+import { google } from 'googleapis';
+
+// Regular expressions for bill detection
+const BILL_KEYWORDS = [
+  'invoice', 'bill', 'payment', 'due', 'statement', 'balance',
+  'utility', 'subscription', 'receipt', 'charge', 'amount'
+];
+
+const AMOUNT_REGEX = /\$\s?(\d+(?:\.\d{2})?)/g;
+const DATE_REGEX = /(?:due|payment).{1,20}((?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:[,\s]+\d{2,4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i;
+
+// Category detection
+const CATEGORY_KEYWORDS = {
+  'Utilities': ['electric', 'electricity', 'power', 'energy', 'utility', 'gas', 'water', 'sewage'],
+  'Internet': ['internet', 'wifi', 'broadband', 'fiber', 'connection'],
+  'Phone': ['phone', 'mobile', 'wireless', 'cell', 'cellular'],
+  'Streaming': ['streaming', 'subscription', 'netflix', 'hulu', 'disney', 'spotify', 'apple music', 'prime'],
+  'Housing': ['rent', 'mortgage', 'lease', 'housing', 'apartment', 'condo', 'home'],
+  'Insurance': ['insurance', 'coverage', 'policy', 'premium'],
+  'Credit Card': ['credit card', 'credit', 'card', 'statement', 'balance'],
+  'Other': []
+};
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -81,45 +103,194 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Email scanning permission not granted' });
     }
 
-    // In a real implementation, this would connect to the user's email provider
-    // using OAuth and scan for bills. For now, we'll simulate this with mock data.
+    // Get the user's OAuth tokens from the database
+    const { data: authData, error: authDataError } = await supabase
+      .from('email_auth')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('provider', 'google')
+      .single();
 
-    // Simulate email scanning delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (authDataError || !authData) {
+      return res.status(403).json({ error: 'Email authentication not found. Please reconnect your Gmail account.' });
+    }
 
-    // Mock detected bills
-    const mockBills = [
-      {
-        title: 'Electric Bill',
-        amount: 89.99,
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-        category: 'Utilities',
-        confidence: 0.92,
-        source: 'electric@example.com',
-        approved: false,
-        userId
-      },
-      {
-        title: 'Internet Service',
-        amount: 65.00,
-        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
-        category: 'Utilities',
-        confidence: 0.87,
-        source: 'internet@example.com',
-        approved: false,
-        userId
-      },
-      {
-        title: 'Streaming Subscription',
-        amount: 14.99,
-        dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
-        category: 'Entertainment',
-        confidence: 0.75,
-        source: 'streaming@example.com',
-        approved: false,
-        userId
+    // Check if the token is expired and refresh if needed
+    let accessToken = authData.access_token;
+    if (authData.expires_at && new Date(authData.expires_at) < new Date()) {
+      console.log('Token expired, refreshing...');
+
+      if (!authData.refresh_token) {
+        return res.status(403).json({ error: 'Refresh token not available. Please reconnect your Gmail account.' });
       }
-    ];
+
+      try {
+        const oauth2Client = new google.auth.OAuth2(
+          googleClientId,
+          googleClientSecret,
+          `${nextPublicUrl}/api/email-auth-callback`
+        );
+
+        oauth2Client.setCredentials({
+          refresh_token: authData.refresh_token
+        });
+
+        const { token } = await oauth2Client.getAccessToken();
+        accessToken = token;
+
+        // Update the token in the database
+        await supabase
+          .from('email_auth')
+          .update({
+            access_token: accessToken,
+            expires_at: new Date(Date.now() + 3600 * 1000).toISOString() // 1 hour from now
+          })
+          .eq('id', authData.id);
+      } catch (refreshError) {
+        console.error('Error refreshing token:', refreshError);
+        return res.status(403).json({ error: 'Failed to refresh authentication. Please reconnect your Gmail account.' });
+      }
+    }
+
+    // Initialize the Gmail API client
+    const oauth2Client = new google.auth.OAuth2();
+    oauth2Client.setCredentials({ access_token: accessToken });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    try {
+      // Get the list of emails from the last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const response = await gmail.users.messages.list({
+        userId: 'me',
+        q: `after:${Math.floor(thirtyDaysAgo.getTime() / 1000)} (${BILL_KEYWORDS.join(' OR ')})`,
+        maxResults: 20
+      });
+
+      const messages = response.data.messages || [];
+      console.log(`Found ${messages.length} potential bill emails`);
+
+      // Process each email to detect bills
+      const detectedBills = [];
+
+      for (const message of messages) {
+        // Get the full email content
+        const email = await gmail.users.messages.get({
+          userId: 'me',
+          id: message.id,
+          format: 'full'
+        });
+
+        // Extract email data
+        const headers = email.data.payload.headers;
+        const subject = headers.find(h => h.name === 'Subject')?.value || '';
+        const from = headers.find(h => h.name === 'From')?.value || '';
+        const sender = from.match(/<(.+?)>/) ? from.match(/<(.+?)>/)[1] : from;
+
+        // Get email body
+        let body = '';
+
+        if (email.data.payload.parts) {
+          // Multipart email
+          for (const part of email.data.payload.parts) {
+            if (part.mimeType === 'text/plain' && part.body.data) {
+              body += Buffer.from(part.body.data, 'base64').toString('utf-8');
+            }
+          }
+        } else if (email.data.payload.body.data) {
+          // Simple email
+          body = Buffer.from(email.data.payload.body.data, 'base64').toString('utf-8');
+        }
+
+        // Combine subject and body for analysis
+        const content = `${subject}\n${body}`;
+
+        // Check if this looks like a bill
+        const isBill = BILL_KEYWORDS.some(keyword =>
+          content.toLowerCase().includes(keyword.toLowerCase())
+        );
+
+        if (!isBill) continue;
+
+        // Extract amount
+        let amount = 0;
+        let confidence = 0.5;
+        const amountMatches = [...content.matchAll(AMOUNT_REGEX)];
+
+        if (amountMatches.length > 0) {
+          // Use the largest amount as it's likely the total
+          const amounts = amountMatches.map(match => parseFloat(match[1]));
+          amount = Math.max(...amounts);
+          confidence += 0.2;
+        }
+
+        // Extract due date
+        let dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 14); // Default to 2 weeks from now
+
+        const dateMatch = content.match(DATE_REGEX);
+        if (dateMatch) {
+          const extractedDate = dateMatch[1];
+          try {
+            const parsedDate = new Date(extractedDate);
+            if (!isNaN(parsedDate.getTime())) {
+              dueDate = parsedDate;
+              confidence += 0.1;
+            }
+          } catch (e) {
+            // Use default date
+          }
+        }
+
+        // Determine category
+        let category = 'Other';
+        let highestMatchCount = 0;
+
+        for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+          if (cat === 'Other') continue;
+
+          const matchCount = keywords.filter(keyword =>
+            content.toLowerCase().includes(keyword.toLowerCase())
+          ).length;
+
+          if (matchCount > highestMatchCount) {
+            highestMatchCount = matchCount;
+            category = cat;
+            confidence += 0.05;
+          }
+        }
+
+        // Extract title from subject
+        let title = subject.replace(/re:/i, '').trim();
+        if (title.length > 50) {
+          title = title.substring(0, 47) + '...';
+        }
+
+        // If title is empty or just contains "statement" or similar, use sender + category
+        if (!title || BILL_KEYWORDS.some(kw => title.toLowerCase() === kw.toLowerCase())) {
+          const senderName = sender.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').trim();
+          title = `${senderName.charAt(0).toUpperCase() + senderName.slice(1)} ${category}`;
+        }
+
+        // Add to detected bills
+        detectedBills.push({
+          title,
+          amount,
+          dueDate: dueDate.toISOString(),
+          category,
+          confidence: Math.min(0.95, confidence), // Cap at 0.95
+          source: sender,
+          approved: false,
+          userId
+        });
+      }
+
+      console.log(`Detected ${detectedBills.length} bills`);
+
+      // Sort by confidence (highest first)
+      const sortedBills = detectedBills.sort((a, b) => b.confidence - a.confidence);
 
     // Check if these bills already exist in the database
     const { data: existingBills, error: billsError } = await supabase
@@ -132,7 +303,7 @@ export default async function handler(req, res) {
     }
 
     // Filter out bills that already exist
-    const newBills = mockBills.filter(bill =>
+    const newBills = sortedBills.filter(bill =>
       !existingBills?.some(existing =>
         existing.source === bill.source && existing.amount === bill.amount
       )
