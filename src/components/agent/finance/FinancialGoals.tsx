@@ -18,7 +18,7 @@ interface DatabaseGoal {
   color: string;
   user_id: string;
   created_at: string;
-  increment_amount: number;
+  increment_amount?: number; // Make this optional to handle schema differences
 }
 
 const Progress = ({ value }: { value: number }) => {
@@ -180,6 +180,7 @@ const FinancialGoals: React.FC = () => {
 
     if (newGoal.title && newGoal.target > 0) {
       try {
+        // First, try to add with increment_amount to see if the column exists
         const goalData = {
           title: newGoal.title,
           target: newGoal.target,
@@ -190,9 +191,40 @@ const FinancialGoals: React.FC = () => {
           user_id: user.id // Explicitly set the user_id
         };
 
-        console.log('[FinancialGoals] Adding goal with data:', goalData);
+        console.log('[FinancialGoals] Adding goal with data (including increment_amount):', goalData);
 
-        const result = await addItem(goalData);
+        let result = await addItem(goalData);
+        let errorMessage = '';
+
+        // Check if the error is related to missing increment_amount column
+        if (!result) {
+          const error = result as any;
+          console.error('[FinancialGoals] Error response:', error);
+
+          if (error?.message?.includes('increment_amount') ||
+              error?.error?.message?.includes('increment_amount') ||
+              error?.details?.includes('increment_amount')) {
+
+            console.log('[FinancialGoals] Detected missing increment_amount column, trying without it');
+
+            // Try again without the increment_amount field
+            const fallbackData = {
+              title: newGoal.title,
+              target: newGoal.target,
+              current: newGoal.current,
+              target_date: newGoal.targetDate ? new Date(newGoal.targetDate).toISOString() : null,
+              color: '#174E4F',
+              user_id: user.id
+            };
+
+            console.log('[FinancialGoals] Retrying with fallback data:', fallbackData);
+            result = await addItem(fallbackData);
+
+            if (result) {
+              errorMessage = 'Goal created, but increment amount feature is not available. Please contact the administrator to update the database schema.';
+            }
+          }
+        }
 
         console.log('[FinancialGoals] Add goal result:', result);
 
@@ -207,7 +239,11 @@ const FinancialGoals: React.FC = () => {
 
         // Refresh the data to show the new goal
         if (result) {
-          toast.success('Goal created successfully');
+          if (errorMessage) {
+            toast.warning(errorMessage);
+          } else {
+            toast.success('Goal created successfully');
+          }
           console.log('[FinancialGoals] Calling fetchData to refresh goals');
           await fetchData();
           console.log('[FinancialGoals] fetchData completed, goals should be updated');
@@ -215,9 +251,19 @@ const FinancialGoals: React.FC = () => {
           console.error('[FinancialGoals] Failed to add goal, result was falsy');
           toast.error('Failed to create goal');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('[FinancialGoals] Error adding goal to Supabase:', error);
-        toast.error('Failed to create goal');
+
+        // Check if the error is related to missing increment_amount column
+        if (error?.message?.includes('increment_amount') ||
+            error?.details?.includes('increment_amount')) {
+
+          toast.error('Database schema needs to be updated. The increment_amount column is missing.');
+          console.log('[FinancialGoals] Schema issue detected: increment_amount column is missing');
+        } else {
+          toast.error('Failed to create goal');
+        }
+
         // Fall back to local state
         handleAddGoalLocal(e);
       }
@@ -234,18 +280,42 @@ const FinancialGoals: React.FC = () => {
     try {
       const goal = goals.find(g => g.id === id);
       if (goal) {
+        // Use a default value of 100 if increment_amount is not available
         const incrementAmount = goal.increment_amount || 100;
         const newAmount = Math.min(goal.current + incrementAmount, goal.target);
+
+        console.log('[FinancialGoals] Contributing to goal:', {
+          id,
+          incrementAmount,
+          currentAmount: goal.current,
+          newAmount,
+          hasIncrementAmount: 'increment_amount' in goal
+        });
+
         const result = await updateItem(id, { current: newAmount });
 
         if (result) {
           toast.success(`Added ${formatCurrency(incrementAmount)} to ${goal.title}`);
           // Refresh the data to show the updated goal
           fetchData();
+        } else {
+          console.error('[FinancialGoals] Failed to update goal amount');
+          toast.error('Failed to update goal');
         }
+      } else {
+        console.error('[FinancialGoals] Goal not found:', id);
+        toast.error('Goal not found');
       }
-    } catch (error) {
-      console.error('Error updating goal in Supabase:', error);
+    } catch (error: any) {
+      console.error('[FinancialGoals] Error updating goal in Supabase:', error);
+
+      // Check if the error is related to missing increment_amount column
+      if (error?.message?.includes('increment_amount') ||
+          error?.details?.includes('increment_amount')) {
+
+        console.log('[FinancialGoals] Schema issue detected in contribute: increment_amount column is missing');
+      }
+
       toast.error('Failed to update goal');
       // Fall back to local state
       handleContributeLocal(id);
@@ -274,22 +344,73 @@ const FinancialGoals: React.FC = () => {
     }
 
     try {
-      const result = await updateItem(id, {
+      // First, try to update with increment_amount to see if the column exists
+      const updateData = {
         title: editFormData.title,
         target: editFormData.target,
         current: editFormData.current,
         target_date: editFormData.targetDate ? new Date(editFormData.targetDate).toISOString() : null,
         increment_amount: editFormData.incrementAmount
-      });
+      };
+
+      console.log('[FinancialGoals] Updating goal with data (including increment_amount):', updateData);
+
+      let result = await updateItem(id, updateData);
+      let errorMessage = '';
+
+      // Check if the error is related to missing increment_amount column
+      if (!result) {
+        const error = result as any;
+        console.error('[FinancialGoals] Error response from update:', error);
+
+        if (error?.message?.includes('increment_amount') ||
+            error?.error?.message?.includes('increment_amount') ||
+            error?.details?.includes('increment_amount')) {
+
+          console.log('[FinancialGoals] Detected missing increment_amount column in update, trying without it');
+
+          // Try again without the increment_amount field
+          const fallbackData = {
+            title: editFormData.title,
+            target: editFormData.target,
+            current: editFormData.current,
+            target_date: editFormData.targetDate ? new Date(editFormData.targetDate).toISOString() : null
+          };
+
+          console.log('[FinancialGoals] Retrying update with fallback data:', fallbackData);
+          result = await updateItem(id, fallbackData);
+
+          if (result) {
+            errorMessage = 'Goal updated, but increment amount feature is not available. Please contact the administrator to update the database schema.';
+          }
+        }
+      }
 
       if (result) {
         setEditingGoal(null);
-        toast.success('Goal updated successfully');
+        if (errorMessage) {
+          toast.warning(errorMessage);
+        } else {
+          toast.success('Goal updated successfully');
+        }
         fetchData();
+      } else {
+        console.error('[FinancialGoals] Failed to update goal, result was falsy');
+        toast.error('Failed to update goal');
       }
-    } catch (error) {
-      console.error('Error updating goal in Supabase:', error);
-      toast.error('Failed to update goal');
+    } catch (error: any) {
+      console.error('[FinancialGoals] Error updating goal in Supabase:', error);
+
+      // Check if the error is related to missing increment_amount column
+      if (error?.message?.includes('increment_amount') ||
+          error?.details?.includes('increment_amount')) {
+
+        toast.error('Database schema needs to be updated. The increment_amount column is missing.');
+        console.log('[FinancialGoals] Schema issue detected in edit: increment_amount column is missing');
+      } else {
+        toast.error('Failed to update goal');
+      }
+
       // Fall back to local state
       handleSaveEditLocal(id);
     }
@@ -328,15 +449,22 @@ const FinancialGoals: React.FC = () => {
   const handleDeleteGoal = useLocalData ? handleDeleteGoalLocal : handleDeleteGoalSupabase;
 
   // Convert database goals to UI goals if using Supabase
-  const convertToUIGoal = (dbGoal: DatabaseGoal): FinancialGoal => ({
-    id: dbGoal.id,
-    title: dbGoal.title,
-    target: dbGoal.target,
-    current: dbGoal.current,
-    targetDate: dbGoal.target_date ? new Date(dbGoal.target_date) : undefined,
-    color: dbGoal.color,
-    incrementAmount: dbGoal.increment_amount
-  });
+  const convertToUIGoal = (dbGoal: DatabaseGoal): FinancialGoal => {
+    // Check if the increment_amount property exists in the database goal
+    const hasIncrementAmount = 'increment_amount' in dbGoal;
+    console.log(`[FinancialGoals] Converting goal ${dbGoal.id}, has increment_amount: ${hasIncrementAmount}`);
+
+    return {
+      id: dbGoal.id,
+      title: dbGoal.title,
+      target: dbGoal.target,
+      current: dbGoal.current,
+      targetDate: dbGoal.target_date ? new Date(dbGoal.target_date) : undefined,
+      color: dbGoal.color,
+      // Use a default value of 100 if increment_amount is not available
+      incrementAmount: hasIncrementAmount ? dbGoal.increment_amount : 100
+    };
+  };
 
   // Use the appropriate goals based on whether we're using local data or Supabase
   const uiGoals = useLocalData ? localGoals : goals.map(convertToUIGoal);
