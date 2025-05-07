@@ -6,7 +6,7 @@ import {
   formatCurrency,
   expenseCategories
 } from '@/utils/agentData';
-import { Check } from 'lucide-react';
+import { Check, Pencil, Trash2, X } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -41,6 +41,16 @@ const UpcomingPayments: React.FC = () => {
 
   // Email scanning feature
   const [detectedBills, setDetectedBills] = useState<DetectedBill[]>([]);
+
+  // State for editing payments
+  const [editingPayment, setEditingPayment] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    amount: 0,
+    dueDate: '',
+    recurring: false,
+    category: 'Housing'
+  });
 
   // Use Supabase data
   const {
@@ -212,9 +222,105 @@ const UpcomingPayments: React.FC = () => {
     }
   };
 
+  // Local handlers for removing and editing payments
+  const handleRemovePaymentLocal = (id: string) => {
+    setLocalPayments(localPayments.filter(payment => payment.id !== id));
+    toast.success('Payment removed');
+  };
+
+  const handleEditPaymentLocal = (id: string) => {
+    const payment = localPayments.find(p => p.id === id);
+    if (!payment) return;
+
+    setEditingPayment(id);
+    setEditFormData({
+      title: payment.title,
+      amount: payment.amount,
+      dueDate: payment.dueDate.toISOString().split('T')[0],
+      recurring: payment.recurring,
+      category: payment.category
+    });
+  };
+
+  const handleSaveEditLocal = (id: string) => {
+    setLocalPayments(localPayments.map(payment =>
+      payment.id === id ? {
+        ...payment,
+        title: editFormData.title,
+        amount: editFormData.amount,
+        dueDate: new Date(editFormData.dueDate),
+        recurring: editFormData.recurring,
+        category: editFormData.category
+      } : payment
+    ));
+
+    setEditingPayment(null);
+    toast.success('Payment updated');
+  };
+
+  // Supabase handlers for removing and editing payments
+  const handleRemovePaymentSupabase = async (id: string) => {
+    if (!user) {
+      handleRemovePaymentLocal(id);
+      return;
+    }
+
+    try {
+      await deleteItem(id);
+      toast.success('Payment removed');
+    } catch (error) {
+      console.error('Error removing payment from Supabase:', error);
+      handleRemovePaymentLocal(id);
+    }
+  };
+
+  const handleEditPaymentSupabase = (id: string) => {
+    const payment = payments.find(p => p.id === id);
+    if (!payment) return;
+
+    setEditingPayment(id);
+    setEditFormData({
+      title: payment.title,
+      amount: payment.amount,
+      dueDate: new Date(payment.due_date).toISOString().split('T')[0],
+      recurring: payment.recurring,
+      category: payment.category
+    });
+  };
+
+  const handleSaveEditSupabase = async (id: string) => {
+    if (!user) {
+      handleSaveEditLocal(id);
+      return;
+    }
+
+    try {
+      await updateItem(id, {
+        title: editFormData.title,
+        amount: editFormData.amount,
+        due_date: new Date(editFormData.dueDate).toISOString(),
+        recurring: editFormData.recurring,
+        category: editFormData.category
+      });
+
+      setEditingPayment(null);
+      toast.success('Payment updated');
+    } catch (error) {
+      console.error('Error updating payment in Supabase:', error);
+      handleSaveEditLocal(id);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPayment(null);
+  };
+
   // Use the appropriate handlers based on whether we're using local data or Supabase
   const handleAddPayment = useLocalData ? handleAddPaymentLocal : handleAddPaymentSupabase;
   const handleTogglePaid = useLocalData ? handleTogglePaidLocal : handleTogglePaidSupabase;
+  const handleRemovePayment = useLocalData ? handleRemovePaymentLocal : handleRemovePaymentSupabase;
+  const handleEditPayment = useLocalData ? handleEditPaymentLocal : handleEditPaymentSupabase;
+  const handleSaveEdit = useLocalData ? handleSaveEditLocal : handleSaveEditSupabase;
 
   // Convert database payments to UI payments if using Supabase
   const convertToUIPayment = (dbPayment: DatabasePayment): Payment => ({
@@ -242,7 +348,10 @@ const UpcomingPayments: React.FC = () => {
   if (!useLocalData && loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <span className="h-8 w-8 text-primary animate-spin">⟳</span>
+        <svg className="h-8 w-8 text-primary animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
         <span className="ml-2 text-primary">Loading payments...</span>
       </div>
     );
@@ -383,34 +492,139 @@ const UpcomingPayments: React.FC = () => {
             const daysUntilDue = Math.ceil((payment.dueDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
             const isOverdue = daysUntilDue < 0;
             const isDueSoon = daysUntilDue <= 3;
+            const isEditing = editingPayment === payment.id;
 
             return (
               <div
                 key={payment.id}
-                className={`glass p-3 rounded-lg flex justify-between items-center
+                className={`glass p-3 rounded-lg
                   ${isOverdue ? 'border-red-500 border' : ''}
                   ${isDueSoon && !isOverdue ? 'border-yellow-500 border' : ''}
                 `}
               >
-                <div>
-                  <div className="font-medium">{payment.title}</div>
-                  <div className="text-xs text-primary/70">
-                    {payment.recurring && '↻ '}
-                    {payment.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    {' · '}
-                    {payment.category}
-                  </div>
-                </div>
+                {isEditing ? (
+                  <div className="animate-scale-in">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Payment Title</label>
+                        <input
+                          type="text"
+                          value={editFormData.title}
+                          onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
+                          className="px-2 py-1 text-sm bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                          required
+                        />
+                      </div>
 
-                <div className="flex items-center space-x-3">
-                  <span className="font-medium">{formatCurrency(payment.amount)}</span>
-                  <button
-                    onClick={() => handleTogglePaid(payment.id)}
-                    className="w-6 h-6 rounded-full border-2 border-primary flex items-center justify-center hover:bg-primary/10"
-                  >
-                    <Check className="w-4 h-4 text-transparent" />
-                  </button>
-                </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Amount</label>
+                          <input
+                            type="number"
+                            value={editFormData.amount || ''}
+                            onChange={(e) => setEditFormData({...editFormData, amount: Number(e.target.value)})}
+                            className="px-2 py-1 text-sm bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                            min="0.01"
+                            step="0.01"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Due Date</label>
+                          <input
+                            type="date"
+                            value={editFormData.dueDate}
+                            onChange={(e) => setEditFormData({...editFormData, dueDate: e.target.value})}
+                            className="px-2 py-1 text-sm bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Category</label>
+                          <select
+                            value={editFormData.category}
+                            onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
+                            className="px-2 py-1 text-sm bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                            required
+                          >
+                            {expenseCategories.map(category => (
+                              <option key={category.name} value={category.name}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="flex items-center pt-5">
+                          <input
+                            type="checkbox"
+                            id={`recurring-${payment.id}`}
+                            checked={editFormData.recurring}
+                            onChange={(e) => setEditFormData({...editFormData, recurring: e.target.checked})}
+                            className="mr-2 h-4 w-4 rounded border-primary text-primary focus:ring-primary"
+                          />
+                          <label htmlFor={`recurring-${payment.id}`} className="text-xs">Recurring</label>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end space-x-2 pt-2">
+                        <button
+                          onClick={() => setEditingPayment(null)}
+                          className="px-2 py-1 text-xs bg-white/50 rounded-lg hover:bg-white/70 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleSaveEdit(payment.id)}
+                          className="px-2 py-1 text-xs bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{payment.title}</div>
+                      <div className="text-xs text-primary/70">
+                        {payment.recurring && '↻ '}
+                        {payment.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {' · '}
+                        {payment.category}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">{formatCurrency(payment.amount)}</span>
+                      <button
+                        onClick={() => handleEditPayment(payment.id)}
+                        className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-primary/10"
+                        title="Edit payment"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-primary/70" />
+                      </button>
+                      <button
+                        onClick={() => handleRemovePayment(payment.id)}
+                        className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-100"
+                        title="Remove payment"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-500/70" />
+                      </button>
+                      <button
+                        onClick={() => handleTogglePaid(payment.id)}
+                        className="w-6 h-6 rounded-full border-2 border-primary flex items-center justify-center hover:bg-primary/10"
+                        title="Mark as paid"
+                      >
+                        <Check className="w-4 h-4 text-transparent" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

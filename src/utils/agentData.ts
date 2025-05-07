@@ -22,6 +22,7 @@ export interface FinancialGoal {
   current: number;
   targetDate?: Date;
   color: string;
+  incrementAmount?: number;
 }
 
 export const initialGoals: FinancialGoal[] = [
@@ -31,7 +32,8 @@ export const initialGoals: FinancialGoal[] = [
     target: 10000,
     current: 6500,
     targetDate: new Date(2025, 8, 1),
-    color: '#174E4F'
+    color: '#174E4F',
+    incrementAmount: 100
   },
   {
     id: '2',
@@ -39,7 +41,8 @@ export const initialGoals: FinancialGoal[] = [
     target: 3000,
     current: 1200,
     targetDate: new Date(2025, 6, 1),
-    color: '#2A7576'
+    color: '#2A7576',
+    incrementAmount: 100
   },
   {
     id: '3',
@@ -47,7 +50,8 @@ export const initialGoals: FinancialGoal[] = [
     target: 2000,
     current: 800,
     targetDate: new Date(2025, 5, 15),
-    color: '#3D9B9C'
+    color: '#3D9B9C',
+    incrementAmount: 100
   },
 ];
 
