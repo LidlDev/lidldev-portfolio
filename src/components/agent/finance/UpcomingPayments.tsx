@@ -6,7 +6,7 @@ import {
   formatCurrency,
   expenseCategories
 } from '@/utils/agentData';
-import { Check, Pencil, Trash2, X } from 'lucide-react';
+import { Check, Pencil, Trash, X } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -188,6 +188,24 @@ const UpcomingPayments: React.FC = () => {
           }
         } catch (error) {
           console.error('Error creating expense from payment:', error);
+        }
+      } else {
+        // If the payment is being unmarked as paid, remove the corresponding expense record
+        try {
+          const { error } = await supabase
+            .from('expenses')
+            .delete()
+            .eq('payment_id', payment.id)
+            .eq('user_id', user.id);
+
+          if (error) {
+            console.error('Error removing expense record:', error);
+            toast.error('Payment unmarked as paid, but failed to remove expense record');
+          } else {
+            toast.success('Payment unmarked as paid and expense record removed');
+          }
+        } catch (error) {
+          console.error('Error removing expense record:', error);
         }
       }
 
@@ -613,7 +631,7 @@ const UpcomingPayments: React.FC = () => {
                         className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-100"
                         title="Remove payment"
                       >
-                        <Trash2 className="w-3.5 h-3.5 text-red-500/70" />
+                        <Trash className="w-3.5 h-3.5 text-red-500/70" />
                       </button>
                       <button
                         onClick={() => handleTogglePaid(payment.id)}

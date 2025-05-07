@@ -124,7 +124,7 @@ const FinancialGoals: React.FC = () => {
 
     if (newGoal.title && newGoal.target > 0) {
       try {
-        await addItem({
+        const result = await addItem({
           title: newGoal.title,
           target: newGoal.target,
           current: newGoal.current,
@@ -141,8 +141,15 @@ const FinancialGoals: React.FC = () => {
           incrementAmount: 100,
         });
         setShowForm(false);
+
+        // Refresh the data to show the new goal
+        if (result) {
+          toast.success('Goal created successfully');
+          fetchData();
+        }
       } catch (error) {
         console.error('Error adding goal to Supabase:', error);
+        toast.error('Failed to create goal');
         // Fall back to local state
         handleAddGoalLocal(e);
       }
@@ -155,10 +162,17 @@ const FinancialGoals: React.FC = () => {
       if (goal) {
         const incrementAmount = goal.increment_amount || 100;
         const newAmount = Math.min(goal.current + incrementAmount, goal.target);
-        await updateItem(id, { current: newAmount });
+        const result = await updateItem(id, { current: newAmount });
+
+        if (result) {
+          toast.success(`Added ${formatCurrency(incrementAmount)} to ${goal.title}`);
+          // Refresh the data to show the updated goal
+          fetchData();
+        }
       }
     } catch (error) {
       console.error('Error updating goal in Supabase:', error);
+      toast.error('Failed to update goal');
       // Fall back to local state
       handleContributeLocal(id);
     }
