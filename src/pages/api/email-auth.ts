@@ -32,6 +32,13 @@ export default async function handler(
     // For simplicity, we'll use a cookie
     res.setHeader('Set-Cookie', `email_auth_user_id=${userId}; Path=/; HttpOnly; SameSite=Strict; Max-Age=3600`);
 
+    // Check if Google OAuth credentials are set
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+      console.error('Google OAuth credentials not set');
+      // Redirect back to the agent page with an error
+      return res.redirect('/agent?auth_error=oauth_credentials_not_set');
+    }
+
     // Generate the Google OAuth URL
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     authUrl.searchParams.append('client_id', GOOGLE_CLIENT_ID);

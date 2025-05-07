@@ -63,8 +63,13 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to scan emails');
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to scan emails');
+        } catch (jsonError) {
+          // If the response is not valid JSON, use a generic error message
+          throw new Error('Failed to scan emails. The server returned an invalid response.');
+        }
       }
 
       const data = await response.json();
@@ -113,7 +118,19 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
         .then(({ data, error }) => {
           if (error || !data) {
             // No tokens found, redirect to OAuth flow
-            window.location.href = `/api/email-auth?userId=${user.id}`;
+            // Use a form submission to avoid the JSON parsing error
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = `/api/email-auth`;
+
+            const userIdInput = document.createElement('input');
+            userIdInput.type = 'hidden';
+            userIdInput.name = 'userId';
+            userIdInput.value = user.id;
+
+            form.appendChild(userIdInput);
+            document.body.appendChild(form);
+            form.submit();
           } else {
             // Tokens found, update permission and scan emails
             setPermissionGranted(true);
@@ -153,7 +170,12 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       // Start scanning emails
       scanEmails();
     } else if (authError && user) {
-      toast.error(`Email access error: ${authError}`);
+      // Handle specific error cases
+      if (authError === 'oauth_credentials_not_set') {
+        toast.error('Email scanning is not available. Please contact the administrator to set up Google OAuth credentials.');
+      } else {
+        toast.error(`Email access error: ${authError}`);
+      }
 
       // Remove the query parameters
       const newUrl = window.location.pathname;

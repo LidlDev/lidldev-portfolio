@@ -35,9 +35,19 @@ export default async function handler(
 
     // Verify the user's token
     const { data: user, error: authError } = await supabase.auth.getUser(accessToken);
-    
+
     if (authError || !user || user.user.id !== userId) {
       return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Check if Google OAuth credentials are set
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!googleClientId || !googleClientSecret) {
+      return res.status(503).json({
+        error: 'Email scanning is not available. Please contact the administrator to set up Google OAuth credentials.'
+      });
     }
 
     // Check if the user has granted permission to scan emails
@@ -53,7 +63,7 @@ export default async function handler(
 
     // In a real implementation, this would connect to the user's email provider
     // using OAuth and scan for bills. For now, we'll simulate this with mock data.
-    
+
     // Simulate email scanning delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -102,8 +112,8 @@ export default async function handler(
     }
 
     // Filter out bills that already exist
-    const newBills = mockBills.filter(bill => 
-      !existingBills?.some(existing => 
+    const newBills = mockBills.filter(bill =>
+      !existingBills?.some(existing =>
         existing.source === bill.source && existing.amount === bill.amount
       )
     );
@@ -131,8 +141,8 @@ export default async function handler(
     }
 
     // Return the detected bills
-    return res.status(200).json({ 
-      success: true, 
+    return res.status(200).json({
+      success: true,
       bills: newBills.map(bill => ({
         ...bill,
         dueDate: new Date(bill.dueDate)
