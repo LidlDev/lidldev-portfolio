@@ -36,6 +36,14 @@ const SpendingTracker: React.FC = () => {
   const [timePeriod, setTimePeriod] = useState<'month' | 'week' | 'fortnight'>('month');
   const [periodOffset, setPeriodOffset] = useState(0); // 0 = current period, -1 = previous period, etc.
 
+  // State for editing expenses
+  const [editingExpense, setEditingExpense] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    category: 'Housing',
+    amount: 0,
+    date: new Date().toISOString().split('T')[0]
+  });
+
   // Try to use Supabase data if available, otherwise fall back to local state
   let useLocalData = true;
 
@@ -88,6 +96,42 @@ const SpendingTracker: React.FC = () => {
     }
   };
 
+  const handleEditExpenseLocal = (id: string) => {
+    const expense = localExpenses.find(e => e.id === id);
+    if (!expense) return;
+
+    setEditingExpense(id);
+    setEditFormData({
+      category: expense.category,
+      amount: expense.amount,
+      date: expense.date.toISOString().split('T')[0]
+    });
+  };
+
+  const handleSaveEditLocal = (id: string) => {
+    if (editFormData.amount <= 0) {
+      toast.error('Amount must be greater than 0');
+      return;
+    }
+
+    setLocalExpenses(localExpenses.map(expense =>
+      expense.id === id ? {
+        ...expense,
+        category: editFormData.category,
+        amount: editFormData.amount,
+        date: new Date(editFormData.date)
+      } : expense
+    ));
+
+    setEditingExpense(null);
+    toast.success('Expense updated');
+  };
+
+  const handleDeleteExpenseLocal = (id: string) => {
+    setLocalExpenses(localExpenses.filter(expense => expense.id !== id));
+    toast.success('Expense deleted');
+  };
+
   // Supabase handlers
   const handleAddExpenseSupabase = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,8 +164,85 @@ const SpendingTracker: React.FC = () => {
     }
   };
 
+  // Supabase handlers for editing and deleting expenses
+  const handleEditExpenseSupabase = (id: string) => {
+    const expense = expenses.find(e => e.id === id);
+    if (!expense) return;
+
+    setEditingExpense(id);
+    setEditFormData({
+      category: expense.category,
+      amount: expense.amount,
+      date: new Date(expense.date).toISOString().split('T')[0]
+    });
+  };
+
+  const handleSaveEditSupabase = async (id: string) => {
+    if (!user) {
+      handleSaveEditLocal(id);
+      return;
+    }
+
+    if (editFormData.amount <= 0) {
+      toast.error('Amount must be greater than 0');
+      return;
+    }
+
+    try {
+      const result = await updateItem(id, {
+        category: editFormData.category,
+        amount: editFormData.amount,
+        date: new Date(editFormData.date).toISOString()
+      });
+
+      if (result) {
+        setEditingExpense(null);
+        toast.success('Expense updated successfully');
+      } else {
+        toast.error('Failed to update expense');
+      }
+    } catch (error) {
+      console.error('Error updating expense in Supabase:', error);
+      toast.error('Failed to update expense');
+      // Fall back to local state
+      handleSaveEditLocal(id);
+    }
+  };
+
+  const handleDeleteExpenseSupabase = async (id: string) => {
+    if (!user) {
+      handleDeleteExpenseLocal(id);
+      return;
+    }
+
+    try {
+      // Check if the expense is from a payment
+      const expense = expenses.find(e => e.id === id);
+      if (expense?.payment_id) {
+        toast.error('Cannot delete an expense linked to a payment. Unmark the payment as paid instead.');
+        return;
+      }
+
+      const result = await deleteItem(id);
+
+      if (result) {
+        toast.success('Expense deleted successfully');
+      } else {
+        toast.error('Failed to delete expense');
+      }
+    } catch (error) {
+      console.error('Error deleting expense from Supabase:', error);
+      toast.error('Failed to delete expense');
+      // Fall back to local state
+      handleDeleteExpenseLocal(id);
+    }
+  };
+
   // Use the appropriate handlers based on whether we're using local data or Supabase
   const handleAddExpense = useLocalData ? handleAddExpenseLocal : handleAddExpenseSupabase;
+  const handleEditExpense = useLocalData ? handleEditExpenseLocal : handleEditExpenseSupabase;
+  const handleSaveEdit = useLocalData ? handleSaveEditLocal : handleSaveEditSupabase;
+  const handleDeleteExpense = useLocalData ? handleDeleteExpenseLocal : handleDeleteExpenseSupabase;
 
   // Convert database expenses to UI expenses if using Supabase
   const convertToUIExpense = (dbExpense: DatabaseExpense): Expense => ({
@@ -452,30 +573,132 @@ const SpendingTracker: React.FC = () => {
           {filteredExpenses.length > 0 ? (
             filteredExpenses
               .sort((a, b) => b.date.getTime() - a.date.getTime()) // Sort by date, newest first
-              .map(expense => (
-                <div key={expense.id} className="glass p-3 rounded-lg flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div
-                      className="w-3 h-3 rounded-full mr-3"
-                      style={{
-                        backgroundColor: expenseCategories.find(c => c.name === expense.category)?.color || '#174E4F'
-                      }}
-                    />
-                    <span>{expense.category}</span>
-                    {expense.fromPayment && (
-                      <span className="ml-2 text-xs bg-primary/20 text-primary px-1 py-0.5 rounded">
-                        Payment
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium">{formatCurrency(expense.amount)}</div>
-                    <div className="text-xs text-primary/70">
-                      {expense.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              .map(expense => {
+                const isEditing = editingExpense === expense.id;
+
+                if (isEditing) {
+                  return (
+                    <div key={expense.id} className="glass p-3 rounded-lg animate-scale-in">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium">Edit Expense</h4>
+                        <button
+                          onClick={() => setEditingExpense(null)}
+                          className="p-1 rounded-full hover:bg-gray-200/50"
+                          title="Cancel"
+                        >
+                          <X className="w-4 h-4 text-gray-500" />
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Category</label>
+                          <select
+                            value={editFormData.category}
+                            onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
+                            className="px-2 py-1 text-sm bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                            required
+                          >
+                            {expenseCategories.map(category => (
+                              <option key={category.name} value={category.name}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-xs font-medium mb-1">Amount</label>
+                            <input
+                              type="number"
+                              value={editFormData.amount || ''}
+                              onChange={(e) => setEditFormData({...editFormData, amount: Number(e.target.value)})}
+                              className="px-2 py-1 text-sm bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                              min="0.01"
+                              step="0.01"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium mb-1">Date</label>
+                            <input
+                              type="date"
+                              value={editFormData.date}
+                              onChange={(e) => setEditFormData({...editFormData, date: e.target.value})}
+                              className="px-2 py-1 text-sm bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end space-x-2 pt-2">
+                          <button
+                            onClick={() => setEditingExpense(null)}
+                            className="px-2 py-1 text-xs bg-white/50 rounded-lg hover:bg-white/70 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleSaveEdit(expense.id)}
+                            className="px-2 py-1 text-xs bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                          >
+                            Save Changes
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={expense.id} className="glass p-3 rounded-lg flex justify-between items-center">
+                    <div className="flex items-center">
+                      <div
+                        className="w-3 h-3 rounded-full mr-3"
+                        style={{
+                          backgroundColor: expenseCategories.find(c => c.name === expense.category)?.color || '#174E4F'
+                        }}
+                      />
+                      <span>{expense.category}</span>
+                      {expense.fromPayment && (
+                        <span className="ml-2 text-xs bg-primary/20 text-primary px-1 py-0.5 rounded">
+                          Payment
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <div className="text-right mr-2">
+                        <div className="font-medium">{formatCurrency(expense.amount)}</div>
+                        <div className="text-xs text-primary/70">
+                          {expense.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </div>
+                      </div>
+
+                      {!expense.fromPayment && (
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={() => handleEditExpense(expense.id)}
+                            className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                            title="Edit expense"
+                          >
+                            <Pencil className="w-3.5 h-3.5 text-gray-600" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteExpense(expense.id)}
+                            className="p-1.5 rounded-full bg-red-50 hover:bg-red-100 transition-colors"
+                            title="Delete expense"
+                          >
+                            <Trash className="w-3.5 h-3.5 text-red-500" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
           ) : (
             <p className="text-center text-primary/50 py-4">No expenses recorded for this period.</p>
           )}

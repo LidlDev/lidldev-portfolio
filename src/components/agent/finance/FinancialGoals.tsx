@@ -56,7 +56,14 @@ const FinancialGoals: React.FC = () => {
 
   // Try to use Supabase data if available, otherwise fall back to local state
   let useLocalData = !user;
-  console.log('User authenticated:', !!user);
+
+  // Add debugging for Vercel deployment
+  console.log('[FinancialGoals] User authenticated:', !!user);
+  console.log('[FinancialGoals] User details:', user ? {
+    id: user.id,
+    email: user.email,
+    role: user.role
+  } : 'No user');
 
   const {
     data: goals = [],
@@ -81,8 +88,12 @@ const FinancialGoals: React.FC = () => {
     orderBy: { column: 'created_at', ascending: false }
   });
 
-  console.log('Financial goals from Supabase:', goals);
-  console.log('Using local data:', useLocalData);
+  console.log('[FinancialGoals] Financial goals from Supabase:', goals);
+  console.log('[FinancialGoals] Using local data:', useLocalData);
+
+  // Add debugging for the UI goals
+  const uiGoals = useLocalData ? localGoals : goals.map(convertToUIGoal);
+  console.log('[FinancialGoals] UI goals to display:', uiGoals);
 
   // Local handlers (used when Supabase is not available)
   const handleAddGoalLocal = (e: React.FormEvent) => {
@@ -159,8 +170,10 @@ const FinancialGoals: React.FC = () => {
   // Supabase handlers
   const handleAddGoalSupabase = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[FinancialGoals] handleAddGoalSupabase called');
 
     if (!user) {
+      console.log('[FinancialGoals] No user, falling back to local state');
       // If not logged in, fall back to local state
       handleAddGoalLocal(e);
       return;
@@ -168,25 +181,21 @@ const FinancialGoals: React.FC = () => {
 
     if (newGoal.title && newGoal.target > 0) {
       try {
-        console.log('Adding goal with data:', {
+        const goalData = {
           title: newGoal.title,
           target: newGoal.target,
           current: newGoal.current,
           target_date: newGoal.targetDate ? new Date(newGoal.targetDate).toISOString() : null,
           color: '#174E4F',
-          increment_amount: newGoal.incrementAmount
-        });
+          increment_amount: newGoal.incrementAmount,
+          user_id: user.id // Explicitly set the user_id
+        };
 
-        const result = await addItem({
-          title: newGoal.title,
-          target: newGoal.target,
-          current: newGoal.current,
-          target_date: newGoal.targetDate ? new Date(newGoal.targetDate).toISOString() : null,
-          color: '#174E4F',
-          increment_amount: newGoal.incrementAmount
-        });
+        console.log('[FinancialGoals] Adding goal with data:', goalData);
 
-        console.log('Add goal result:', result);
+        const result = await addItem(goalData);
+
+        console.log('[FinancialGoals] Add goal result:', result);
 
         setNewGoal({
           title: '',
@@ -200,14 +209,25 @@ const FinancialGoals: React.FC = () => {
         // Refresh the data to show the new goal
         if (result) {
           toast.success('Goal created successfully');
-          fetchData();
+          console.log('[FinancialGoals] Calling fetchData to refresh goals');
+          await fetchData();
+          console.log('[FinancialGoals] fetchData completed, goals should be updated');
+        } else {
+          console.error('[FinancialGoals] Failed to add goal, result was falsy');
+          toast.error('Failed to create goal');
         }
       } catch (error) {
-        console.error('Error adding goal to Supabase:', error);
+        console.error('[FinancialGoals] Error adding goal to Supabase:', error);
         toast.error('Failed to create goal');
         // Fall back to local state
         handleAddGoalLocal(e);
       }
+    } else {
+      console.log('[FinancialGoals] Invalid goal data:', {
+        title: newGoal.title,
+        target: newGoal.target
+      });
+      toast.error('Please provide a title and target amount');
     }
   };
 
