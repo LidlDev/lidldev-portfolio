@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { RotateCw, Mail, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface EmailScannerProps {
@@ -39,17 +39,20 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
     }
 
     setScanning(true);
-    
+
     try {
       // In a real implementation, this would call an API endpoint
       // that would use OAuth to access the user's emails
       // For now, we'll simulate a delay and return mock data
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
+      // Generate a simple random ID
+      const generateId = () => Math.random().toString(36).substring(2, 15);
+
       // Mock detected bills
       const mockBills: DetectedBill[] = [
         {
-          id: crypto.randomUUID(),
+          id: generateId(),
           title: 'Electric Bill',
           amount: 89.99,
           dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
@@ -59,7 +62,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           approved: false
         },
         {
-          id: crypto.randomUUID(),
+          id: generateId(),
           title: 'Internet Service',
           amount: 65.00,
           dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
@@ -69,7 +72,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           approved: false
         },
         {
-          id: crypto.randomUUID(),
+          id: generateId(),
           title: 'Streaming Subscription',
           amount: 14.99,
           dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
@@ -79,7 +82,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           approved: false
         }
       ];
-      
+
       // Store the detected bills in Supabase for this user
       // In a real implementation, this would be done server-side
       try {
@@ -88,14 +91,14 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           .from('detected_bills')
           .select('source, amount')
           .eq('user_id', user.id);
-        
+
         // Filter out bills that already exist
-        const newBills = mockBills.filter(bill => 
-          !existingBills?.some(existing => 
+        const newBills = mockBills.filter(bill =>
+          !existingBills?.some(existing =>
             existing.source === bill.source && existing.amount === bill.amount
           )
         );
-        
+
         if (newBills.length > 0) {
           // Insert new bills
           await supabase.from('detected_bills').insert(
@@ -110,7 +113,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
               user_id: user.id
             }))
           );
-          
+
           toast.success(`Found ${newBills.length} new bills in your emails`);
           onBillsDetected(newBills);
         } else {
@@ -130,7 +133,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
   const handleGrantPermission = () => {
     setPermissionGranted(true);
     setShowPermissionDialog(false);
-    
+
     // Store the permission in user metadata
     if (user) {
       supabase.from('profiles')
@@ -141,8 +144,8 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           // Start scanning immediately
           scanEmails();
         })
-        .catch(error => {
-          console.error('Error updating user profile:', error);
+        .catch(err => {
+          console.error('Error updating user profile:', err);
         });
     }
   };
@@ -158,7 +161,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
         >
           {scanning ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <RotateCw className="w-4 h-4 mr-2 animate-spin" />
               Scanning...
             </>
           ) : (
@@ -169,13 +172,13 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           )}
         </button>
       </div>
-      
+
       {!permissionGranted && !showPermissionDialog && (
         <p className="text-sm text-primary/70 mb-2">
           Scan your emails to automatically detect bills and upcoming payments.
         </p>
       )}
-      
+
       {showPermissionDialog && (
         <div className="glass-card p-4 mb-4 border border-primary/20 animate-scale-in">
           <div className="flex items-start mb-3">
@@ -187,7 +190,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
               </p>
             </div>
           </div>
-          
+
           <div className="flex justify-end space-x-2">
             <button
               onClick={() => setShowPermissionDialog(false)}
@@ -204,10 +207,10 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           </div>
         </div>
       )}
-      
+
       {permissionGranted && (
         <div className="flex items-center text-sm text-green-600 mb-2">
-          <CheckCircle2 className="w-4 h-4 mr-1" />
+          <CheckCircle className="w-4 h-4 mr-1" />
           Email scanning permission granted
         </div>
       )}
