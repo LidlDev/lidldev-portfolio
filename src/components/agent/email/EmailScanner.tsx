@@ -33,11 +33,46 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       return;
     }
 
+    // Check if permission is already granted
     if (!permissionGranted) {
-      setShowPermissionDialog(true);
-      return;
+      // First check if we have OAuth tokens or permission in the database
+      try {
+        const { data: authData } = await supabase
+          .from('email_auth')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('provider', 'google')
+          .single();
+
+        if (authData) {
+          // We have OAuth tokens, so we can proceed
+          setPermissionGranted(true);
+        } else {
+          // No OAuth tokens, check profile permissions
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('email_scan_permission')
+            .eq('id', user.id)
+            .single();
+
+          if (profileData?.email_scan_permission) {
+            // We have permission in the profile, so we can proceed
+            setPermissionGranted(true);
+          } else {
+            // No permission found, show the permission dialog
+            setShowPermissionDialog(true);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking permissions:', error);
+        // If there's an error, show the permission dialog to be safe
+        setShowPermissionDialog(true);
+        return;
+      }
     }
 
+    // If we get here, we have permission
     setScanning(true);
 
     try {
@@ -227,46 +262,43 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
         <button
           onClick={scanEmails}
           disabled={scanning}
-          className={`flex items-center px-3 py-1.5 rounded-lg transition-colors ${
-            permissionGranted
-              ? 'bg-primary text-white hover:bg-primary/90'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
-          } disabled:opacity-50`}
+          className="flex items-center px-3 py-1.5 rounded-lg transition-colors bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
         >
           {scanning ? (
             <>
               <span className="w-4 h-4 mr-2 animate-spin">⟳</span>
               Scanning...
             </>
-          ) : permissionGranted ? (
-            <>
-              <Mail className="w-4 h-4 mr-2" />
-              Scan Emails
-            </>
           ) : (
             <>
               <Mail className="w-4 h-4 mr-2" />
-              Grant Permission
+              Scan Emails
             </>
           )}
         </button>
       </div>
 
-      {!permissionGranted && !showPermissionDialog && (
+      {!showPermissionDialog && (
         <p className="text-sm text-primary/70 mb-2">
-          Grant permission to scan your emails for bills and upcoming payments.
+          Scan your emails to automatically detect bills and upcoming payments.
         </p>
       )}
 
       {showPermissionDialog && (
         <div className="glass-card p-4 mb-4 border border-primary/20 animate-scale-in">
-          <div className="flex items-start mb-3">
+          <div className="flex items-start mb-4">
             <span className="w-5 h-5 text-primary mr-2 flex-shrink-0 mt-0.5">⚠️</span>
             <div>
-              <h4 className="font-medium">Permission Required</h4>
+              <h4 className="font-medium">Email Access Permission Required</h4>
               <p className="text-sm text-primary/70 mt-1">
-                To scan your emails for bills, we need your permission. We'll only look for bill-related emails and won't store your email content.
+                To scan your emails for bills, we need your permission to access your Gmail account. Here's what you should know:
               </p>
+              <ul className="text-sm text-primary/70 mt-2 list-disc pl-5 space-y-1">
+                <li>We'll only look for bill-related emails</li>
+                <li>We won't store your email content</li>
+                <li>We'll only extract bill information (amount, due date, etc.)</li>
+                <li>You can revoke access at any time in your Google account settings</li>
+              </ul>
             </div>
           </div>
 
@@ -275,22 +307,22 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
               onClick={() => setShowPermissionDialog(false)}
               className="px-3 py-1.5 bg-white/50 rounded-lg hover:bg-white/70 transition-colors"
             >
-              Cancel
+              Not Now
             </button>
             <button
               onClick={handleGrantPermission}
               className="px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
-              Grant Permission
+              Connect Gmail
             </button>
           </div>
         </div>
       )}
 
       {permissionGranted && (
-        <div className="flex items-center text-sm text-green-600 mb-2">
-          <span className="w-4 h-4 mr-1 text-green-600">✓</span>
-          Email scanning permission granted
+        <div className="flex items-center text-xs text-green-600 mb-2 opacity-80">
+          <span className="w-3 h-3 mr-1 text-green-600">✓</span>
+          Gmail connected
         </div>
       )}
     </div>
