@@ -157,8 +157,13 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
 
-      // Start scanning emails
-      scanEmails();
+      // Show scanning in progress
+      setScanning(true);
+
+      // Start scanning emails with a slight delay to allow UI to update
+      setTimeout(() => {
+        scanEmails();
+      }, 500);
     } else if (authError && user) {
       // Handle specific error cases
       if (authError === 'oauth_credentials_not_set') {
@@ -197,18 +202,27 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
         <h3 className="font-medium text-primary">Email Bill Detection</h3>
         <button
           onClick={scanEmails}
-          disabled={scanning}
-          className="flex items-center px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+          disabled={scanning || (!permissionGranted && !showPermissionDialog)}
+          className={`flex items-center px-3 py-1.5 rounded-lg transition-colors ${
+            permissionGranted
+              ? 'bg-primary text-white hover:bg-primary/90'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          } disabled:opacity-50`}
         >
           {scanning ? (
             <>
               <span className="w-4 h-4 mr-2 animate-spin">⟳</span>
               Scanning...
             </>
-          ) : (
+          ) : permissionGranted ? (
             <>
               <Mail className="w-4 h-4 mr-2" />
               Scan Emails
+            </>
+          ) : (
+            <>
+              <Mail className="w-4 h-4 mr-2" />
+              Grant Permission
             </>
           )}
         </button>
@@ -216,7 +230,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
 
       {!permissionGranted && !showPermissionDialog && (
         <p className="text-sm text-primary/70 mb-2">
-          Scan your emails to automatically detect bills and upcoming payments.
+          Grant permission to scan your emails for bills and upcoming payments.
         </p>
       )}
 

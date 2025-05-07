@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { DetectedBill } from './EmailScanner';
-import { Mail } from 'lucide-react';
+import { Mail, Calendar, X, Check } from 'lucide-react';
 import { formatCurrency } from '@/utils/agentData';
 import { toast } from 'sonner';
 
@@ -71,28 +71,49 @@ const BillSuggestions: React.FC<BillSuggestionsProps> = ({
     if (!user) return;
 
     try {
-      // First, update the detected bill status
-      const { error: updateError } = await supabase
+      // First, find the detected bill in the database
+      const { data: detectedBills, error: findError } = await supabase
         .from('detected_bills')
-        .update({ approved: true })
-        .eq('id', bill.id);
+        .select('*')
+        .eq('source', bill.source)
+        .eq('amount', bill.amount)
+        .eq('user_id', user.id);
 
-      if (updateError) throw updateError;
+      if (findError) throw findError;
+
+      // If the bill exists in the database, update its status
+      if (detectedBills && detectedBills.length > 0) {
+        const dbBill = detectedBills[0];
+        const { error: updateError } = await supabase
+          .from('detected_bills')
+          .update({ approved: true })
+          .eq('id', dbBill.id);
+
+        if (updateError) throw updateError;
+      }
 
       // Then create a new payment
-      const { error: paymentError } = await supabase
-        .from('payments')
-        .insert([{
-          title: bill.title,
-          amount: bill.amount,
-          due_date: bill.dueDate.toISOString(),
-          recurring: false, // Default to non-recurring, user can change later
-          category: bill.category,
-          paid: false,
-          user_id: user.id
-        }]);
+      try {
+        const { data: newPayment, error: paymentError } = await supabase
+          .from('payments')
+          .insert([{
+            title: bill.title,
+            amount: bill.amount,
+            due_date: bill.dueDate.toISOString(),
+            recurring: false, // Default to non-recurring, user can change later
+            category: bill.category,
+            paid: false,
+            user_id: user.id
+          }])
+          .select();
 
-      if (paymentError) throw paymentError;
+        if (paymentError) throw paymentError;
+
+        console.log('Successfully created payment:', newPayment);
+      } catch (paymentError) {
+        console.error('Detailed payment error:', paymentError);
+        throw new Error('Failed to create payment: ' + (paymentError.message || 'Unknown error'));
+      }
 
       // Update local state
       setBills(bills.filter(b => b.id !== bill.id));
@@ -111,15 +132,40 @@ const BillSuggestions: React.FC<BillSuggestionsProps> = ({
     if (!user) return;
 
     try {
-      // Update the detected bill status or delete it
-      const { error } = await supabase
+      // Find the bill in our local state
+      const billToReject = bills.find(bill => bill.id === billId);
+
+      if (!billToReject) {
+        console.error('Bill not found in local state:', billId);
+        return;
+      }
+
+      // Try to find the bill in the database
+      const { data: detectedBills, error: findError } = await supabase
         .from('detected_bills')
-        .delete()
-        .eq('id', billId);
+        .select('*')
+        .eq('source', billToReject.source)
+        .eq('amount', billToReject.amount)
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (findError) {
+        console.error('Error finding bill in database:', findError);
+      }
 
-      // Update local state
+      // If the bill exists in the database, delete it
+      if (detectedBills && detectedBills.length > 0) {
+        const dbBill = detectedBills[0];
+        const { error: deleteError } = await supabase
+          .from('detected_bills')
+          .delete()
+          .eq('id', dbBill.id);
+
+        if (deleteError) {
+          console.error('Error deleting bill from database:', deleteError);
+        }
+      }
+
+      // Update local state regardless of database operation
       setBills(bills.filter(bill => bill.id !== billId));
 
       // Notify parent component
@@ -161,7 +207,7 @@ const BillSuggestions: React.FC<BillSuggestionsProps> = ({
                   From: {bill.source}
                 </div>
                 <div className="flex items-center mt-1">
-                  <span className="w-3 h-3 mr-1 text-primary/70">📅</span>
+                  <Calendar className="w-3 h-3 mr-1 text-primary/70" />
                   <span className="text-xs">
                     Due: {bill.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
@@ -182,14 +228,14 @@ const BillSuggestions: React.FC<BillSuggestionsProps> = ({
                     className="p-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
                     title="Reject"
                   >
-                    ✕
+                    <X className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleApproveBill(bill)}
                     className="p-1 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
                     title="Approve"
                   >
-                    ✓
+                    <Check className="w-4 h-4" />
                   </button>
                 </div>
               </div>
