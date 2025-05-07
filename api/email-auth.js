@@ -40,11 +40,18 @@ export default async function handler(req, res) {
       });
     }
 
-    const { userId } = req.query;
+    const { userId, callbackUrl } = req.query;
 
     if (!userId) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
+
+    // Use custom callback URL if provided
+    const redirectUri = callbackUrl ?
+      `${process.env.NEXT_PUBLIC_URL}${callbackUrl}` :
+      REDIRECT_URI;
+
+    console.log('Using redirect URI:', redirectUri);
 
     // Log environment variables (redacted for security)
     console.log('Environment variables check in email-auth:', {
@@ -59,7 +66,13 @@ export default async function handler(req, res) {
     // Store the user ID in the session for later use
     // In a real implementation, you would use a secure session store
     // For simplicity, we'll use a cookie
-    res.setHeader('Set-Cookie', `email_auth_user_id=${userId}; Path=/; HttpOnly; SameSite=Strict; Max-Age=3600`);
+    // Make sure the cookie is accessible across the domain
+    const domain = process.env.NEXT_PUBLIC_URL ? new URL(process.env.NEXT_PUBLIC_URL).hostname : '';
+
+    console.log('Setting cookie with domain:', domain);
+
+    // Set the cookie with more permissive settings for cross-domain access
+    res.setHeader('Set-Cookie', `email_auth_user_id=${userId}; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=3600${domain ? `; Domain=${domain}` : ''}`);
 
     // Check if Google OAuth credentials are set
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -71,7 +84,7 @@ export default async function handler(req, res) {
     // Generate the Google OAuth URL
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     authUrl.searchParams.append('client_id', GOOGLE_CLIENT_ID);
-    authUrl.searchParams.append('redirect_uri', REDIRECT_URI);
+    authUrl.searchParams.append('redirect_uri', redirectUri);
     authUrl.searchParams.append('response_type', 'code');
     authUrl.searchParams.append('scope', 'https://www.googleapis.com/auth/gmail.readonly');
     authUrl.searchParams.append('access_type', 'offline');

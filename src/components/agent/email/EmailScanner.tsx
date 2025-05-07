@@ -119,7 +119,9 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           if (error || !data) {
             // No tokens found, redirect to OAuth flow
             // Use window.location to redirect to the API endpoint
-            window.location.href = `/api/email-auth?userId=${encodeURIComponent(user.id)}`;
+            // Also include the user ID in the callback URL as a fallback
+            const callbackUrl = `/api/email-auth-callback?userId=${encodeURIComponent(user.id)}`;
+            window.location.href = `/api/email-auth?userId=${encodeURIComponent(user.id)}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
           } else {
             // Tokens found, update permission and scan emails
             setPermissionGranted(true);

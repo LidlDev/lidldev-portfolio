@@ -50,9 +50,39 @@ export default async function handler(req, res) {
     }
 
     // Get the user ID from the cookie
+    console.log('Cookies received:', req.cookies);
+
     const userId = req.cookies.email_auth_user_id;
+
     if (!userId) {
+      console.error('User ID cookie not found. Available cookies:', req.cookies);
+
+      // Try to get the user ID from the query parameters as a fallback
+      const queryUserId = req.query.userId;
+
+      if (queryUserId) {
+        console.log('Using user ID from query parameters:', queryUserId);
+        return handleOAuthWithUserId(queryUserId, code, res);
+      }
+
       return res.redirect('/agent?auth_error=missing_user_id');
+    }
+
+    // Continue with the user ID from the cookie
+    return handleOAuthWithUserId(userId, code, res);
+  } catch (error) {
+    console.error('Error handling OAuth callback:', error);
+    return res.redirect('/agent?auth_error=server_error');
+  }
+}
+
+// Helper function to handle the OAuth callback with a specific user ID
+async function handleOAuthWithUserId(userId, code, res) {
+  try {
+    // Check if Supabase client is initialized
+    if (!supabase) {
+      console.error('Supabase client is not initialized due to missing environment variables');
+      return res.redirect('/agent?auth_error=server_configuration_error');
     }
 
     // Log environment variables (redacted for security)
@@ -141,12 +171,13 @@ export default async function handler(req, res) {
     }
 
     // Clear the cookie
-    res.setHeader('Set-Cookie', 'email_auth_user_id=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0');
+    const domain = process.env.NEXT_PUBLIC_URL ? new URL(process.env.NEXT_PUBLIC_URL).hostname : '';
+    res.setHeader('Set-Cookie', `email_auth_user_id=; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=0${domain ? `; Domain=${domain}` : ''}`);
 
     // Redirect back to the agent page with success
     return res.redirect('/agent?auth_success=true');
   } catch (error) {
-    console.error('Error handling OAuth callback:', error);
+    console.error('Error in handleOAuthWithUserId:', error);
     return res.redirect('/agent?auth_error=server_error');
   }
 }
