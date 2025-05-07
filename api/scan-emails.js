@@ -158,6 +158,9 @@ export default async function handler(req, res) {
 
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
+    // Process emails to find bills
+    let newBills = [];
+
     try {
       // Get the list of emails from the last 30 days
       const thirtyDaysAgo = new Date();
@@ -292,22 +295,26 @@ export default async function handler(req, res) {
       // Sort by confidence (highest first)
       const sortedBills = detectedBills.sort((a, b) => b.confidence - a.confidence);
 
-    // Check if these bills already exist in the database
-    const { data: existingBills, error: billsError } = await supabase
-      .from('detected_bills')
-      .select('source, amount')
-      .eq('user_id', userId);
+      // Check if these bills already exist in the database
+      const { data: existingBills, error: billsError } = await supabase
+        .from('detected_bills')
+        .select('source, amount')
+        .eq('user_id', userId);
 
-    if (billsError) {
-      return res.status(500).json({ error: 'Error checking existing bills' });
+      if (billsError) {
+        throw new Error('Error checking existing bills');
+      }
+
+      // Filter out bills that already exist
+      newBills = sortedBills.filter(bill =>
+        !existingBills?.some(existing =>
+          existing.source === bill.source && existing.amount === bill.amount
+        )
+      );
+    } catch (emailError) {
+      console.error('Error processing emails:', emailError);
+      return res.status(500).json({ error: 'Error processing emails: ' + emailError.message });
     }
-
-    // Filter out bills that already exist
-    const newBills = sortedBills.filter(bill =>
-      !existingBills?.some(existing =>
-        existing.source === bill.source && existing.amount === bill.amount
-      )
-    );
 
     // Insert new bills into the database
     if (newBills.length > 0) {
