@@ -22,6 +22,7 @@ export interface DetectedBill {
 const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
   const { user } = useAuth();
   const [scanning, setScanning] = useState(false);
+  // We'll initialize with false and update in useEffect
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
 
@@ -143,7 +144,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
     }
   };
 
-  // Check for OAuth callback parameters
+  // Check for OAuth callback parameters and existing permissions
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const authSuccess = urlParams.get('auth_success');
@@ -182,18 +183,41 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
     }
 
     // Check if the user already has permission
-    if (user) {
-      supabase
-        .from('profiles')
-        .select('email_scan_permission')
-        .eq('id', user.id)
-        .single()
-        .then(({ data, error }) => {
-          if (!error && data && data.email_scan_permission) {
-            setPermissionGranted(true);
-          }
-        });
-    }
+    const checkPermission = async () => {
+      if (!user) return;
+
+      try {
+        // First check if we have OAuth tokens
+        const { data: authData, error: authError } = await supabase
+          .from('email_auth')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('provider', 'google')
+          .single();
+
+        if (!authError && authData) {
+          console.log('Found existing OAuth tokens');
+          setPermissionGranted(true);
+          return;
+        }
+
+        // If no OAuth tokens, check profile permissions
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('email_scan_permission')
+          .eq('id', user.id)
+          .single();
+
+        if (!profileError && profileData && profileData.email_scan_permission) {
+          console.log('Found email_scan_permission in profile');
+          setPermissionGranted(true);
+        }
+      } catch (error) {
+        console.error('Error checking permissions:', error);
+      }
+    };
+
+    checkPermission();
   }, [user]);
 
   return (
@@ -202,11 +226,11 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
         <h3 className="font-medium text-primary">Email Bill Detection</h3>
         <button
           onClick={scanEmails}
-          disabled={scanning || (!permissionGranted && !showPermissionDialog)}
+          disabled={scanning}
           className={`flex items-center px-3 py-1.5 rounded-lg transition-colors ${
             permissionGranted
               ? 'bg-primary text-white hover:bg-primary/90'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : 'bg-blue-500 text-white hover:bg-blue-600'
           } disabled:opacity-50`}
         >
           {scanning ? (
