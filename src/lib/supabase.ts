@@ -14,13 +14,9 @@ if (!supabaseKey && typeof process !== 'undefined' && process.env) {
   supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 }
 
-// Hardcoded values for development only - REMOVE IN PRODUCTION
+// No hardcoded values - rely only on environment variables
 if (!supabaseUrl || !supabaseKey) {
-  // These are the values from your .env file
-  supabaseUrl = 'https://mszyijbyiyvjocjtcobh.supabase.co';
-  supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zenlpamJ5aXl2am9janRjb2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTM2NDIsImV4cCI6MjA2MjAyOTY0Mn0.BUD46aMAsowGWxRpdQxuh-RzQXBciLnx1ISvuQVbAqc';
-
-  console.warn('Using hardcoded Supabase credentials for development. This is insecure and should be removed in production.');
+  console.warn('Supabase credentials not found in environment variables. Authentication features will not work.');
 }
 
 // Create client only if environment variables are available
