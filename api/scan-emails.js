@@ -1,9 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+
+// Check if Supabase environment variables are set
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Supabase environment variables are not set:', {
+    NEXT_PUBLIC_SUPABASE_URL: supabaseUrl ? 'Set' : 'Not set',
+    SUPABASE_SERVICE_KEY: supabaseServiceKey ? 'Set' : 'Not set'
+  });
+}
+
+// Only create the Supabase client if the URL and key are available
+const supabase = supabaseUrl && supabaseServiceKey ?
+  createClient(supabaseUrl, supabaseServiceKey) :
+  null;
 
 export default async function handler(req, res) {
   // Only allow POST requests
@@ -12,6 +24,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Check if Supabase client is initialized
+    if (!supabase) {
+      console.error('Supabase client is not initialized due to missing environment variables');
+      return res.status(500).json({
+        error: 'Server configuration error. Please contact the administrator.',
+        details: 'Supabase environment variables are not set'
+      });
+    }
+
     const { userId, accessToken } = req.body;
 
     if (!userId || !accessToken) {
@@ -20,16 +41,16 @@ export default async function handler(req, res) {
 
     // Verify the user's token
     const { data: user, error: authError } = await supabase.auth.getUser(accessToken);
-    
+
     if (authError || !user || user.user.id !== userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    
+
     // Check if Google OAuth credentials are set
     const googleClientId = process.env.GOOGLE_CLIENT_ID;
     const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const nextPublicUrl = process.env.NEXT_PUBLIC_URL;
-    
+
     // Log environment variables (redacted for security)
     console.log('Environment variables check:', {
       GOOGLE_CLIENT_ID: googleClientId ? 'Set' : 'Not set',
@@ -38,13 +59,13 @@ export default async function handler(req, res) {
       SUPABASE_URL: supabaseUrl ? 'Set' : 'Not set',
       SUPABASE_SERVICE_KEY: supabaseServiceKey ? 'Set' : 'Not set'
     });
-    
+
     if (!googleClientId || !googleClientSecret) {
       return res.status(503).json({
         error: 'Email scanning is not available. Please contact the administrator to set up Google OAuth credentials.'
       });
     }
-    
+
     if (!nextPublicUrl) {
       console.warn('NEXT_PUBLIC_URL is not set. Using default redirect URI.');
     }
@@ -62,7 +83,7 @@ export default async function handler(req, res) {
 
     // In a real implementation, this would connect to the user's email provider
     // using OAuth and scan for bills. For now, we'll simulate this with mock data.
-    
+
     // Simulate email scanning delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -111,8 +132,8 @@ export default async function handler(req, res) {
     }
 
     // Filter out bills that already exist
-    const newBills = mockBills.filter(bill => 
-      !existingBills?.some(existing => 
+    const newBills = mockBills.filter(bill =>
+      !existingBills?.some(existing =>
         existing.source === bill.source && existing.amount === bill.amount
       )
     );
@@ -140,8 +161,8 @@ export default async function handler(req, res) {
     }
 
     // Return the detected bills
-    return res.status(200).json({ 
-      success: true, 
+    return res.status(200).json({
+      success: true,
       bills: newBills.map(bill => ({
         ...bill,
         dueDate: new Date(bill.dueDate)

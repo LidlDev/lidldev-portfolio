@@ -162,6 +162,8 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       // Handle specific error cases
       if (authError === 'oauth_credentials_not_set') {
         toast.error('Email scanning is not available. Please contact the administrator to set up Google OAuth credentials.');
+      } else if (authError === 'server_configuration_error') {
+        toast.error('Server configuration error. Please contact the administrator to set up the required environment variables.');
       } else {
         toast.error(`Email access error: ${authError}`);
       }
