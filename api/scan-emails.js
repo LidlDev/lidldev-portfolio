@@ -3,12 +3,42 @@ import { google } from 'googleapis';
 
 // Regular expressions for bill detection
 const BILL_KEYWORDS = [
-  'invoice', 'bill', 'payment', 'due', 'statement', 'balance',
-  'utility', 'subscription', 'receipt', 'charge', 'amount'
+  'invoice', 'bill', 'payment due', 'due date', 'statement',
+  'autopay', 'auto-pay', 'direct debit', 'scheduled payment',
+  'utility bill', 'monthly bill', 'subscription renewal'
 ];
 
+// Strong bill indicators (presence of these terms increases confidence significantly)
+const STRONG_BILL_INDICATORS = [
+  'invoice #', 'invoice number', 'account number', 'customer #',
+  'payment due on', 'please pay by', 'amount due', 'total due',
+  'minimum payment', 'autopay scheduled', 'direct debit scheduled'
+];
+
+// Negative keywords (presence of these terms decreases confidence or excludes the email)
+const NEGATIVE_KEYWORDS = [
+  'save money', 'discount', 'offer', 'promotion', 'sale', 'deal',
+  'transferred', 'sent you', 'payment received', 'receipt for your payment',
+  'thank you for your payment', 'payment confirmation', 'order confirmation',
+  'money transfer', 'you paid', 'you sent', 'suggestion', 'recommend',
+  'invitation', 'verify your', 'confirm your', 'update your', 'welcome to'
+];
+
+// Specific services that often send non-bill emails that might be confused as bills
+const NON_BILL_SERVICES = [
+  'uber.com', 'ubereats', 'doordash', 'grubhub', 'paypal',
+  'venmo', 'cashapp', 'zelle', 'facebook', 'instagram', 'twitter',
+  'tiktok', 'snapchat', 'linkedin', 'pinterest', 'youtube'
+];
+
+// Amount regex - matches currency amounts
 const AMOUNT_REGEX = /\$\s?(\d+(?:\.\d{2})?)/g;
-const DATE_REGEX = /(?:due|payment).{1,20}((?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:[,\s]+\d{2,4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i;
+
+// Improved date regex patterns
+const DUE_DATE_REGEX = /(?:due|payment due|please pay by|pay before|payment date).{1,30}((?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:[,\s]+\d{2,4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*(?:\s+\d{2,4})?)/i;
+
+// Fallback date regex for when no due date is explicitly mentioned
+const ANY_DATE_REGEX = /((?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:[,\s]+\d{2,4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*(?:\s+\d{2,4})?)/gi;
 
 // Category detection
 const CATEGORY_KEYWORDS = {
@@ -210,16 +240,44 @@ export default async function handler(req, res) {
         // Combine subject and body for analysis
         const content = `${subject}\n${body}`;
 
-        // Check if this looks like a bill
-        const isBill = BILL_KEYWORDS.some(keyword =>
+        // Initial check for bill keywords
+        const hasBasicBillKeywords = BILL_KEYWORDS.some(keyword =>
           content.toLowerCase().includes(keyword.toLowerCase())
         );
 
-        if (!isBill) continue;
+        if (!hasBasicBillKeywords) continue;
+
+        // Check for negative keywords that indicate this is NOT a bill
+        const hasNegativeKeywords = NEGATIVE_KEYWORDS.some(keyword =>
+          content.toLowerCase().includes(keyword.toLowerCase())
+        );
+
+        // Check if the email is from a service that often sends non-bill emails
+        const isFromNonBillService = NON_BILL_SERVICES.some(service =>
+          sender.toLowerCase().includes(service.toLowerCase())
+        );
+
+        // Skip this email if it has negative keywords or is from a non-bill service
+        // unless it has strong bill indicators
+        const hasStrongIndicators = STRONG_BILL_INDICATORS.some(indicator =>
+          content.toLowerCase().includes(indicator.toLowerCase())
+        );
+
+        if ((hasNegativeKeywords || isFromNonBillService) && !hasStrongIndicators) {
+          console.log(`Skipping email with subject "${subject}" - has negative indicators`);
+          continue;
+        }
+
+        // Start with a base confidence
+        let confidence = 0.3;
+
+        // Increase confidence for strong indicators
+        if (hasStrongIndicators) {
+          confidence += 0.3;
+        }
 
         // Extract amount
         let amount = 0;
-        let confidence = 0.5;
         const amountMatches = [...content.matchAll(AMOUNT_REGEX)];
 
         if (amountMatches.length > 0) {
@@ -227,23 +285,79 @@ export default async function handler(req, res) {
           const amounts = amountMatches.map(match => parseFloat(match[1]));
           amount = Math.max(...amounts);
           confidence += 0.2;
+        } else {
+          // No amount found, this is less likely to be a bill
+          confidence -= 0.1;
         }
 
         // Extract due date
         let dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 14); // Default to 2 weeks from now
+        let foundExplicitDueDate = false;
 
-        const dateMatch = content.match(DATE_REGEX);
-        if (dateMatch) {
-          const extractedDate = dateMatch[1];
+        // First try to find an explicit due date
+        const dueDateMatch = content.match(DUE_DATE_REGEX);
+        if (dueDateMatch) {
+          const extractedDate = dueDateMatch[1];
           try {
             const parsedDate = new Date(extractedDate);
             if (!isNaN(parsedDate.getTime())) {
               dueDate = parsedDate;
-              confidence += 0.1;
+              confidence += 0.2;
+              foundExplicitDueDate = true;
             }
           } catch (e) {
-            // Use default date
+            // Try a different parsing approach
+            try {
+              // Handle formats like "January 15th" or "15th of January"
+              const cleanedDate = extractedDate
+                .replace(/(st|nd|rd|th)/g, '')
+                .replace(/of\s+/g, '');
+
+              const parsedDate = new Date(cleanedDate);
+              if (!isNaN(parsedDate.getTime())) {
+                dueDate = parsedDate;
+                confidence += 0.2;
+                foundExplicitDueDate = true;
+              }
+            } catch (e2) {
+              // Use default date
+            }
+          }
+        }
+
+        // If no explicit due date was found, look for any date in the email
+        if (!foundExplicitDueDate) {
+          const allDates = [...content.matchAll(ANY_DATE_REGEX)];
+
+          if (allDates.length > 0) {
+            // Try to find a date that's in the future
+            const now = new Date();
+            let futureDates = [];
+
+            for (const dateMatch of allDates) {
+              try {
+                const parsedDate = new Date(dateMatch[0]);
+                if (!isNaN(parsedDate.getTime()) && parsedDate > now) {
+                  futureDates.push(parsedDate);
+                }
+              } catch (e) {
+                // Skip this date
+              }
+            }
+
+            if (futureDates.length > 0) {
+              // Use the earliest future date
+              dueDate = new Date(Math.min(...futureDates.map(d => d.getTime())));
+              confidence += 0.1;
+            } else {
+              // No future dates found, default to 2 weeks from now
+              dueDate = new Date();
+              dueDate.setDate(dueDate.getDate() + 14);
+            }
+          } else {
+            // No dates found at all, default to 2 weeks from now
+            dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 14);
           }
         }
 
@@ -292,8 +406,11 @@ export default async function handler(req, res) {
 
       console.log(`Detected ${detectedBills.length} bills`);
 
-      // Sort by confidence (highest first)
-      const sortedBills = detectedBills.sort((a, b) => b.confidence - a.confidence);
+      // Filter out low confidence bills and sort by confidence (highest first)
+      const filteredBills = detectedBills.filter(bill => bill.confidence >= 0.6);
+      console.log(`Filtered out ${detectedBills.length - filteredBills.length} low-confidence bills`);
+
+      const sortedBills = filteredBills.sort((a, b) => b.confidence - a.confidence);
 
       // Check if these bills already exist in the database
       const { data: existingBills, error: billsError } = await supabase
