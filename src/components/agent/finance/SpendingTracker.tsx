@@ -7,9 +7,23 @@ import {
   formatCurrency
 } from '@/utils/agentData';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
+
+interface DatabaseExpense {
+  id: string;
+  category: string;
+  amount: number;
+  date: string;
+  user_id: string;
+  created_at: string;
+  payment_id?: string | null; // Optional field to link to a payment
+}
 
 const SpendingTracker: React.FC = () => {
-  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+  const { user } = useAuth();
+  const [localExpenses, setLocalExpenses] = useState<Expense[]>(initialExpenses);
   const [showForm, setShowForm] = useState(false);
   const [newExpense, setNewExpense] = useState({
     category: 'Housing',
@@ -17,7 +31,38 @@ const SpendingTracker: React.FC = () => {
     date: new Date().toISOString().split('T')[0]
   });
 
-  const handleAddExpense = (e: React.FormEvent) => {
+  // Try to use Supabase data if available, otherwise fall back to local state
+  let useLocalData = true;
+
+  try {
+    var {
+      data: expenses,
+      loading,
+      addItem,
+      updateItem,
+      deleteItem
+    } = useSupabaseData<DatabaseExpense>({
+      table: 'expenses',
+      initialData: initialExpenses.map(expense => ({
+        id: expense.id,
+        category: expense.category,
+        amount: expense.amount,
+        date: expense.date.toISOString(),
+        user_id: 'anonymous',
+        created_at: new Date().toISOString(),
+        payment_id: null
+      })),
+      orderBy: { column: 'date', ascending: false }
+    });
+
+    useLocalData = false;
+  } catch (error) {
+    console.error('Error using Supabase data:', error);
+    // Fall back to local state
+  }
+
+  // Local handlers (used when Supabase is not available)
+  const handleAddExpenseLocal = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newExpense.amount > 0) {
@@ -28,7 +73,7 @@ const SpendingTracker: React.FC = () => {
         date: new Date(newExpense.date)
       };
 
-      setExpenses([expense, ...expenses]);
+      setLocalExpenses([expense, ...localExpenses]);
       setNewExpense({
         category: 'Housing',
         amount: 0,
@@ -38,10 +83,57 @@ const SpendingTracker: React.FC = () => {
     }
   };
 
+  // Supabase handlers
+  const handleAddExpenseSupabase = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user) {
+      // If not logged in, fall back to local state
+      handleAddExpenseLocal(e);
+      return;
+    }
+
+    if (newExpense.amount > 0) {
+      try {
+        await addItem({
+          category: newExpense.category,
+          amount: newExpense.amount,
+          date: new Date(newExpense.date).toISOString()
+        });
+
+        setNewExpense({
+          category: 'Housing',
+          amount: 0,
+          date: new Date().toISOString().split('T')[0]
+        });
+        setShowForm(false);
+      } catch (error) {
+        console.error('Error adding expense to Supabase:', error);
+        // Fall back to local state
+        handleAddExpenseLocal(e);
+      }
+    }
+  };
+
+  // Use the appropriate handlers based on whether we're using local data or Supabase
+  const handleAddExpense = useLocalData ? handleAddExpenseLocal : handleAddExpenseSupabase;
+
+  // Convert database expenses to UI expenses if using Supabase
+  const convertToUIExpense = (dbExpense: DatabaseExpense): Expense => ({
+    id: dbExpense.id,
+    category: dbExpense.category,
+    amount: dbExpense.amount,
+    date: new Date(dbExpense.date),
+    fromPayment: !!dbExpense.payment_id
+  });
+
+  // Use the appropriate expenses based on whether we're using local data or Supabase
+  const uiExpenses = useLocalData ? localExpenses : expenses.map(convertToUIExpense);
+
   const getTotalByCategory = () => {
     const totals: Record<string, number> = {};
 
-    expenses.forEach(expense => {
+    uiExpenses.forEach(expense => {
       if (totals[expense.category]) {
         totals[expense.category] += expense.amount;
       } else {
@@ -59,8 +151,17 @@ const SpendingTracker: React.FC = () => {
     });
   };
 
-  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalExpenses = uiExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const pieData = getTotalByCategory();
+
+  if (!useLocalData && loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        <span className="ml-2 text-primary">Loading expenses...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full overflow-y-auto pb-4">
@@ -172,7 +273,7 @@ const SpendingTracker: React.FC = () => {
       <div>
         <h3 className="font-medium mb-3">Recent Expenses</h3>
         <div className="space-y-2">
-          {expenses.slice(0, 5).map(expense => (
+          {uiExpenses.slice(0, 5).map(expense => (
             <div key={expense.id} className="glass p-3 rounded-lg flex justify-between items-center">
               <div className="flex items-center">
                 <div
@@ -182,6 +283,11 @@ const SpendingTracker: React.FC = () => {
                   }}
                 />
                 <span>{expense.category}</span>
+                {expense.fromPayment && (
+                  <span className="ml-2 text-xs bg-primary/20 text-primary px-1 py-0.5 rounded">
+                    Payment
+                  </span>
+                )}
               </div>
               <div className="text-right">
                 <div className="font-medium">{formatCurrency(expense.amount)}</div>

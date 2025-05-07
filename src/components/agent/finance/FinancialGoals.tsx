@@ -1,15 +1,29 @@
 import React, { useState } from 'react';
-import { 
-  FinancialGoal, 
-  initialGoals, 
-  generateId, 
-  formatCurrency 
+import {
+  FinancialGoal,
+  initialGoals,
+  generateId,
+  formatCurrency
 } from '@/utils/agentData';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
+
+interface DatabaseGoal {
+  id: string;
+  title: string;
+  target: number;
+  current: number;
+  target_date: string | null;
+  color: string;
+  user_id: string;
+  created_at: string;
+}
 
 const Progress = ({ value }: { value: number }) => {
   return (
     <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
-      <div 
+      <div
         className="bg-primary h-full transition-all duration-500 ease-out"
         style={{ width: `${value}%` }}
       />
@@ -18,7 +32,8 @@ const Progress = ({ value }: { value: number }) => {
 };
 
 const FinancialGoals: React.FC = () => {
-  const [goals, setGoals] = useState<FinancialGoal[]>(initialGoals);
+  const { user } = useAuth();
+  const [localGoals, setLocalGoals] = useState<FinancialGoal[]>(initialGoals);
   const [showForm, setShowForm] = useState(false);
   const [newGoal, setNewGoal] = useState({
     title: '',
@@ -27,9 +42,41 @@ const FinancialGoals: React.FC = () => {
     targetDate: '',
   });
 
-  const handleAddGoal = (e: React.FormEvent) => {
+  // Try to use Supabase data if available, otherwise fall back to local state
+  let useLocalData = true;
+
+  try {
+    var {
+      data: goals,
+      loading,
+      addItem,
+      updateItem,
+      deleteItem
+    } = useSupabaseData<DatabaseGoal>({
+      table: 'financial_goals',
+      initialData: initialGoals.map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        target: goal.target,
+        current: goal.current,
+        target_date: goal.targetDate ? goal.targetDate.toISOString() : null,
+        color: goal.color,
+        user_id: 'anonymous',
+        created_at: new Date().toISOString()
+      })),
+      orderBy: { column: 'created_at', ascending: false }
+    });
+
+    useLocalData = false;
+  } catch (error) {
+    console.error('Error using Supabase data:', error);
+    // Fall back to local state
+  }
+
+  // Local handlers (used when Supabase is not available)
+  const handleAddGoalLocal = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newGoal.title && newGoal.target > 0) {
       const goal: FinancialGoal = {
         id: generateId(),
@@ -39,8 +86,8 @@ const FinancialGoals: React.FC = () => {
         targetDate: newGoal.targetDate ? new Date(newGoal.targetDate) : undefined,
         color: '#174E4F'
       };
-      
-      setGoals([...goals, goal]);
+
+      setLocalGoals([...localGoals, goal]);
       setNewGoal({
         title: '',
         target: 0,
@@ -51,26 +98,100 @@ const FinancialGoals: React.FC = () => {
     }
   };
 
+  const handleContributeLocal = (id: string) => {
+    // Add 100 to the goal
+    setLocalGoals(localGoals.map(goal =>
+      goal.id === id
+        ? { ...goal, current: Math.min(goal.current + 100, goal.target) }
+        : goal
+    ));
+  };
+
+  // Supabase handlers
+  const handleAddGoalSupabase = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user) {
+      // If not logged in, fall back to local state
+      handleAddGoalLocal(e);
+      return;
+    }
+
+    if (newGoal.title && newGoal.target > 0) {
+      try {
+        await addItem({
+          title: newGoal.title,
+          target: newGoal.target,
+          current: newGoal.current,
+          target_date: newGoal.targetDate ? new Date(newGoal.targetDate).toISOString() : null,
+          color: '#174E4F'
+        });
+
+        setNewGoal({
+          title: '',
+          target: 0,
+          current: 0,
+          targetDate: '',
+        });
+        setShowForm(false);
+      } catch (error) {
+        console.error('Error adding goal to Supabase:', error);
+        // Fall back to local state
+        handleAddGoalLocal(e);
+      }
+    }
+  };
+
+  const handleContributeSupabase = async (id: string) => {
+    try {
+      const goal = goals.find(g => g.id === id);
+      if (goal) {
+        const newAmount = Math.min(goal.current + 100, goal.target);
+        await updateItem(id, { current: newAmount });
+      }
+    } catch (error) {
+      console.error('Error updating goal in Supabase:', error);
+      // Fall back to local state
+      handleContributeLocal(id);
+    }
+  };
+
   const calculateProgress = (current: number, target: number) => {
     return Math.round((current / target) * 100);
   };
 
-  const handleContribute = (id: string) => {
-    // This would typically show a dialog to add funds
-    // For now, we'll just add 100 to the goal
-    setGoals(goals.map(goal => 
-      goal.id === id 
-        ? { ...goal, current: Math.min(goal.current + 100, goal.target) } 
-        : goal
-    ));
-  };
+  // Use the appropriate handlers based on whether we're using local data or Supabase
+  const handleAddGoal = useLocalData ? handleAddGoalLocal : handleAddGoalSupabase;
+  const handleContribute = useLocalData ? handleContributeLocal : handleContributeSupabase;
+
+  // Convert database goals to UI goals if using Supabase
+  const convertToUIGoal = (dbGoal: DatabaseGoal): FinancialGoal => ({
+    id: dbGoal.id,
+    title: dbGoal.title,
+    target: dbGoal.target,
+    current: dbGoal.current,
+    targetDate: dbGoal.target_date ? new Date(dbGoal.target_date) : undefined,
+    color: dbGoal.color
+  });
+
+  // Use the appropriate goals based on whether we're using local data or Supabase
+  const uiGoals = useLocalData ? localGoals : goals.map(convertToUIGoal);
+
+  if (!useLocalData && loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        <span className="ml-2 text-primary">Loading goals...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full overflow-y-auto pb-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-primary">Financial Goals</h2>
-        <button 
-          onClick={() => setShowForm(!showForm)} 
+        <button
+          onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           {showForm ? 'Cancel' : 'New Goal'}
@@ -91,7 +212,7 @@ const FinancialGoals: React.FC = () => {
                 required
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Target Amount</label>
@@ -105,7 +226,7 @@ const FinancialGoals: React.FC = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium mb-1">Current Savings</label>
                 <input
@@ -118,7 +239,7 @@ const FinancialGoals: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium mb-1">Target Date (Optional)</label>
               <input
@@ -128,9 +249,9 @@ const FinancialGoals: React.FC = () => {
                 className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
               />
             </div>
-            
-            <button 
-              type="submit" 
+
+            <button
+              type="submit"
               className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
               Create Goal
@@ -140,9 +261,9 @@ const FinancialGoals: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 gap-6">
-        {goals.map(goal => {
+        {uiGoals.map(goal => {
           const progress = calculateProgress(goal.current, goal.target);
-          
+
           return (
             <div key={goal.id} className="p-4 bg-white/60 border border-white/30 rounded-2xl shadow-md animate-fade-in">
               <div className="flex justify-between items-start">
@@ -154,17 +275,17 @@ const FinancialGoals: React.FC = () => {
                     </p>
                   )}
                 </div>
-                
+
                 <div className="text-right">
                   <p className="font-bold">{formatCurrency(goal.current)} <span className="text-sm font-normal text-primary/70">/ {formatCurrency(goal.target)}</span></p>
                   <p className="text-sm text-primary/70">{progress}% complete</p>
                 </div>
               </div>
-              
+
               <div className="mt-4 mb-2">
                 <Progress value={progress} />
               </div>
-              
+
               <div className="flex justify-end mt-4">
                 <button
                   onClick={() => handleContribute(goal.id)}
@@ -176,8 +297,8 @@ const FinancialGoals: React.FC = () => {
             </div>
           );
         })}
-        
-        {goals.length === 0 && !showForm && (
+
+        {uiGoals.length === 0 && !showForm && (
           <p className="text-center text-primary/50 py-8">No financial goals yet. Create a goal to get started!</p>
         )}
       </div>

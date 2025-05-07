@@ -25,29 +25,29 @@ export interface FinancialGoal {
 }
 
 export const initialGoals: FinancialGoal[] = [
-  { 
-    id: '1', 
-    title: 'Emergency Fund', 
-    target: 10000, 
-    current: 6500, 
+  {
+    id: '1',
+    title: 'Emergency Fund',
+    target: 10000,
+    current: 6500,
     targetDate: new Date(2025, 8, 1),
     color: '#174E4F'
   },
-  { 
-    id: '2', 
-    title: 'Vacation Savings', 
-    target: 3000, 
-    current: 1200, 
+  {
+    id: '2',
+    title: 'Vacation Savings',
+    target: 3000,
+    current: 1200,
     targetDate: new Date(2025, 6, 1),
     color: '#2A7576'
   },
-  { 
-    id: '3', 
-    title: 'New Laptop', 
-    target: 2000, 
-    current: 800, 
+  {
+    id: '3',
+    title: 'New Laptop',
+    target: 2000,
+    current: 800,
     targetDate: new Date(2025, 5, 15),
-    color: '#3D9B9C' 
+    color: '#3D9B9C'
   },
 ];
 
@@ -56,6 +56,7 @@ export interface Expense {
   category: string;
   amount: number;
   date: Date;
+  fromPayment?: boolean;
 }
 
 export const expenseCategories = [
@@ -87,39 +88,39 @@ export interface Payment {
 }
 
 export const initialPayments: Payment[] = [
-  { 
-    id: '1', 
-    title: 'Rent', 
-    amount: 1200, 
-    dueDate: new Date(2025, 5, 1), 
-    recurring: true, 
+  {
+    id: '1',
+    title: 'Rent',
+    amount: 1200,
+    dueDate: new Date(2025, 5, 1),
+    recurring: true,
     category: 'Housing',
     paid: false
   },
-  { 
-    id: '2', 
-    title: 'Internet Bill', 
-    amount: 65, 
-    dueDate: new Date(2025, 4, 15), 
-    recurring: true, 
+  {
+    id: '2',
+    title: 'Internet Bill',
+    amount: 65,
+    dueDate: new Date(2025, 4, 15),
+    recurring: true,
     category: 'Utilities',
     paid: false
   },
-  { 
-    id: '3', 
-    title: 'Phone Bill', 
-    amount: 85, 
-    dueDate: new Date(2025, 4, 20), 
-    recurring: true, 
+  {
+    id: '3',
+    title: 'Phone Bill',
+    amount: 85,
+    dueDate: new Date(2025, 4, 20),
+    recurring: true,
     category: 'Utilities',
     paid: false
   },
-  { 
-    id: '4', 
-    title: 'Gym Membership', 
-    amount: 50, 
-    dueDate: new Date(2025, 5, 5), 
-    recurring: true, 
+  {
+    id: '4',
+    title: 'Gym Membership',
+    amount: 50,
+    dueDate: new Date(2025, 5, 5),
+    recurring: true,
     category: 'Other',
     paid: true
   },

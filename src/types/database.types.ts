@@ -9,6 +9,44 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      detected_bills: {
+        Row: {
+          id: string
+          created_at: string
+          title: string
+          amount: number
+          due_date: string
+          category: string
+          confidence: number
+          source: string
+          approved: boolean
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          title: string
+          amount: number
+          due_date: string
+          category: string
+          confidence: number
+          source: string
+          approved?: boolean
+          user_id: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          title?: string
+          amount?: number
+          due_date?: string
+          category?: string
+          confidence?: number
+          source?: string
+          approved?: boolean
+          user_id?: string
+        }
+      }
       tasks: {
         Row: {
           id: string
@@ -75,6 +113,7 @@ export interface Database {
           amount: number
           date: string
           user_id: string
+          payment_id: string | null
         }
         Insert: {
           id?: string
@@ -83,6 +122,7 @@ export interface Database {
           amount: number
           date: string
           user_id: string
+          payment_id?: string | null
         }
         Update: {
           id?: string
@@ -91,6 +131,7 @@ export interface Database {
           amount?: number
           date?: string
           user_id?: string
+          payment_id?: string | null
         }
       }
       payments: {
@@ -135,6 +176,7 @@ export interface Database {
           email: string
           display_name: string | null
           avatar_url: string | null
+          email_scan_permission: boolean
         }
         Insert: {
           id: string
@@ -142,6 +184,7 @@ export interface Database {
           email: string
           display_name?: string | null
           avatar_url?: string | null
+          email_scan_permission?: boolean
         }
         Update: {
           id?: string
@@ -149,6 +192,7 @@ export interface Database {
           email?: string
           display_name?: string | null
           avatar_url?: string | null
+          email_scan_permission?: boolean
         }
       }
     }

@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL,
   email TEXT NOT NULL,
   display_name TEXT,
-  avatar_url TEXT
+  avatar_url TEXT,
+  email_scan_permission BOOLEAN DEFAULT FALSE
 );
 
 -- Create a table for tasks
@@ -38,7 +39,8 @@ CREATE TABLE IF NOT EXISTS expenses (
   category TEXT NOT NULL,
   amount DECIMAL NOT NULL,
   date TIMESTAMP WITH TIME ZONE NOT NULL,
-  user_id UUID REFERENCES auth.users NOT NULL
+  user_id UUID REFERENCES auth.users NOT NULL,
+  payment_id UUID REFERENCES payments(id) NULL
 );
 
 -- Create a table for payments
@@ -62,82 +64,114 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE financial_goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE detected_bills ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for profiles
-CREATE POLICY "Users can view their own profile" 
-  ON profiles FOR SELECT 
+CREATE POLICY "Users can view their own profile"
+  ON profiles FOR SELECT
   USING (auth.uid() = id);
 
-CREATE POLICY "Users can update their own profile" 
-  ON profiles FOR UPDATE 
+CREATE POLICY "Users can update their own profile"
+  ON profiles FOR UPDATE
   USING (auth.uid() = id);
 
 -- Create policies for tasks
-CREATE POLICY "Users can view their own tasks" 
-  ON tasks FOR SELECT 
+CREATE POLICY "Users can view their own tasks"
+  ON tasks FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can create their own tasks" 
-  ON tasks FOR INSERT 
+CREATE POLICY "Users can create their own tasks"
+  ON tasks FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own tasks" 
-  ON tasks FOR UPDATE 
+CREATE POLICY "Users can update their own tasks"
+  ON tasks FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own tasks" 
-  ON tasks FOR DELETE 
+CREATE POLICY "Users can delete their own tasks"
+  ON tasks FOR DELETE
   USING (auth.uid() = user_id);
 
 -- Create policies for financial goals
-CREATE POLICY "Users can view their own financial goals" 
-  ON financial_goals FOR SELECT 
+CREATE POLICY "Users can view their own financial goals"
+  ON financial_goals FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can create their own financial goals" 
-  ON financial_goals FOR INSERT 
+CREATE POLICY "Users can create their own financial goals"
+  ON financial_goals FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own financial goals" 
-  ON financial_goals FOR UPDATE 
+CREATE POLICY "Users can update their own financial goals"
+  ON financial_goals FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own financial goals" 
-  ON financial_goals FOR DELETE 
+CREATE POLICY "Users can delete their own financial goals"
+  ON financial_goals FOR DELETE
   USING (auth.uid() = user_id);
 
 -- Create policies for expenses
-CREATE POLICY "Users can view their own expenses" 
-  ON expenses FOR SELECT 
+CREATE POLICY "Users can view their own expenses"
+  ON expenses FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can create their own expenses" 
-  ON expenses FOR INSERT 
+CREATE POLICY "Users can create their own expenses"
+  ON expenses FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own expenses" 
-  ON expenses FOR UPDATE 
+CREATE POLICY "Users can update their own expenses"
+  ON expenses FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own expenses" 
-  ON expenses FOR DELETE 
+CREATE POLICY "Users can delete their own expenses"
+  ON expenses FOR DELETE
   USING (auth.uid() = user_id);
+
+-- Create a table for detected bills from emails
+CREATE TABLE IF NOT EXISTS detected_bills (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL,
+  title TEXT NOT NULL,
+  amount DECIMAL NOT NULL,
+  due_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  category TEXT NOT NULL,
+  confidence DECIMAL NOT NULL,
+  source TEXT NOT NULL,
+  approved BOOLEAN DEFAULT FALSE,
+  user_id UUID REFERENCES auth.users NOT NULL
+);
 
 -- Create policies for payments
-CREATE POLICY "Users can view their own payments" 
-  ON payments FOR SELECT 
+CREATE POLICY "Users can view their own payments"
+  ON payments FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can create their own payments" 
-  ON payments FOR INSERT 
+CREATE POLICY "Users can create their own payments"
+  ON payments FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own payments" 
-  ON payments FOR UPDATE 
+CREATE POLICY "Users can update their own payments"
+  ON payments FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own payments" 
-  ON payments FOR DELETE 
+CREATE POLICY "Users can delete their own payments"
+  ON payments FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Create policies for detected bills
+CREATE POLICY "Users can view their own detected bills"
+  ON detected_bills FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create their own detected bills"
+  ON detected_bills FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own detected bills"
+  ON detected_bills FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own detected bills"
+  ON detected_bills FOR DELETE
   USING (auth.uid() = user_id);
 
 -- Create a function to handle new user signups
