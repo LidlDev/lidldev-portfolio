@@ -11,9 +11,8 @@ import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-// Email scanning feature temporarily disabled
-// import EmailScanner, { DetectedBill } from '../email/EmailScanner';
-// import BillSuggestions from '../email/BillSuggestions';
+import EmailScanner, { DetectedBill } from '../email/EmailScanner';
+import BillSuggestions from '../email/BillSuggestions';
 
 interface DatabasePayment {
   id: string;
@@ -251,8 +250,6 @@ const UpcomingPayments: React.FC = () => {
     );
   }
 
-  // Email scanning feature temporarily disabled
-  /*
   const [detectedBills, setDetectedBills] = useState<DetectedBill[]>([]);
 
   const handleBillsDetected = (bills: DetectedBill[]) => {
@@ -272,7 +269,6 @@ const UpcomingPayments: React.FC = () => {
     // Remove from detected bills
     setDetectedBills(detectedBills.filter(b => b.id !== billId));
   };
-  */
 
   return (
     <div className="h-full overflow-y-auto pb-4">
@@ -286,8 +282,7 @@ const UpcomingPayments: React.FC = () => {
         </button>
       </div>
 
-      {/* Email scanning feature temporarily disabled */}
-      {/*
+      {/* Email scanning feature */}
       {user && (
         <EmailScanner onBillsDetected={handleBillsDetected} />
       )}
@@ -299,7 +294,6 @@ const UpcomingPayments: React.FC = () => {
           onBillRejected={handleBillRejected}
         />
       )}
-      */}
 
       {showForm && (
         <form onSubmit={handleAddPayment} className="glass-card p-4 mb-6 animate-scale-in">
