@@ -91,9 +91,8 @@ const FinancialGoals: React.FC = () => {
   console.log('[FinancialGoals] Financial goals from Supabase:', goals);
   console.log('[FinancialGoals] Using local data:', useLocalData);
 
-  // Add debugging for the UI goals
-  const uiGoals = useLocalData ? localGoals : goals.map(convertToUIGoal);
-  console.log('[FinancialGoals] UI goals to display:', uiGoals);
+  // We'll calculate uiGoals later after defining convertToUIGoal
+  console.log('[FinancialGoals] Goals from Supabase before conversion:', goals);
 
   // Local handlers (used when Supabase is not available)
   const handleAddGoalLocal = (e: React.FormEvent) => {
@@ -341,6 +340,7 @@ const FinancialGoals: React.FC = () => {
 
   // Use the appropriate goals based on whether we're using local data or Supabase
   const uiGoals = useLocalData ? localGoals : goals.map(convertToUIGoal);
+  console.log('[FinancialGoals] UI goals to display:', uiGoals);
 
   if (!useLocalData && loading) {
     return (

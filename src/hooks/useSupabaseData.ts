@@ -189,13 +189,19 @@ export function useSupabaseData<T extends { id: string }>(options: SupabaseDataO
 
   // Fetch data when user changes
   useEffect(() => {
+    console.log(`[useSupabaseData] useEffect triggered for ${table}, user:`, user?.id);
     try {
       fetchData();
     } catch (err) {
-      console.error('Error in fetchData useEffect:', err);
+      console.error(`[useSupabaseData] Error in fetchData useEffect for ${table}:`, err);
       setLoading(false);
       setData(initialData);
     }
+
+    // Log the current state after the effect runs
+    return () => {
+      console.log(`[useSupabaseData] Cleanup for ${table} effect, current data:`, data);
+    };
   }, [user?.id]);
 
   return {
