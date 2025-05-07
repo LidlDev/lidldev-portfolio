@@ -55,14 +55,14 @@ export default async function handler(req, res) {
       });
     }
 
-    const { userId, accessToken } = req.body;
+    const { userId, accessToken: userAccessToken } = req.body;
 
-    if (!userId || !accessToken) {
+    if (!userId || !userAccessToken) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
     // Verify the user's token
-    const { data: user, error: authError } = await supabase.auth.getUser(accessToken);
+    const { data: user, error: authError } = await supabase.auth.getUser(userAccessToken);
 
     if (authError || !user || user.user.id !== userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -116,7 +116,7 @@ export default async function handler(req, res) {
     }
 
     // Check if the token is expired and refresh if needed
-    let accessToken = authData.access_token;
+    let gmailToken = authData.access_token;
     if (authData.expires_at && new Date(authData.expires_at) < new Date()) {
       console.log('Token expired, refreshing...');
 
@@ -136,13 +136,13 @@ export default async function handler(req, res) {
         });
 
         const { token } = await oauth2Client.getAccessToken();
-        accessToken = token;
+        gmailToken = token;
 
         // Update the token in the database
         await supabase
           .from('email_auth')
           .update({
-            access_token: accessToken,
+            access_token: gmailToken,
             expires_at: new Date(Date.now() + 3600 * 1000).toISOString() // 1 hour from now
           })
           .eq('id', authData.id);
@@ -154,7 +154,7 @@ export default async function handler(req, res) {
 
     // Initialize the Gmail API client
     const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials({ access_token: accessToken });
+    oauth2Client.setCredentials({ access_token: gmailToken });
 
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
