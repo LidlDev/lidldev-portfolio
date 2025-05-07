@@ -7,7 +7,7 @@ import {
 } from '@/utils/agentData';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Pencil, Trash, X } from 'lucide-react';
 
 interface DatabaseGoal {
   id: string;
@@ -44,37 +44,45 @@ const FinancialGoals: React.FC = () => {
     incrementAmount: 100,
   });
 
+  // State for editing goals
+  const [editingGoal, setEditingGoal] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    target: 0,
+    current: 0,
+    targetDate: '',
+    incrementAmount: 100,
+  });
+
   // Try to use Supabase data if available, otherwise fall back to local state
-  let useLocalData = true;
+  let useLocalData = !user;
+  console.log('User authenticated:', !!user);
 
-  try {
-    var {
-      data: goals,
-      loading,
-      addItem,
-      updateItem,
-      deleteItem
-    } = useSupabaseData<DatabaseGoal>({
-      table: 'financial_goals',
-      initialData: initialGoals.map(goal => ({
-        id: goal.id,
-        title: goal.title,
-        target: goal.target,
-        current: goal.current,
-        target_date: goal.targetDate ? goal.targetDate.toISOString() : null,
-        color: goal.color,
-        user_id: 'anonymous',
-        created_at: new Date().toISOString(),
-        increment_amount: goal.incrementAmount || 100
-      })),
-      orderBy: { column: 'created_at', ascending: false }
-    });
+  const {
+    data: goals = [],
+    loading = false,
+    addItem = async () => null,
+    updateItem = async () => false,
+    deleteItem = async () => false,
+    fetchData = async () => {}
+  } = useSupabaseData<DatabaseGoal>({
+    table: 'financial_goals',
+    initialData: initialGoals.map(goal => ({
+      id: goal.id,
+      title: goal.title,
+      target: goal.target,
+      current: goal.current,
+      target_date: goal.targetDate ? goal.targetDate.toISOString() : null,
+      color: goal.color,
+      user_id: 'anonymous',
+      created_at: new Date().toISOString(),
+      increment_amount: goal.incrementAmount || 100
+    })),
+    orderBy: { column: 'created_at', ascending: false }
+  });
 
-    useLocalData = false;
-  } catch (error) {
-    console.error('Error using Supabase data:', error);
-    // Fall back to local state
-  }
+  console.log('Financial goals from Supabase:', goals);
+  console.log('Using local data:', useLocalData);
 
   // Local handlers (used when Supabase is not available)
   const handleAddGoalLocal = (e: React.FormEvent) => {
@@ -112,6 +120,42 @@ const FinancialGoals: React.FC = () => {
     ));
   };
 
+  // Local handlers for editing and deleting goals
+  const handleEditGoalLocal = (id: string) => {
+    const goal = localGoals.find(g => g.id === id);
+    if (!goal) return;
+
+    setEditingGoal(id);
+    setEditFormData({
+      title: goal.title,
+      target: goal.target,
+      current: goal.current,
+      targetDate: goal.targetDate ? goal.targetDate.toISOString().split('T')[0] : '',
+      incrementAmount: goal.incrementAmount || 100
+    });
+  };
+
+  const handleSaveEditLocal = (id: string) => {
+    setLocalGoals(localGoals.map(goal =>
+      goal.id === id ? {
+        ...goal,
+        title: editFormData.title,
+        target: editFormData.target,
+        current: editFormData.current,
+        targetDate: editFormData.targetDate ? new Date(editFormData.targetDate) : undefined,
+        incrementAmount: editFormData.incrementAmount
+      } : goal
+    ));
+
+    setEditingGoal(null);
+    toast.success('Goal updated');
+  };
+
+  const handleDeleteGoalLocal = (id: string) => {
+    setLocalGoals(localGoals.filter(goal => goal.id !== id));
+    toast.success('Goal deleted');
+  };
+
   // Supabase handlers
   const handleAddGoalSupabase = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +168,15 @@ const FinancialGoals: React.FC = () => {
 
     if (newGoal.title && newGoal.target > 0) {
       try {
+        console.log('Adding goal with data:', {
+          title: newGoal.title,
+          target: newGoal.target,
+          current: newGoal.current,
+          target_date: newGoal.targetDate ? new Date(newGoal.targetDate).toISOString() : null,
+          color: '#174E4F',
+          increment_amount: newGoal.incrementAmount
+        });
+
         const result = await addItem({
           title: newGoal.title,
           target: newGoal.target,
@@ -132,6 +185,8 @@ const FinancialGoals: React.FC = () => {
           color: '#174E4F',
           increment_amount: newGoal.incrementAmount
         });
+
+        console.log('Add goal result:', result);
 
         setNewGoal({
           title: '',
@@ -178,6 +233,70 @@ const FinancialGoals: React.FC = () => {
     }
   };
 
+  // Supabase handlers for editing and deleting goals
+  const handleEditGoalSupabase = (id: string) => {
+    const goal = goals.find(g => g.id === id);
+    if (!goal) return;
+
+    setEditingGoal(id);
+    setEditFormData({
+      title: goal.title,
+      target: goal.target,
+      current: goal.current,
+      targetDate: goal.target_date ? new Date(goal.target_date).toISOString().split('T')[0] : '',
+      incrementAmount: goal.increment_amount || 100
+    });
+  };
+
+  const handleSaveEditSupabase = async (id: string) => {
+    if (!user) {
+      handleSaveEditLocal(id);
+      return;
+    }
+
+    try {
+      const result = await updateItem(id, {
+        title: editFormData.title,
+        target: editFormData.target,
+        current: editFormData.current,
+        target_date: editFormData.targetDate ? new Date(editFormData.targetDate).toISOString() : null,
+        increment_amount: editFormData.incrementAmount
+      });
+
+      if (result) {
+        setEditingGoal(null);
+        toast.success('Goal updated successfully');
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Error updating goal in Supabase:', error);
+      toast.error('Failed to update goal');
+      // Fall back to local state
+      handleSaveEditLocal(id);
+    }
+  };
+
+  const handleDeleteGoalSupabase = async (id: string) => {
+    if (!user) {
+      handleDeleteGoalLocal(id);
+      return;
+    }
+
+    try {
+      const result = await deleteItem(id);
+
+      if (result) {
+        toast.success('Goal deleted successfully');
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Error deleting goal from Supabase:', error);
+      toast.error('Failed to delete goal');
+      // Fall back to local state
+      handleDeleteGoalLocal(id);
+    }
+  };
+
   const calculateProgress = (current: number, target: number) => {
     return Math.round((current / target) * 100);
   };
@@ -185,6 +304,9 @@ const FinancialGoals: React.FC = () => {
   // Use the appropriate handlers based on whether we're using local data or Supabase
   const handleAddGoal = useLocalData ? handleAddGoalLocal : handleAddGoalSupabase;
   const handleContribute = useLocalData ? handleContributeLocal : handleContributeSupabase;
+  const handleEditGoal = useLocalData ? handleEditGoalLocal : handleEditGoalSupabase;
+  const handleSaveEdit = useLocalData ? handleSaveEditLocal : handleSaveEditSupabase;
+  const handleDeleteGoal = useLocalData ? handleDeleteGoalLocal : handleDeleteGoalSupabase;
 
   // Convert database goals to UI goals if using Supabase
   const convertToUIGoal = (dbGoal: DatabaseGoal): FinancialGoal => ({
@@ -304,40 +426,151 @@ const FinancialGoals: React.FC = () => {
       <div className="grid grid-cols-1 gap-6">
         {uiGoals.map(goal => {
           const progress = calculateProgress(goal.current, goal.target);
+          const isEditing = editingGoal === goal.id;
 
           return (
             <div key={goal.id} className="p-4 bg-white/60 border border-white/30 rounded-2xl shadow-md animate-fade-in">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium text-lg">{goal.title}</h3>
-                  {goal.targetDate && (
-                    <p className="text-sm text-primary/70">
-                      Target: {goal.targetDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                    </p>
-                  )}
-                </div>
+              {isEditing ? (
+                <div className="animate-scale-in">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-medium text-lg">Edit Goal</h3>
+                    <button
+                      onClick={() => setEditingGoal(null)}
+                      className="p-1 rounded-full hover:bg-gray-200/50"
+                      title="Cancel"
+                    >
+                      <X className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </div>
 
-                <div className="text-right">
-                  <p className="font-bold">{formatCurrency(goal.current)} <span className="text-sm font-normal text-primary/70">/ {formatCurrency(goal.target)}</span></p>
-                  <p className="text-sm text-primary/70">{progress}% complete</p>
-                </div>
-              </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Goal Name</label>
+                      <input
+                        type="text"
+                        value={editFormData.title}
+                        onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
+                        className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                        required
+                      />
+                    </div>
 
-              <div className="mt-4 mb-2">
-                <Progress value={progress} />
-              </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Target Amount</label>
+                        <input
+                          type="number"
+                          value={editFormData.target || ''}
+                          onChange={(e) => setEditFormData({...editFormData, target: Number(e.target.value)})}
+                          className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                          min="1"
+                          required
+                        />
+                      </div>
 
-              <div className="flex justify-between items-center mt-4">
-                <div className="text-xs text-primary/70">
-                  Increment: {formatCurrency(goal.incrementAmount || 100)}
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Current Savings</label>
+                        <input
+                          type="number"
+                          value={editFormData.current || ''}
+                          onChange={(e) => setEditFormData({...editFormData, current: Number(e.target.value)})}
+                          className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                          min="0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Target Date</label>
+                        <input
+                          type="date"
+                          value={editFormData.targetDate}
+                          onChange={(e) => setEditFormData({...editFormData, targetDate: e.target.value})}
+                          className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Increment Amount</label>
+                        <input
+                          type="number"
+                          value={editFormData.incrementAmount || ''}
+                          onChange={(e) => setEditFormData({...editFormData, incrementAmount: Number(e.target.value)})}
+                          className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                          min="1"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-2 pt-2">
+                      <button
+                        onClick={() => setEditingGoal(null)}
+                        className="px-3 py-1.5 text-sm bg-white/50 rounded-lg hover:bg-white/70 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleSaveEdit(goal.id)}
+                        className="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  onClick={() => handleContribute(goal.id)}
-                  className="text-sm px-3 py-1 bg-primary/20 text-primary rounded hover:bg-primary/30 transition-colors"
-                >
-                  Add Funds
-                </button>
-              </div>
+              ) : (
+                <>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium text-lg">{goal.title}</h3>
+                      {goal.targetDate && (
+                        <p className="text-sm text-primary/70">
+                          Target: {goal.targetDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-bold">{formatCurrency(goal.current)} <span className="text-sm font-normal text-primary/70">/ {formatCurrency(goal.target)}</span></p>
+                      <p className="text-sm text-primary/70">{progress}% complete</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 mb-2">
+                    <Progress value={progress} />
+                  </div>
+
+                  <div className="flex justify-between items-center mt-4">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditGoal(goal.id)}
+                        className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                        title="Edit goal"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-gray-600" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteGoal(goal.id)}
+                        className="p-1.5 rounded-full bg-red-50 hover:bg-red-100 transition-colors"
+                        title="Delete goal"
+                      >
+                        <Trash className="w-3.5 h-3.5 text-red-500" />
+                      </button>
+                      <div className="text-xs text-primary/70 flex items-center ml-1">
+                        Increment: {formatCurrency(goal.incrementAmount || 100)}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleContribute(goal.id)}
+                      className="text-sm px-3 py-1.5 bg-primary/20 text-primary rounded hover:bg-primary/30 transition-colors"
+                    >
+                      Add Funds
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           );
         })}

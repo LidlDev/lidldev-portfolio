@@ -44,6 +44,7 @@ export function useSupabaseData<T extends { id: string }>(options: SupabaseDataO
 
       if (error) throw error;
 
+      console.log(`Fetched ${table} data:`, fetchedData);
       setData(fetchedData as T[] || []);
     } catch (err) {
       console.error(`Error fetching ${table}:`, err);

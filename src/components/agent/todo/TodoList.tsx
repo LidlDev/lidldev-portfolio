@@ -72,6 +72,14 @@ const TodoList: React.FC = () => {
     setLocalTasks(localTasks.filter(task => task.id !== id));
   };
 
+  const handleEditTaskLocal = (id: string, title: string, dueDate?: Date) => {
+    setLocalTasks(
+      localTasks.map(task =>
+        task.id === id ? { ...task, title, dueDate } : task
+      )
+    );
+  };
+
   // Supabase handlers
   const handleAddTaskSupabase = async (title: string, dueDate?: Date) => {
     if (!user) {
@@ -116,10 +124,30 @@ const TodoList: React.FC = () => {
     }
   };
 
+  const handleEditTaskSupabase = async (id: string, title: string, dueDate?: Date) => {
+    if (!user) {
+      // If not logged in, fall back to local state
+      handleEditTaskLocal(id, title, dueDate);
+      return;
+    }
+
+    try {
+      await updateItem(id, {
+        title,
+        due_date: dueDate ? dueDate.toISOString() : null
+      });
+    } catch (error) {
+      console.error('Error updating task in Supabase:', error);
+      // Fall back to local state
+      handleEditTaskLocal(id, title, dueDate);
+    }
+  };
+
   // Use the appropriate handlers based on whether we're using local data or Supabase
   const handleAddTask = useLocalData ? handleAddTaskLocal : handleAddTaskSupabase;
   const handleCompleteTask = useLocalData ? handleCompleteTaskLocal : handleCompleteTaskSupabase;
   const handleDeleteTask = useLocalData ? handleDeleteTaskLocal : handleDeleteTaskSupabase;
+  const handleEditTask = useLocalData ? handleEditTaskLocal : handleEditTaskSupabase;
 
   // Convert database tasks to UI tasks if using Supabase
   const convertToUITask = (dbTask: DatabaseTask): Task => ({
@@ -137,7 +165,10 @@ const TodoList: React.FC = () => {
   if (!useLocalData && loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <span className="h-8 w-8 text-primary animate-spin">⟳</span>
+        <svg className="h-8 w-8 text-primary animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
         <span className="ml-2 text-primary">Loading tasks...</span>
       </div>
     );
@@ -159,6 +190,7 @@ const TodoList: React.FC = () => {
                 task={task}
                 onComplete={handleCompleteTask}
                 onDelete={handleDeleteTask}
+                onEdit={handleEditTask}
               />
             ))
           )}
@@ -175,6 +207,7 @@ const TodoList: React.FC = () => {
                 task={task}
                 onComplete={handleCompleteTask}
                 onDelete={handleDeleteTask}
+                onEdit={handleEditTask}
               />
             ))}
           </div>
