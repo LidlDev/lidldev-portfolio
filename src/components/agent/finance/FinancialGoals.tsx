@@ -7,7 +7,7 @@ import {
 } from '@/utils/agentData';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2 } from 'lucide-react';
+// import { Loader2 } from 'lucide-react';
 
 interface DatabaseGoal {
   id: string;
@@ -180,7 +180,7 @@ const FinancialGoals: React.FC = () => {
   if (!useLocalData && loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        <span className="h-8 w-8 text-primary animate-spin">⟳</span>
         <span className="ml-2 text-primary">Loading goals...</span>
       </div>
     );

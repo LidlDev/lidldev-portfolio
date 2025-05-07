@@ -6,13 +6,14 @@ import {
   formatCurrency,
   expenseCategories
 } from '@/utils/agentData';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-import EmailScanner, { DetectedBill } from '../email/EmailScanner';
-import BillSuggestions from '../email/BillSuggestions';
+// Email scanning feature temporarily disabled
+// import EmailScanner, { DetectedBill } from '../email/EmailScanner';
+// import BillSuggestions from '../email/BillSuggestions';
 
 interface DatabasePayment {
   id: string;
@@ -244,12 +245,14 @@ const UpcomingPayments: React.FC = () => {
   if (!useLocalData && loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        <span className="h-8 w-8 text-primary animate-spin">⟳</span>
         <span className="ml-2 text-primary">Loading payments...</span>
       </div>
     );
   }
 
+  // Email scanning feature temporarily disabled
+  /*
   const [detectedBills, setDetectedBills] = useState<DetectedBill[]>([]);
 
   const handleBillsDetected = (bills: DetectedBill[]) => {
@@ -269,6 +272,7 @@ const UpcomingPayments: React.FC = () => {
     // Remove from detected bills
     setDetectedBills(detectedBills.filter(b => b.id !== billId));
   };
+  */
 
   return (
     <div className="h-full overflow-y-auto pb-4">
@@ -282,7 +286,8 @@ const UpcomingPayments: React.FC = () => {
         </button>
       </div>
 
-      {/* Email scanning feature */}
+      {/* Email scanning feature temporarily disabled */}
+      {/*
       {user && (
         <EmailScanner onBillsDetected={handleBillsDetected} />
       )}
@@ -294,6 +299,7 @@ const UpcomingPayments: React.FC = () => {
           onBillRejected={handleBillRejected}
         />
       )}
+      */}
 
       {showForm && (
         <form onSubmit={handleAddPayment} className="glass-card p-4 mb-6 animate-scale-in">
