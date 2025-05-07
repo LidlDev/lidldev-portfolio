@@ -118,19 +118,8 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
         .then(({ data, error }) => {
           if (error || !data) {
             // No tokens found, redirect to OAuth flow
-            // Use a form submission to avoid the JSON parsing error
-            const form = document.createElement('form');
-            form.method = 'GET';
-            form.action = `/api/email-auth`;
-
-            const userIdInput = document.createElement('input');
-            userIdInput.type = 'hidden';
-            userIdInput.name = 'userId';
-            userIdInput.value = user.id;
-
-            form.appendChild(userIdInput);
-            document.body.appendChild(form);
-            form.submit();
+            // Use window.location to redirect to the API endpoint
+            window.location.href = `/api/email-auth?userId=${encodeURIComponent(user.id)}`;
           } else {
             // Tokens found, update permission and scan emails
             setPermissionGranted(true);
