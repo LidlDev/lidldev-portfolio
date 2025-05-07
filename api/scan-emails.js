@@ -550,68 +550,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Error processing emails: ' + emailError.message });
     }
 
-    // If no bills were found, check if we should use mock data
+    // Log if no bills were found
     if (newBills.length === 0) {
-      console.log('No bills found. Checking if we should use mock data...');
-
-      // Check if the user has any bills in the database
-      const { data: userBills, error: userBillsError } = await supabase
-        .from('detected_bills')
-        .select('id')
-        .eq('user_id', userId);
-
-      if (!userBillsError && (!userBills || userBills.length === 0)) {
-        console.log('User has no bills in database. Using mock data for first-time experience.');
-
-        // Create mock bills for common utilities
-        const mockBills = [
-          {
-            title: 'Electric Bill',
-            amount: 89.99,
-            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-            category: 'Utilities',
-            confidence: 0.92,
-            source: 'electric@example.com',
-            approved: false,
-            userId
-          },
-          {
-            title: 'Internet Service',
-            amount: 65.00,
-            dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
-            category: 'Internet',
-            confidence: 0.87,
-            source: 'internet@example.com',
-            approved: false,
-            userId
-          },
-          {
-            title: 'Water Utility',
-            amount: 42.50,
-            dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
-            category: 'Utilities',
-            confidence: 0.85,
-            source: 'water@example.com',
-            approved: false,
-            userId
-          },
-          {
-            title: 'Rent Payment',
-            amount: 1200.00,
-            dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-            category: 'Housing',
-            confidence: 0.95,
-            source: 'property@example.com',
-            approved: false,
-            userId
-          }
-        ];
-
-        newBills = mockBills;
-        console.log('Added mock bills for first-time experience');
-      } else {
-        console.log('User already has bills in database. Not using mock data.');
-      }
+      console.log('No bills found in emails.');
     }
 
     // Insert new bills into the database
