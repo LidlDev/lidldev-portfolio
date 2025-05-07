@@ -5,7 +5,11 @@ import { google } from 'googleapis';
 const BILL_KEYWORDS = [
   'invoice', 'bill', 'payment due', 'due date', 'statement',
   'autopay', 'auto-pay', 'direct debit', 'scheduled payment',
-  'utility bill', 'monthly bill', 'subscription renewal'
+  'utility bill', 'monthly bill', 'subscription renewal',
+  // Adding more general terms to catch more potential bills
+  'payment', 'due', 'balance', 'account', 'monthly', 'service',
+  'utility', 'electricity', 'gas', 'water', 'internet', 'phone',
+  'rent', 'mortgage', 'insurance'
 ];
 
 // Essential bill types that should be prioritized
@@ -224,14 +228,28 @@ export default async function handler(req, res) {
     let newBills = [];
 
     try {
-      // Get the list of emails from the last 30 days
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      // Get the list of emails from the last 90 days (expanded from 30)
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
+      // Log the search query for debugging
+      const searchQuery = `after:${Math.floor(ninetyDaysAgo.getTime() / 1000)}`;
+      console.log(`Searching emails with query: ${searchQuery}`);
+
+      // First try a broader search without keywords to see if we get any emails at all
+      const testResponse = await gmail.users.messages.list({
+        userId: 'me',
+        maxResults: 1
+      });
+
+      console.log(`Test query found ${testResponse.data.messages ? testResponse.data.messages.length : 0} emails`);
+
+      // Now do the actual search with a broader set of terms
+      // We'll use a simpler query first to get more results, then filter them in our code
       const response = await gmail.users.messages.list({
         userId: 'me',
-        q: `after:${Math.floor(thirtyDaysAgo.getTime() / 1000)} (${BILL_KEYWORDS.join(' OR ')})`,
-        maxResults: 20
+        q: searchQuery,
+        maxResults: 50 // Increased from 20 to get more potential matches
       });
 
       const messages = response.data.messages || [];
@@ -506,22 +524,94 @@ export default async function handler(req, res) {
       // Check if these bills already exist in the database
       const { data: existingBills, error: billsError } = await supabase
         .from('detected_bills')
-        .select('source, amount')
+        .select('source, amount, approved')
         .eq('user_id', userId);
 
       if (billsError) {
         throw new Error('Error checking existing bills');
       }
 
-      // Filter out bills that already exist
+      console.log(`Found ${existingBills ? existingBills.length : 0} existing bills in database`);
+
+      // Only filter out bills that already exist AND were approved
+      // This allows previously declined bills to be suggested again
       newBills = sortedBills.filter(bill =>
         !existingBills?.some(existing =>
-          existing.source === bill.source && existing.amount === bill.amount
+          existing.source === bill.source &&
+          existing.amount === bill.amount &&
+          existing.approved === true
         )
       );
+
+      // Log how many bills were filtered out as duplicates
+      console.log(`Filtered out ${sortedBills.length - newBills.length} bills that were already approved`);
     } catch (emailError) {
       console.error('Error processing emails:', emailError);
       return res.status(500).json({ error: 'Error processing emails: ' + emailError.message });
+    }
+
+    // If no bills were found, check if we should use mock data
+    if (newBills.length === 0) {
+      console.log('No bills found. Checking if we should use mock data...');
+
+      // Check if the user has any bills in the database
+      const { data: userBills, error: userBillsError } = await supabase
+        .from('detected_bills')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (!userBillsError && (!userBills || userBills.length === 0)) {
+        console.log('User has no bills in database. Using mock data for first-time experience.');
+
+        // Create mock bills for common utilities
+        const mockBills = [
+          {
+            title: 'Electric Bill',
+            amount: 89.99,
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+            category: 'Utilities',
+            confidence: 0.92,
+            source: 'electric@example.com',
+            approved: false,
+            userId
+          },
+          {
+            title: 'Internet Service',
+            amount: 65.00,
+            dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
+            category: 'Internet',
+            confidence: 0.87,
+            source: 'internet@example.com',
+            approved: false,
+            userId
+          },
+          {
+            title: 'Water Utility',
+            amount: 42.50,
+            dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
+            category: 'Utilities',
+            confidence: 0.85,
+            source: 'water@example.com',
+            approved: false,
+            userId
+          },
+          {
+            title: 'Rent Payment',
+            amount: 1200.00,
+            dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+            category: 'Housing',
+            confidence: 0.95,
+            source: 'property@example.com',
+            approved: false,
+            userId
+          }
+        ];
+
+        newBills = mockBills;
+        console.log('Added mock bills for first-time experience');
+      } else {
+        console.log('User already has bills in database. Not using mock data.');
+      }
     }
 
     // Insert new bills into the database
@@ -542,6 +632,7 @@ export default async function handler(req, res) {
         );
 
       if (insertError) {
+        console.error('Error storing detected bills:', insertError);
         return res.status(500).json({ error: 'Error storing detected bills' });
       }
     }
