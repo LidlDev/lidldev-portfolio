@@ -33,6 +33,18 @@ export default async function handler(
     res.setHeader('Set-Cookie', `email_auth_user_id=${userId}; Path=/; HttpOnly; SameSite=Strict; Max-Age=3600`);
 
     // Check if Google OAuth credentials are set
+    const nextPublicUrl = process.env.NEXT_PUBLIC_URL;
+
+    // Log environment variables (redacted for security)
+    console.log('Environment variables check in email-auth:', {
+      GOOGLE_CLIENT_ID: GOOGLE_CLIENT_ID ? 'Set' : 'Not set',
+      GOOGLE_CLIENT_SECRET: GOOGLE_CLIENT_SECRET ? 'Set' : 'Not set',
+      NEXT_PUBLIC_URL: nextPublicUrl ? nextPublicUrl : 'Not set',
+      REDIRECT_URI: REDIRECT_URI,
+      SUPABASE_URL: supabaseUrl ? 'Set' : 'Not set',
+      SUPABASE_SERVICE_KEY: supabaseServiceKey ? 'Set' : 'Not set'
+    });
+
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
       console.error('Google OAuth credentials not set');
       // Redirect back to the agent page with an error

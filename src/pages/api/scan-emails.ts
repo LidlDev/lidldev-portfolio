@@ -43,11 +43,25 @@ export default async function handler(
     // Check if Google OAuth credentials are set
     const googleClientId = process.env.GOOGLE_CLIENT_ID;
     const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const nextPublicUrl = process.env.NEXT_PUBLIC_URL;
+
+    // Log environment variables (redacted for security)
+    console.log('Environment variables check:', {
+      GOOGLE_CLIENT_ID: googleClientId ? 'Set' : 'Not set',
+      GOOGLE_CLIENT_SECRET: googleClientSecret ? 'Set' : 'Not set',
+      NEXT_PUBLIC_URL: nextPublicUrl ? nextPublicUrl : 'Not set',
+      SUPABASE_URL: supabaseUrl ? 'Set' : 'Not set',
+      SUPABASE_SERVICE_KEY: supabaseServiceKey ? 'Set' : 'Not set'
+    });
 
     if (!googleClientId || !googleClientSecret) {
       return res.status(503).json({
         error: 'Email scanning is not available. Please contact the administrator to set up Google OAuth credentials.'
       });
+    }
+
+    if (!nextPublicUrl) {
+      console.warn('NEXT_PUBLIC_URL is not set. Using default redirect URI.');
     }
 
     // Check if the user has granted permission to scan emails

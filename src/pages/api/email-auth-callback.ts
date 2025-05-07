@@ -39,28 +39,62 @@ export default async function handler(
       return res.redirect('/agent?auth_error=missing_user_id');
     }
 
-    // Exchange the authorization code for access and refresh tokens
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        code: code as string,
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: REDIRECT_URI,
-        grant_type: 'authorization_code',
-      }),
+    // Log environment variables (redacted for security)
+    console.log('Environment variables check in email-auth-callback:', {
+      GOOGLE_CLIENT_ID: GOOGLE_CLIENT_ID ? 'Set' : 'Not set',
+      GOOGLE_CLIENT_SECRET: GOOGLE_CLIENT_SECRET ? 'Set' : 'Not set',
+      NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL ? process.env.NEXT_PUBLIC_URL : 'Not set',
+      REDIRECT_URI: REDIRECT_URI,
+      SUPABASE_URL: supabaseUrl ? 'Set' : 'Not set',
+      SUPABASE_SERVICE_KEY: supabaseServiceKey ? 'Set' : 'Not set'
     });
 
-    if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.json();
-      console.error('Token exchange error:', errorData);
-      return res.redirect('/agent?auth_error=token_exchange_failed');
+    // Exchange the authorization code for access and refresh tokens
+    let tokenResponse;
+    let tokenData;
+
+    try {
+      tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          code: code as string,
+          client_id: GOOGLE_CLIENT_ID,
+          client_secret: GOOGLE_CLIENT_SECRET,
+          redirect_uri: REDIRECT_URI,
+          grant_type: 'authorization_code',
+        }),
+      });
+
+      console.log('Token response status:', tokenResponse.status);
+
+      if (!tokenResponse.ok) {
+        let errorMessage = 'Token exchange failed';
+        try {
+          const errorData = await tokenResponse.json();
+          console.error('Token exchange error:', errorData);
+          errorMessage = errorData.error_description || errorData.error || errorMessage;
+        } catch (e) {
+          console.error('Failed to parse token error response:', e);
+          // Try to get the text response
+          try {
+            const errorText = await tokenResponse.text();
+            console.error('Token error response text:', errorText);
+          } catch (textError) {
+            console.error('Failed to get token error response text:', textError);
+          }
+        }
+        return res.redirect(`/agent?auth_error=${encodeURIComponent(errorMessage)}`);
+      }
+
+      tokenData = await tokenResponse.json();
+    } catch (fetchError) {
+      console.error('Fetch error during token exchange:', fetchError);
+      return res.redirect(`/agent?auth_error=${encodeURIComponent('Network error during token exchange')}`);
     }
 
-    const tokenData = await tokenResponse.json();
     const { access_token, refresh_token, expires_in } = tokenData;
 
     // Store the tokens in Supabase
