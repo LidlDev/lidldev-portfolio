@@ -8,17 +8,40 @@ const BILL_KEYWORDS = [
   'utility bill', 'monthly bill', 'subscription renewal'
 ];
 
+// Essential bill types that should be prioritized
+const ESSENTIAL_BILL_TYPES = [
+  'electricity', 'electric bill', 'power bill', 'energy bill',
+  'gas bill', 'water bill', 'utility bill', 'utilities',
+  'rent', 'mortgage', 'lease payment', 'housing',
+  'internet', 'broadband', 'wifi', 'phone bill', 'mobile bill',
+  'insurance', 'health insurance', 'car insurance', 'home insurance',
+  'council tax', 'property tax', 'rates', 'homeowners association',
+  'loan payment', 'credit card bill', 'minimum payment'
+];
+
 // Strong bill indicators (presence of these terms increases confidence significantly)
 const STRONG_BILL_INDICATORS = [
   'invoice #', 'invoice number', 'account number', 'customer #',
   'payment due on', 'please pay by', 'amount due', 'total due',
-  'minimum payment', 'autopay scheduled', 'direct debit scheduled'
+  'minimum payment', 'autopay scheduled', 'direct debit scheduled',
+  'monthly statement', 'billing period', 'billing date',
+  'your bill is ready', 'new bill available'
+];
+
+// Urgent payment reminders (these indicate a bill that needs immediate attention)
+const URGENT_PAYMENT_REMINDERS = [
+  'missed payment', 'late payment', 'overdue payment', 'payment reminder',
+  'reminder your bill is due', 'payment is past due', 'bill is overdue',
+  'urgent payment required', 'payment needed', 'please pay immediately',
+  'final notice', 'disconnection notice', 'service interruption',
+  'avoid late fees', 'avoid service interruption', 'payment deadline',
+  'your payment is late', 'your account is past due', 'payment not received'
 ];
 
 // Negative keywords (presence of these terms decreases confidence or excludes the email)
 const NEGATIVE_KEYWORDS = [
   'save money', 'discount', 'offer', 'promotion', 'sale', 'deal',
-  'transferred', 'sent you', 'payment received', 'receipt for your payment',
+  'transferred', 'sent you', 'receipt for your payment',
   'thank you for your payment', 'payment confirmation', 'order confirmation',
   'money transfer', 'you paid', 'you sent', 'suggestion', 'recommend',
   'invitation', 'verify your', 'confirm your', 'update your', 'welcome to'
@@ -26,9 +49,18 @@ const NEGATIVE_KEYWORDS = [
 
 // Specific services that often send non-bill emails that might be confused as bills
 const NON_BILL_SERVICES = [
-  'uber.com', 'ubereats', 'doordash', 'grubhub', 'paypal',
+  'uber.com', 'ubereats', 'doordash', 'grubhub',
   'venmo', 'cashapp', 'zelle', 'facebook', 'instagram', 'twitter',
   'tiktok', 'snapchat', 'linkedin', 'pinterest', 'youtube'
+];
+
+// Common utility and essential service providers (these are likely to send actual bills)
+const ESSENTIAL_SERVICES = [
+  'electric', 'energy', 'power', 'gas', 'water', 'utility',
+  'internet', 'broadband', 'telecom', 'fiber', 'comcast', 'xfinity',
+  'verizon', 'at&t', 'sprint', 't-mobile', 'vodafone',
+  'mortgage', 'rent', 'lease', 'apartment', 'property', 'housing',
+  'insurance', 'bank', 'credit', 'loan', 'financial'
 ];
 
 // Amount regex - matches currency amounts
@@ -247,6 +279,18 @@ export default async function handler(req, res) {
 
         if (!hasBasicBillKeywords) continue;
 
+        // Check if this is an essential bill type
+        const isEssentialBillType = ESSENTIAL_BILL_TYPES.some(type =>
+          content.toLowerCase().includes(type.toLowerCase()) ||
+          subject.toLowerCase().includes(type.toLowerCase())
+        );
+
+        // Check if the email is from an essential service provider
+        const isFromEssentialService = ESSENTIAL_SERVICES.some(service =>
+          sender.toLowerCase().includes(service.toLowerCase()) ||
+          from.toLowerCase().includes(service.toLowerCase())
+        );
+
         // Check for negative keywords that indicate this is NOT a bill
         const hasNegativeKeywords = NEGATIVE_KEYWORDS.some(keyword =>
           content.toLowerCase().includes(keyword.toLowerCase())
@@ -257,15 +301,24 @@ export default async function handler(req, res) {
           sender.toLowerCase().includes(service.toLowerCase())
         );
 
-        // Skip this email if it has negative keywords or is from a non-bill service
-        // unless it has strong bill indicators
+        // Check for strong bill indicators
         const hasStrongIndicators = STRONG_BILL_INDICATORS.some(indicator =>
           content.toLowerCase().includes(indicator.toLowerCase())
         );
 
-        if ((hasNegativeKeywords || isFromNonBillService) && !hasStrongIndicators) {
-          console.log(`Skipping email with subject "${subject}" - has negative indicators`);
-          continue;
+        // Check for urgent payment reminders
+        const hasUrgentReminders = URGENT_PAYMENT_REMINDERS.some(reminder =>
+          content.toLowerCase().includes(reminder.toLowerCase()) ||
+          subject.toLowerCase().includes(reminder.toLowerCase())
+        );
+
+        // Skip this email if it has negative keywords or is from a non-bill service
+        // UNLESS it has strong bill indicators OR urgent reminders OR is an essential bill type OR is from an essential service
+        if (hasNegativeKeywords || isFromNonBillService) {
+          if (!hasStrongIndicators && !hasUrgentReminders && !isEssentialBillType && !isFromEssentialService) {
+            console.log(`Skipping email with subject "${subject}" - has negative indicators`);
+            continue;
+          }
         }
 
         // Start with a base confidence
@@ -274,6 +327,24 @@ export default async function handler(req, res) {
         // Increase confidence for strong indicators
         if (hasStrongIndicators) {
           confidence += 0.3;
+        }
+
+        // Increase confidence for urgent payment reminders (high priority)
+        if (hasUrgentReminders) {
+          confidence += 0.4;
+          console.log(`Found urgent payment reminder in email with subject "${subject}"`);
+        }
+
+        // Increase confidence for essential bill types
+        if (isEssentialBillType) {
+          confidence += 0.25;
+          console.log(`Found essential bill type in email with subject "${subject}"`);
+        }
+
+        // Increase confidence for essential services
+        if (isFromEssentialService) {
+          confidence += 0.25;
+          console.log(`Email from essential service: ${sender} - Subject: "${subject}"`);
         }
 
         // Extract amount
@@ -407,7 +478,7 @@ export default async function handler(req, res) {
       console.log(`Detected ${detectedBills.length} bills`);
 
       // Filter out low confidence bills and sort by confidence (highest first)
-      const filteredBills = detectedBills.filter(bill => bill.confidence >= 0.6);
+      const filteredBills = detectedBills.filter(bill => bill.confidence >= 0.5);
       console.log(`Filtered out ${detectedBills.length - filteredBills.length} low-confidence bills`);
 
       const sortedBills = filteredBills.sort((a, b) => b.confidence - a.confidence);
