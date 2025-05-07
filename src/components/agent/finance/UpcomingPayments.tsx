@@ -11,9 +11,9 @@ import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-// Email scanning feature temporarily disabled
-// import EmailScanner, { DetectedBill } from '../email/EmailScanner';
-// import BillSuggestions from '../email/BillSuggestions';
+// Email scanning feature
+import EmailScanner, { DetectedBill } from '../email/EmailScanner';
+import BillSuggestions from '../email/BillSuggestions';
 
 interface DatabasePayment {
   id: string;
@@ -39,38 +39,35 @@ const UpcomingPayments: React.FC = () => {
     category: 'Housing'
   });
 
-  // Try to use Supabase data if available, otherwise fall back to local state
-  let useLocalData = true;
+  // Email scanning feature
+  const [detectedBills, setDetectedBills] = useState<DetectedBill[]>([]);
 
-  try {
-    var {
-      data: payments,
-      loading,
-      addItem,
-      updateItem,
-      deleteItem,
-      fetchData
-    } = useSupabaseData<DatabasePayment>({
-      table: 'payments',
-      initialData: initialPayments.map(payment => ({
-        id: payment.id,
-        title: payment.title,
-        amount: payment.amount,
-        due_date: payment.dueDate.toISOString(),
-        recurring: payment.recurring,
-        category: payment.category,
-        paid: payment.paid,
-        user_id: 'anonymous',
-        created_at: new Date().toISOString()
-      })),
-      orderBy: { column: 'due_date', ascending: true }
-    });
+  // Use Supabase data
+  const {
+    data: payments = [],
+    loading = false,
+    addItem = async () => {},
+    updateItem = async () => {},
+    deleteItem = async () => {},
+    fetchData = async () => {}
+  } = useSupabaseData<DatabasePayment>({
+    table: 'payments',
+    initialData: initialPayments.map(payment => ({
+      id: payment.id,
+      title: payment.title,
+      amount: payment.amount,
+      due_date: payment.dueDate.toISOString(),
+      recurring: payment.recurring,
+      category: payment.category,
+      paid: payment.paid,
+      user_id: 'anonymous',
+      created_at: new Date().toISOString()
+    })),
+    orderBy: { column: 'due_date', ascending: true }
+  });
 
-    useLocalData = false;
-  } catch (error) {
-    console.error('Error using Supabase data:', error);
-    // Fall back to local state
-  }
+  // Determine if we should use local data (if Supabase data is not available)
+  const useLocalData = !user || payments.length === 0;
 
   // Local handlers (used when Supabase is not available)
   const handleAddPaymentLocal = (e: React.FormEvent) => {
@@ -251,10 +248,6 @@ const UpcomingPayments: React.FC = () => {
     );
   }
 
-  // Email scanning feature temporarily disabled
-  /*
-  const [detectedBills, setDetectedBills] = useState<DetectedBill[]>([]);
-
   const handleBillsDetected = (bills: DetectedBill[]) => {
     setDetectedBills(bills);
   };
@@ -272,7 +265,6 @@ const UpcomingPayments: React.FC = () => {
     // Remove from detected bills
     setDetectedBills(detectedBills.filter(b => b.id !== billId));
   };
-  */
 
   return (
     <div className="h-full overflow-y-auto pb-4">
@@ -286,8 +278,7 @@ const UpcomingPayments: React.FC = () => {
         </button>
       </div>
 
-      {/* Email scanning feature temporarily disabled */}
-      {/*
+      {/* Email scanning feature */}
       {user && (
         <EmailScanner onBillsDetected={handleBillsDetected} />
       )}
@@ -299,7 +290,6 @@ const UpcomingPayments: React.FC = () => {
           onBillRejected={handleBillRejected}
         />
       )}
-      */}
 
       {showForm && (
         <form onSubmit={handleAddPayment} className="glass-card p-4 mb-6 animate-scale-in">
