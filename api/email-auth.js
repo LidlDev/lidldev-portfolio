@@ -46,12 +46,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Use custom callback URL if provided
-    const redirectUri = callbackUrl ?
-      `${process.env.NEXT_PUBLIC_URL}${callbackUrl}` :
-      REDIRECT_URI;
+    // Always use the base redirect URI without query parameters
+    // We'll use the state parameter to pass additional data
+    const redirectUri = REDIRECT_URI;
+
+    // Create a state parameter to pass the user ID
+    const state = Buffer.from(JSON.stringify({ userId })).toString('base64');
 
     console.log('Using redirect URI:', redirectUri);
+    console.log('Using state parameter with userId:', userId);
 
     // Log environment variables (redacted for security)
     console.log('Environment variables check in email-auth:', {
@@ -89,6 +92,7 @@ export default async function handler(req, res) {
     authUrl.searchParams.append('scope', 'https://www.googleapis.com/auth/gmail.readonly');
     authUrl.searchParams.append('access_type', 'offline');
     authUrl.searchParams.append('prompt', 'consent');
+    authUrl.searchParams.append('state', state);
 
     // Redirect the user to the Google OAuth page
     res.redirect(authUrl.toString());

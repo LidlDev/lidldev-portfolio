@@ -49,26 +49,31 @@ export default async function handler(req, res) {
       return res.redirect('/agent?auth_error=missing_code');
     }
 
-    // Get the user ID from the cookie
-    console.log('Cookies received:', req.cookies);
+    // Get the user ID from the state parameter
+    const { state } = req.query;
 
-    const userId = req.cookies.email_auth_user_id;
-
-    if (!userId) {
-      console.error('User ID cookie not found. Available cookies:', req.cookies);
-
-      // Try to get the user ID from the query parameters as a fallback
-      const queryUserId = req.query.userId;
-
-      if (queryUserId) {
-        console.log('Using user ID from query parameters:', queryUserId);
-        return handleOAuthWithUserId(queryUserId, code, res);
-      }
-
-      return res.redirect('/agent?auth_error=missing_user_id');
+    if (!state) {
+      console.error('State parameter not found in the callback');
+      return res.redirect('/agent?auth_error=missing_state_parameter');
     }
 
-    // Continue with the user ID from the cookie
+    let userId;
+    try {
+      // Decode the state parameter to get the user ID
+      const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
+      userId = stateData.userId;
+
+      console.log('Extracted user ID from state parameter:', userId);
+
+      if (!userId) {
+        throw new Error('User ID not found in state parameter');
+      }
+    } catch (error) {
+      console.error('Error parsing state parameter:', error);
+      return res.redirect('/agent?auth_error=invalid_state_parameter');
+    }
+
+    // Continue with the user ID from the state parameter
     return handleOAuthWithUserId(userId, code, res);
   } catch (error) {
     console.error('Error handling OAuth callback:', error);

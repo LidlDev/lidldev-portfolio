@@ -119,9 +119,8 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           if (error || !data) {
             // No tokens found, redirect to OAuth flow
             // Use window.location to redirect to the API endpoint
-            // Also include the user ID in the callback URL as a fallback
-            const callbackUrl = `/api/email-auth-callback?userId=${encodeURIComponent(user.id)}`;
-            window.location.href = `/api/email-auth?userId=${encodeURIComponent(user.id)}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+            // The user ID will be passed via the state parameter
+            window.location.href = `/api/email-auth?userId=${encodeURIComponent(user.id)}`;
           } else {
             // Tokens found, update permission and scan emails
             setPermissionGranted(true);
@@ -166,6 +165,8 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
         toast.error('Email scanning is not available. Please contact the administrator to set up Google OAuth credentials.');
       } else if (authError === 'server_configuration_error') {
         toast.error('Server configuration error. Please contact the administrator to set up the required environment variables.');
+      } else if (authError === 'missing_state_parameter' || authError === 'invalid_state_parameter') {
+        toast.error('Authentication error: Invalid or missing state parameter. Please try again.');
       } else {
         toast.error(`Email access error: ${authError}`);
       }
