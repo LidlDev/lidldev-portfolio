@@ -47,6 +47,35 @@ export interface Database {
           user_id?: string
         }
       }
+      email_auth: {
+        Row: {
+          id: string
+          created_at: string
+          user_id: string
+          provider: string
+          access_token: string
+          refresh_token: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          user_id: string
+          provider: string
+          access_token: string
+          refresh_token?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          user_id?: string
+          provider?: string
+          access_token?: string
+          refresh_token?: string | null
+          expires_at?: string | null
+        }
+      }
       tasks: {
         Row: {
           id: string

@@ -25,8 +25,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
 
-  // This would be replaced with actual email scanning functionality
-  // For now, we'll simulate finding bills with a timeout
+  // Use the API endpoint to scan emails
   const scanEmails = async () => {
     if (!user) {
       toast.error('You must be logged in to scan emails');
@@ -41,116 +40,140 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
     setScanning(true);
 
     try {
-      // In a real implementation, this would call an API endpoint
-      // that would use OAuth to access the user's emails
-      // For now, we'll simulate a delay and return mock data
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Get the user's session
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
 
-      // Generate a simple random ID
+      if (!accessToken) {
+        toast.error('Authentication error. Please log in again.');
+        setScanning(false);
+        return;
+      }
+
+      // Call the API endpoint to scan emails
+      const response = await fetch('/api/scan-emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          accessToken
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to scan emails');
+      }
+
+      const data = await response.json();
+
+      // Generate IDs for the bills (the API doesn't include IDs)
       const generateId = () => Math.random().toString(36).substring(2, 15);
 
-      // Mock detected bills
-      const mockBills: DetectedBill[] = [
-        {
-          id: generateId(),
-          title: 'Electric Bill',
-          amount: 89.99,
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-          category: 'Utilities',
-          confidence: 0.92,
-          source: 'electric@example.com',
-          approved: false
-        },
-        {
-          id: generateId(),
-          title: 'Internet Service',
-          amount: 65.00,
-          dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-          category: 'Utilities',
-          confidence: 0.87,
-          source: 'internet@example.com',
-          approved: false
-        },
-        {
-          id: generateId(),
-          title: 'Streaming Subscription',
-          amount: 14.99,
-          dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
-          category: 'Entertainment',
-          confidence: 0.75,
-          source: 'streaming@example.com',
-          approved: false
-        }
-      ];
+      // Process the detected bills
+      const detectedBills: DetectedBill[] = data.bills.map((bill: any) => ({
+        id: generateId(),
+        title: bill.title,
+        amount: bill.amount,
+        dueDate: new Date(bill.dueDate),
+        category: bill.category,
+        confidence: bill.confidence,
+        source: bill.source,
+        approved: bill.approved
+      }));
 
-      // Store the detected bills in Supabase for this user
-      // In a real implementation, this would be done server-side
-      try {
-        // First, check if we already have these bills stored
-        const { data: existingBills } = await supabase
-          .from('detected_bills')
-          .select('source, amount')
-          .eq('user_id', user.id);
-
-        // Filter out bills that already exist
-        const newBills = mockBills.filter(bill =>
-          !existingBills?.some(existing =>
-            existing.source === bill.source && existing.amount === bill.amount
-          )
-        );
-
-        if (newBills.length > 0) {
-          // Insert new bills
-          await supabase.from('detected_bills').insert(
-            newBills.map(bill => ({
-              title: bill.title,
-              amount: bill.amount,
-              due_date: bill.dueDate.toISOString(),
-              category: bill.category,
-              confidence: bill.confidence,
-              source: bill.source,
-              approved: false,
-              user_id: user.id
-            }))
-          );
-
-          toast.success(`Found ${newBills.length} new bills in your emails`);
-          onBillsDetected(newBills);
-        } else {
-          toast.info('No new bills found in your emails');
-        }
-      } catch (error) {
-        console.error('Error storing detected bills:', error);
+      if (detectedBills.length > 0) {
+        toast.success(`Found ${detectedBills.length} new bills in your emails`);
+        onBillsDetected(detectedBills);
+      } else {
+        toast.info('No new bills found in your emails');
       }
     } catch (error) {
       console.error('Error scanning emails:', error);
-      toast.error('Failed to scan emails. Please try again later.');
+      toast.error(error instanceof Error ? error.message : 'Failed to scan emails. Please try again later.');
     } finally {
       setScanning(false);
     }
   };
 
   const handleGrantPermission = () => {
-    setPermissionGranted(true);
     setShowPermissionDialog(false);
 
-    // Store the permission in user metadata
+    // Redirect to the OAuth flow
     if (user) {
-      supabase.from('profiles')
-        .update({ email_scan_permission: true })
-        .eq('id', user.id)
-        .then(({ error }) => {
-          if (error) {
-            console.error('Error updating user profile:', error);
-            return;
-          }
+      // First check if we already have OAuth tokens
+      supabase
+        .from('email_auth')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('provider', 'google')
+        .single()
+        .then(({ data, error }) => {
+          if (error || !data) {
+            // No tokens found, redirect to OAuth flow
+            window.location.href = `/api/email-auth?userId=${user.id}`;
+          } else {
+            // Tokens found, update permission and scan emails
+            setPermissionGranted(true);
 
-          toast.success('Email scanning permission granted');
-          // Start scanning immediately
-          scanEmails();
+            supabase.from('profiles')
+              .update({ email_scan_permission: true })
+              .eq('id', user.id)
+              .then(({ error }) => {
+                if (error) {
+                  console.error('Error updating user profile:', error);
+                  return;
+                }
+
+                toast.success('Email scanning permission granted');
+                // Start scanning immediately
+                scanEmails();
+              });
+          }
         });
     }
   };
+
+  // Check for OAuth callback parameters
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authSuccess = urlParams.get('auth_success');
+    const authError = urlParams.get('auth_error');
+
+    if (authSuccess === 'true' && user) {
+      setPermissionGranted(true);
+      toast.success('Email access granted successfully');
+
+      // Remove the query parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+
+      // Start scanning emails
+      scanEmails();
+    } else if (authError && user) {
+      toast.error(`Email access error: ${authError}`);
+
+      // Remove the query parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+
+    // Check if the user already has permission
+    if (user) {
+      supabase
+        .from('profiles')
+        .select('email_scan_permission')
+        .eq('id', user.id)
+        .single()
+        .then(({ data, error }) => {
+          if (!error && data && data.email_scan_permission) {
+            setPermissionGranted(true);
+          }
+        });
+    }
+  }, [user]);
 
   return (
     <div className="mb-6">
@@ -184,7 +207,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       {showPermissionDialog && (
         <div className="glass-card p-4 mb-4 border border-primary/20 animate-scale-in">
           <div className="flex items-start mb-3">
-            <Mail className="w-5 h-5 text-primary mr-2 flex-shrink-0 mt-0.5" />
+            <span className="w-5 h-5 text-primary mr-2 flex-shrink-0 mt-0.5">⚠️</span>
             <div>
               <h4 className="font-medium">Permission Required</h4>
               <p className="text-sm text-primary/70 mt-1">
