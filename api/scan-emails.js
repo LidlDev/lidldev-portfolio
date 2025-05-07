@@ -317,6 +317,12 @@ export default async function handler(req, res) {
         if (hasNegativeKeywords || isFromNonBillService) {
           if (!hasStrongIndicators && !hasUrgentReminders && !isEssentialBillType && !isFromEssentialService) {
             console.log(`Skipping email with subject "${subject}" - has negative indicators`);
+            if (hasNegativeKeywords) {
+              console.log(`  Negative keywords found in: ${from}`);
+            }
+            if (isFromNonBillService) {
+              console.log(`  Non-bill service: ${sender}`);
+            }
             continue;
           }
         }
@@ -477,9 +483,23 @@ export default async function handler(req, res) {
 
       console.log(`Detected ${detectedBills.length} bills`);
 
-      // Filter out low confidence bills and sort by confidence (highest first)
+      // Log all detected bills before filtering
+      console.log('All detected bills before filtering:');
+      detectedBills.forEach(bill => {
+        console.log(`- Title: "${bill.title}", Amount: $${bill.amount}, Due: ${new Date(bill.dueDate).toLocaleDateString()}, Confidence: ${bill.confidence.toFixed(2)}, Source: ${bill.source}`);
+      });
+
+      // Filter out low confidence bills
       const filteredBills = detectedBills.filter(bill => bill.confidence >= 0.5);
-      console.log(`Filtered out ${detectedBills.length - filteredBills.length} low-confidence bills`);
+
+      // Log filtered out bills
+      const filteredOutBills = detectedBills.filter(bill => bill.confidence < 0.5);
+      console.log(`Filtered out ${filteredOutBills.length} low-confidence bills:`);
+      filteredOutBills.forEach(bill => {
+        console.log(`- FILTERED OUT: "${bill.title}", Amount: $${bill.amount}, Due: ${new Date(bill.dueDate).toLocaleDateString()}, Confidence: ${bill.confidence.toFixed(2)}, Source: ${bill.source}`);
+      });
+
+      // Sort by confidence (highest first)
 
       const sortedBills = filteredBills.sort((a, b) => b.confidence - a.confidence);
 
@@ -525,6 +545,12 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Error storing detected bills' });
       }
     }
+
+    // Log the final bills that will be returned
+    console.log('Final bills being returned:');
+    newBills.forEach(bill => {
+      console.log(`- APPROVED: "${bill.title}", Amount: $${bill.amount}, Due: ${new Date(bill.dueDate).toLocaleDateString()}, Confidence: ${bill.confidence.toFixed(2)}, Source: ${bill.source}`);
+    });
 
     // Return the detected bills
     return res.status(200).json({
