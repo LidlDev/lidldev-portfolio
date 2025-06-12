@@ -1,100 +1,164 @@
-import React from "react";
-import { ExternalLink, Github, Star } from "lucide-react";
-import { Link } from "react-router-dom";
-import { projectsData, ProjectData } from "../data/projects";
+import { IMAGE_PATHS, getImagePath } from '../config/images';
 
-const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
-  const {
-    id,
-    title,
-    description,
-    tags,
-    imageUrl,
-    projectUrl,
-    githubUrl,
-    featured = false,
-  } = project;
-  return (
-    <div
-      className={`group rounded-2xl overflow-hidden hover-card ${
-        featured 
-          ? "md:col-span-2 row-span-2" 
-          : ""
-      }`}
-    >
-      <div className="glass-card h-full flex flex-col">
-        <div className="relative overflow-hidden h-48">
-          <img
-            src={imageUrl}
-            alt={title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-          {featured && (
-            <div className="absolute top-3 left-3 bg-primary text-white text-xs py-1 px-2 rounded-full flex items-center gap-1">
-              <Star className="w-3 h-3" /> Featured
-            </div>
-          )}
-        </div>
-        <div className="p-6 flex flex-col flex-grow">
-          <h3 className="text-xl font-display font-bold">{title}</h3>
-          <p className="text-muted-foreground mt-2 mb-4 flex-grow">{description}</p>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-xs py-1 px-2 bg-secondary rounded-full text-secondary-foreground"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-3 mt-auto">
-            <Link
-              to={`/project/${id}`}
-              className="inline-flex items-center text-sm font-medium text-primary hover:text-accent transition-colors"
-            >
-              View Details <ExternalLink className="ml-1 w-4 h-4" />
-            </Link>
-            {githubUrl && (
-              <a
-                href={githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-sm font-medium text-foreground hover:text-primary transition-colors"
-              >
-                Code <Github className="ml-1 w-4 h-4" />
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+export interface ProjectData {
+  id: string;
+  title: string;
+  description: string;
+  detailedDescription: string;
+  tags: string[];
+  imageUrl: string;
+  projectUrl?: string;
+  githubUrl?: string;
+  featured?: boolean;
+  logo?: string;
+  screenshots: string[];
+  features: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
+  techStack: {
+    category: string;
+    technologies: string[];
+  }[];
+  demoDescription: string;
+  status: 'completed' | 'in-progress' | 'concept';
+  year: string;
+}
 
-const Projects: React.FC = () => {
-
-  return (
-    <section id="projects" className="py-20 md:py-32">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">
-            My <span className="magic-text">Projects</span>
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Explore my recent work and personal projects. Each one represents a
-            unique challenge and learning opportunity.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {projectsData.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default Projects;
+export const projectsData: ProjectData[] = [
+  {
+    id: "spike-volleyball",
+    title: "Spike! Volleyball App",
+    description: "Interactive app for volleyball teams, communication, and training.",
+    detailedDescription: "Spike! is a comprehensive volleyball team management application designed to streamline communication, training, and team coordination. Built with modern mobile development practices, it provides coaches and players with powerful tools to enhance their volleyball experience.",
+    tags: ["Java", "Swift", "Firebase"],
+    imageUrl: getImagePath(IMAGE_PATHS.HEROES.SPIKE_VOLLEYBALL, IMAGE_PATHS.FALLBACKS.SPIKE_VOLLEYBALL_HERO),
+    projectUrl: "https://example.com/spike",
+    githubUrl: "https://github.com/username/spike",
+    featured: true,
+    logo: getImagePath(IMAGE_PATHS.LOGOS.SPIKE_VOLLEYBALL, IMAGE_PATHS.FALLBACKS.SPIKE_VOLLEYBALL_HERO),
+    screenshots: IMAGE_PATHS.FALLBACKS.VOLLEYBALL_SCREENSHOTS,
+    features: [
+      {
+        title: "Team Management",
+        description: "Organize players, track attendance, and manage team rosters with ease.",
+        icon: "users"
+      },
+      {
+        title: "Training Scheduler",
+        description: "Schedule practices, games, and events with automated notifications.",
+        icon: "calendar"
+      },
+      {
+        title: "Performance Analytics",
+        description: "Track player statistics and team performance metrics over time.",
+        icon: "bar-chart"
+      },
+      {
+        title: "Real-time Chat",
+        description: "Instant messaging for team communication and coordination.",
+        icon: "message-circle"
+      },
+      {
+        title: "Drill Library",
+        description: "Access to a comprehensive library of volleyball training drills.",
+        icon: "book-open"
+      },
+      {
+        title: "Match Tracking",
+        description: "Record match results, scores, and player performance data.",
+        icon: "trophy"
+      }
+    ],
+    techStack: [
+      {
+        category: "Mobile Development",
+        technologies: ["Java (Android)", "Swift (iOS)", "React Native"]
+      },
+      {
+        category: "Backend & Database",
+        technologies: ["Firebase", "Cloud Firestore", "Firebase Auth"]
+      },
+      {
+        category: "Cloud Services",
+        technologies: ["Firebase Cloud Functions", "Firebase Storage", "Push Notifications"]
+      },
+      {
+        category: "Development Tools",
+        technologies: ["Android Studio", "Xcode", "Git", "Firebase Console"]
+      }
+    ],
+    demoDescription: "Experience the power of modern team management with Spike! This demo showcases the app's intuitive interface, real-time features, and comprehensive volleyball-specific tools designed to elevate your team's performance.",
+    status: "completed",
+    year: "2023"
+  },
+  {
+    id: "chess-app",
+    title: "Chess App",
+    description: "A classic chess game implementation with AI opponent.",
+    detailedDescription: "A sophisticated chess application featuring an intelligent AI opponent, beautiful 3D graphics, and comprehensive game analysis tools.",
+    tags: ["Java", "Android", "Game Dev"],
+    imageUrl: getImagePath(IMAGE_PATHS.HEROES.CHESS_APP, IMAGE_PATHS.FALLBACKS.CHESS_HERO),
+    projectUrl: "https://example.com/chess",
+    githubUrl: "https://github.com/username/chess",
+    screenshots: IMAGE_PATHS.FALLBACKS.CHESS_SCREENSHOTS,
+    features: [
+      {
+        title: "AI Opponent",
+        description: "Play against a challenging AI with multiple difficulty levels.",
+        icon: "cpu"
+      },
+      {
+        title: "Game Analysis",
+        description: "Analyze your games with detailed move-by-move breakdowns.",
+        icon: "search"
+      }
+    ],
+    techStack: [
+      {
+        category: "Mobile Development",
+        technologies: ["Java", "Android SDK"]
+      }
+    ],
+    demoDescription: "Challenge yourself with this feature-rich chess application.",
+    status: "completed",
+    year: "2023"
+  },
+  {
+    id: "uncharted",
+    title: "Uncharted",
+    description: "Explore the world around you, Be a tourist everywhere you go!",
+    detailedDescription: "Uncharted is a travel discovery platform that helps you explore hidden gems and local attractions wherever you are.",
+    tags: ["React", "Node.js", "Web"],
+    imageUrl: getImagePath(IMAGE_PATHS.HEROES.UNCHARTED, IMAGE_PATHS.FALLBACKS.UNCHARTED_HERO),
+    projectUrl: "https://example.com/projectx",
+    githubUrl: "https://github.com/username/projectx",
+    screenshots: IMAGE_PATHS.FALLBACKS.TRAVEL_SCREENSHOTS,
+    features: [
+      {
+        title: "Location Discovery",
+        description: "Find interesting places and attractions near you.",
+        icon: "map-pin"
+      },
+      {
+        title: "Travel Planning",
+        description: "Plan your trips with personalized recommendations.",
+        icon: "route"
+      }
+    ],
+    techStack: [
+      {
+        category: "Frontend",
+        technologies: ["React", "TypeScript"]
+      },
+      {
+        category: "Backend",
+        technologies: ["Node.js", "Express"]
+      }
+    ],
+    demoDescription: "Discover amazing places and plan unforgettable adventures.",
+    status: "in-progress",
+    year: "2024"
+  }
+];

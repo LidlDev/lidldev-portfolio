@@ -17,14 +17,18 @@ const ProjectHero: React.FC<ProjectHeroProps> = ({ project }) => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Project Logo - Special handling for Spike! */}
-          {project.id === 'spike-volleyball' && (
+          {project.id === 'spike-volleyball' && project.logo && (
             <div className="mb-8 flex justify-center">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full blur-xl opacity-30 scale-110"></div>
                 <img
-                  src="/src/assets/images/app_logo.png"
+                  src={project.logo}
                   alt={`${project.title} Logo`}
                   className="relative w-24 h-24 md:w-32 md:h-32 rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    // Fallback to a default image if logo fails to load
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
                 />
               </div>
             </div>
