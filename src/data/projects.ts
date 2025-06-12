@@ -1,3 +1,5 @@
+import { IMAGE_PATHS, getImagePath } from '../config/images';
+
 export interface ProjectData {
   id: string;
   title: string;
@@ -31,17 +33,12 @@ export const projectsData: ProjectData[] = [
     description: "Interactive app for volleyball teams, communication, and training.",
     detailedDescription: "Spike! is a comprehensive volleyball team management application designed to streamline communication, training, and team coordination. Built with modern mobile development practices, it provides coaches and players with powerful tools to enhance their volleyball experience.",
     tags: ["Java", "Swift", "Firebase"],
-    imageUrl: "https://images.unsplash.com/photo-1592656094267-764a45160876?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
+    imageUrl: getImagePath(IMAGE_PATHS.HEROES.SPIKE_VOLLEYBALL, IMAGE_PATHS.FALLBACKS.SPIKE_VOLLEYBALL_HERO),
     projectUrl: "https://example.com/spike",
     githubUrl: "https://github.com/username/spike",
     featured: true,
-    logo: "/src/assets/images/app_logo.png",
-    screenshots: [
-      "https://images.unsplash.com/photo-1592656094267-764a45160876?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
-      "https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb"
-    ],
+    logo: getImagePath(IMAGE_PATHS.LOGOS.SPIKE_VOLLEYBALL, IMAGE_PATHS.FALLBACKS.SPIKE_VOLLEYBALL_HERO),
+    screenshots: IMAGE_PATHS.FALLBACKS.VOLLEYBALL_SCREENSHOTS,
     features: [
       {
         title: "Team Management",
@@ -102,12 +99,10 @@ export const projectsData: ProjectData[] = [
     description: "A classic chess game implementation with AI opponent.",
     detailedDescription: "A sophisticated chess application featuring an intelligent AI opponent, beautiful 3D graphics, and comprehensive game analysis tools.",
     tags: ["Java", "Android", "Game Dev"],
-    imageUrl: "https://images.unsplash.com/photo-1586165368502-1bad197a6461?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
+    imageUrl: getImagePath(IMAGE_PATHS.HEROES.CHESS_APP, IMAGE_PATHS.FALLBACKS.CHESS_HERO),
     projectUrl: "https://example.com/chess",
     githubUrl: "https://github.com/username/chess",
-    screenshots: [
-      "https://images.unsplash.com/photo-1586165368502-1bad197a6461?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb"
-    ],
+    screenshots: IMAGE_PATHS.FALLBACKS.CHESS_SCREENSHOTS,
     features: [
       {
         title: "AI Opponent",
@@ -136,12 +131,10 @@ export const projectsData: ProjectData[] = [
     description: "Explore the world around you, Be a tourist everywhere you go!",
     detailedDescription: "Uncharted is a travel discovery platform that helps you explore hidden gems and local attractions wherever you are.",
     tags: ["React", "Node.js", "Web"],
-    imageUrl: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
+    imageUrl: getImagePath(IMAGE_PATHS.HEROES.UNCHARTED, IMAGE_PATHS.FALLBACKS.UNCHARTED_HERO),
     projectUrl: "https://example.com/projectx",
     githubUrl: "https://github.com/username/projectx",
-    screenshots: [
-      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb"
-    ],
+    screenshots: IMAGE_PATHS.FALLBACKS.TRAVEL_SCREENSHOTS,
     features: [
       {
         title: "Location Discovery",
