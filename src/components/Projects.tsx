@@ -1,25 +1,19 @@
 import React from "react";
 import { ExternalLink, Github, Star } from "lucide-react";
+import { Link } from "react-router-dom";
+import { projectsData, ProjectData } from "../data/projects";
 
-type ProjectCardProps = {
-  title: string;
-  description: string;
-  tags: string[];
-  imageUrl: string;
-  projectUrl?: string;
-  githubUrl?: string;
-  featured?: boolean;
-};
-
-const ProjectCard: React.FC<ProjectCardProps> = ({
-  title,
-  description,
-  tags,
-  imageUrl,
-  projectUrl,
-  githubUrl,
-  featured = false,
-}) => {
+const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
+  const {
+    id,
+    title,
+    description,
+    tags,
+    imageUrl,
+    projectUrl,
+    githubUrl,
+    featured = false,
+  } = project;
   return (
     <div
       className={`group rounded-2xl overflow-hidden hover-card ${
@@ -55,16 +49,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             ))}
           </div>
           <div className="flex gap-3 mt-auto">
-            {projectUrl && (
-              <a
-                href={projectUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-sm font-medium text-primary hover:text-accent transition-colors"
-              >
-                Visit <ExternalLink className="ml-1 w-4 h-4" />
-              </a>
-            )}
+            <Link
+              to={`/project/${id}`}
+              className="inline-flex items-center text-sm font-medium text-primary hover:text-accent transition-colors"
+            >
+              View Details <ExternalLink className="ml-1 w-4 h-4" />
+            </Link>
             {githubUrl && (
               <a
                 href={githubUrl}
@@ -83,33 +73,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 };
 
 const Projects: React.FC = () => {
-  const projects: ProjectCardProps[] = [
-    {
-      title: "Spike! Volleyball App",
-      description: "Interactive app for volleyball teams, communication, and training.",
-      tags: ["Java", "Swift", "Firebase",],
-      imageUrl: "https://images.unsplash.com/photo-1592656094267-764a45160876?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
-      projectUrl: "https://example.com/spike",
-      githubUrl: "https://github.com/username/spike",
-      featured: true,
-    },
-    {
-      title: "Chess App",
-      description: "A classic chess game implementation with AI opponent.",
-      tags: ["Java", "Android", "Game Dev"],
-      imageUrl: "https://images.unsplash.com/photo-1586165368502-1bad197a6461?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
-      projectUrl: "https://example.com/chess",
-      githubUrl: "https://github.com/username/chess",
-    },
-    {
-      title: "Uncharted",
-      description: "Explore the world around you, Be a tourist everywhere you go!",
-      tags: ["React", "Node.js", "Web"],
-      imageUrl: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
-      projectUrl: "https://example.com/projectx",
-      githubUrl: "https://github.com/username/projectx",
-    },
-  ];
 
   return (
     <section id="projects" className="py-20 md:py-32">
@@ -125,8 +88,8 @@ const Projects: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {projects.map((project, index) => (
-            <ProjectCard key={index} {...project} />
+          {projectsData.map((project) => (
+            <ProjectCard key={project.id} project={project} />
           ))}
         </div>
       </div>
