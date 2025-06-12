@@ -28,14 +28,14 @@ export interface ProjectData {
 
 export const projectsData: ProjectData[] = [
   {
-    id: "spike-volleyball",
-    title: "Spike! Volleyball App",
+    id: "Spike",
+    title: "Spike!",
     description: "Interactive app for volleyball teams, communication, and training.",
-    detailedDescription: "Spike! is a comprehensive volleyball team management application designed to streamline communication, training, and team coordination. Built with modern mobile development practices, it provides coaches and players with powerful tools to enhance their volleyball experience.",
+    detailedDescription: "Spike! is a comprehensive volleyball team management application designed to streamline communication, training, and team coordination. Built with modern mobile development practices, it provides coaches and players with powerful tools to enhance their volleyball experience. Using the powers of modern machine learning, we give players and coaches the tools of professional teams",
     tags: ["Java", "Swift", "Firebase"],
     imageUrl: getImagePath(IMAGE_PATHS.HEROES.SPIKE_VOLLEYBALL, IMAGE_PATHS.FALLBACKS.SPIKE_VOLLEYBALL_HERO),
     projectUrl: "https://example.com/spike",
-    githubUrl: "https://github.com/username/spike",
+    githubUrl: "https://github.com/LidlDev/SpikeIOS",
     featured: true,
     logo: getImagePath(IMAGE_PATHS.LOGOS.SPIKE_VOLLEYBALL, IMAGE_PATHS.FALLBACKS.SPIKE_VOLLEYBALL_HERO),
     screenshots: IMAGE_PATHS.FALLBACKS.VOLLEYBALL_SCREENSHOTS,
@@ -89,12 +89,12 @@ export const projectsData: ProjectData[] = [
         technologies: ["Android Studio", "Xcode", "Git", "Firebase Console"]
       }
     ],
-    demoDescription: "Experience the power of modern team management with Spike! This demo showcases the app's intuitive interface, real-time features, and comprehensive volleyball-specific tools designed to elevate your team's performance.",
-    status: "completed",
-    year: "2023"
+    demoDescription: "Experience the power of modern team management with Spike! This demo showcases the app's intuitive interface, real-time features, and comprehensive volleyball-specific machine learning tools designed to elevate your team's performance.",
+    status: "In progress",
+    year: "2024-2025"
   },
   {
-    id: "chess-app",
+    id: "Chess",
     title: "Chess App",
     description: "A classic chess game implementation with AI opponent.",
     detailedDescription: "A sophisticated chess application featuring an intelligent AI opponent, beautiful 3D graphics, and comprehensive game analysis tools.",
@@ -126,14 +126,14 @@ export const projectsData: ProjectData[] = [
     year: "2023"
   },
   {
-    id: "uncharted",
+    id: "Uncharted",
     title: "Uncharted",
     description: "Explore the world around you, Be a tourist everywhere you go!",
     detailedDescription: "Uncharted is a travel discovery platform that helps you explore hidden gems and local attractions wherever you are.",
     tags: ["React", "Node.js", "Web"],
     imageUrl: getImagePath(IMAGE_PATHS.HEROES.UNCHARTED, IMAGE_PATHS.FALLBACKS.UNCHARTED_HERO),
     projectUrl: "https://example.com/projectx",
-    githubUrl: "https://github.com/username/projectx",
+    githubUrl: "https://github.com/LidlDev/Uncharted",
     screenshots: IMAGE_PATHS.FALLBACKS.TRAVEL_SCREENSHOTS,
     features: [
       {
@@ -145,20 +145,25 @@ export const projectsData: ProjectData[] = [
         title: "Travel Planning",
         description: "Plan your trips with personalized recommendations.",
         icon: "route"
+      },
+      {
+        title: "Achivements",
+        description: "Make exploring the world more fun with smart achievements to track your progress.",
+        icon: "trophy"
       }
     ],
     techStack: [
       {
         category: "Frontend",
-        technologies: ["React", "TypeScript"]
+        technologies: ["React", "TypeScript", "Expo go"]
       },
       {
         category: "Backend",
-        technologies: ["Node.js", "Express"]
+        technologies: ["Node.js", "Express", "PostgressSQL"]
       }
     ],
     demoDescription: "Discover amazing places and plan unforgettable adventures.",
     status: "in-progress",
-    year: "2024"
+    year: "2025"
   }
 ];
