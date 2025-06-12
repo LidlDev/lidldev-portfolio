@@ -13,7 +13,6 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
     projectUrl,
     githubUrl,
     featured = false,
-    logo,
   } = project;
   return (
     <div
@@ -37,22 +36,8 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
           )}
         </div>
         <div className="p-6 flex flex-col flex-grow">
-          {/* Project Logo */}
-          {logo && (
-            <div className="mb-4 flex justify-center">
-              <img
-                src={logo}
-                alt={`${title} Logo`}
-                className="w-16 h-16 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300"
-                onError={(e) => {
-                  // Hide logo if it fails to load
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
-          )}
-          <h3 className="text-xl font-display font-bold text-center">{title}</h3>
-          <p className="text-muted-foreground mt-2 mb-4 flex-grow text-center">{description}</p>
+          <h3 className="text-xl font-display font-bold">{title}</h3>
+          <p className="text-muted-foreground mt-2 mb-4 flex-grow">{description}</p>
           <div className="flex flex-wrap gap-2 mb-4">
             {tags.map((tag) => (
               <span

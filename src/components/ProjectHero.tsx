@@ -17,7 +17,7 @@ const ProjectHero: React.FC<ProjectHeroProps> = ({ project }) => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Project Logo - Special handling for Spike! */}
-          {project.id === 'spike-volleyball' && project.logo && (
+          {project.id === 'Spike' && project.logo && (
             <div className="mb-8 flex justify-center">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full blur-xl opacity-30 scale-110"></div>
