@@ -13,7 +13,7 @@ export const IMAGE_PATHS = {
   HEROES: {
     SPIKE_VOLLEYBALL: '/images/projects/spike-volleyball/hero.jpg',
     CHESS_APP: '/images/projects/chess-app/hero.jpg',
-    UNCHARTED: '/images/projects/uncharted/hero.jpg',
+    UNCHARTED: '/images/projects/uncharted/hero.png',
   },
   
   // Project screenshots
