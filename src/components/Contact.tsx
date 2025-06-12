@@ -107,21 +107,6 @@ const Contact: React.FC = () => {
 
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-primary/10 text-primary rounded-full">
-                  <Phone className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-medium">Phone</h4>
-                  <a
-                    href="tel:+1234567890"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    +1 (234) 567-890
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 text-primary rounded-full">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
@@ -175,7 +160,7 @@ const Contact: React.FC = () => {
                 </a>
 
                 <a
-                  href="https://linkedin.com/in/LidlDev"
+                  href="https://www.linkedin.com/in/harry-liddle-450a1b233/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-3 bg-secondary/80 hover:bg-primary hover:text-white rounded-full transition-colors"

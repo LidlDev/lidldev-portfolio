@@ -102,8 +102,8 @@ const Projects: React.FC = () => {
       githubUrl: "https://github.com/username/chess",
     },
     {
-      title: "Project X",
-      description: "Another awesome project showcasing different skills.",
+      title: "Uncharted",
+      description: "Explore the world around you, Be a tourist everywhere you go!",
       tags: ["React", "Node.js", "Web"],
       imageUrl: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb",
       projectUrl: "https://example.com/projectx",

@@ -15,7 +15,7 @@ const Skills: React.FC = () => {
       icon: <Code className="w-6 h-6" />,
       skills: [
         "React", "Next.js", "TypeScript", "JavaScript", 
-        "HTML5", "CSS3", "Tailwind CSS", "SASS/SCSS"
+        "HTML5", "CSS3", "Tailwind CSS", "SASS/SCSS", "SwiftUI"
       ]
     },
     {

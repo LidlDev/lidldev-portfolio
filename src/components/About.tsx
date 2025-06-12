@@ -16,15 +16,15 @@ const About: React.FC = () => {
             </div>
             
             <p className="text-lg text-muted-foreground">
-              I'm a passionate developer focused on creating modern, user-friendly web experiences. 
+              I'm a passionate developer focused on creating modern, user-friendly web and mobile experiences. 
               With a strong foundation in front-end development and an eye for design, I craft 
               interfaces that are both beautiful and functional.
             </p>
             
             <p className="text-lg text-muted-foreground">
-              My journey in tech began with a curiosity about how websites work, which evolved into 
+              My journey in tech began with a curiosity about how websites and apps work, which evolved into 
               a career building cutting-edge applications. I love solving complex problems and turning 
-              ideas into reality through code.
+              ideas into reality through programming.
             </p>
             
             <div className="grid grid-cols-2 gap-6 pt-6">
