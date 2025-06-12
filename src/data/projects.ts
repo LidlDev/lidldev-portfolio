@@ -11,7 +11,7 @@ export interface ProjectData {
   githubUrl?: string;
   featured?: boolean;
   logo?: string;
-  screenshots: string[];
+  screenshots?: string[];
   features: {
     title: string;
     description: string;
@@ -38,7 +38,7 @@ export const projectsData: ProjectData[] = [
     githubUrl: "https://github.com/LidlDev/SpikeIOS",
     featured: true,
     logo: getImagePath(IMAGE_PATHS.LOGOS.SPIKE_VOLLEYBALL, IMAGE_PATHS.FALLBACKS.SPIKE_VOLLEYBALL_HERO),
-    screenshots: IMAGE_PATHS.FALLBACKS.VOLLEYBALL_SCREENSHOTS,
+    screenshots: IMAGE_PATHS.SCREENSHOTS.SPIKE_VOLLEYBALL,
     features: [
       {
         title: "Team Management",
