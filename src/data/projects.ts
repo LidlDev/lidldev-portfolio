@@ -90,7 +90,7 @@ export const projectsData: ProjectData[] = [
       }
     ],
     demoDescription: "Experience the power of modern team management with Spike! This demo showcases the app's intuitive interface, real-time features, and comprehensive volleyball-specific machine learning tools designed to elevate your team's performance.",
-    status: "In progress",
+    status: "in-progress",
     year: "2024-2025"
   },
   {
