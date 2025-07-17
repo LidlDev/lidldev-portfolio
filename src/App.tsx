@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Agent from "./pages/Agent";
 import ProjectDetail from "./pages/ProjectDetail";
+import SpikePrivacyPolicy from "./pages/SpikePrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/agent" element={<Agent />} />
             <Route path="/project/:projectId" element={<ProjectDetail />} />
+            <Route path="/spike/privacy-policy" element={<SpikePrivacyPolicy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

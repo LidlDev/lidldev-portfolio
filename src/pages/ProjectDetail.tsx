@@ -95,6 +95,14 @@ const ProjectDetail: React.FC = () => {
                 View Code
               </a>
             )}
+            {project.id === 'Spike' && (
+              <Link
+                to="/spike/privacy-policy"
+                className="inline-flex items-center px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            )}
           </div>
         </div>
 
