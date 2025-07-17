@@ -44,11 +44,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     console.log('[AuthContext] Initializing auth context');
+
+    let isMounted = true;
+
     // Wrap in try-catch to prevent app from crashing if Supabase is not available
-    try {
-      // Get initial session
-      console.log('[AuthContext] Getting initial session');
-      supabase.auth.getSession().then(({ data, error }) => {
+    const initializeAuth = async () => {
+      try {
+        // Get initial session
+        console.log('[AuthContext] Getting initial session');
+        const { data, error } = await supabase.auth.getSession();
+
+        if (!isMounted) return;
+
         if (error) {
           console.error('[AuthContext] Error getting session:', error);
           setLoading(false);
@@ -70,53 +77,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         setLoading(false);
         setInitialized(true);
-      }).catch(error => {
+      } catch (error) {
         console.error('[AuthContext] Error getting session:', error);
-        setLoading(false);
-        setInitialized(true);
-      });
-
-      // Listen for auth changes
-      console.log('[AuthContext] Setting up auth state change listener');
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        console.log('[AuthContext] Auth state changed:', event, !!session);
-        if (session?.user) {
-          console.log('[AuthContext] User data:', {
-            id: session.user.id,
-            email: session.user.email,
-            role: session.user.role
-          });
+        if (isMounted) {
+          setLoading(false);
+          setInitialized(true);
         }
+      }
+    };
 
-        // Update state
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    initializeAuth();
 
-        // Only show toast notifications for sign-out events
-        // (sign-in success will be handled by the modal)
-        if (event === 'SIGNED_OUT') {
-          console.log('[AuthContext] User signed out');
-          toast.success('Successfully signed out');
-        } else if (event === 'SIGNED_IN') {
-          console.log('[AuthContext] User signed in');
-          toast.success('Successfully signed in');
-        }
-      });
+    // Listen for auth changes
+    console.log('[AuthContext] Setting up auth state change listener');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
 
-      return () => {
-        console.log('[AuthContext] Cleaning up auth state change listener');
-        try {
-          subscription.unsubscribe();
-        } catch (error) {
-          console.error('[AuthContext] Error unsubscribing from auth changes:', error);
-        }
-      };
-    } catch (error) {
-      console.error('[AuthContext] Error initializing auth context:', error);
+      console.log('[AuthContext] Auth state changed:', event, !!session);
+      if (session?.user) {
+        console.log('[AuthContext] User data:', {
+          id: session.user.id,
+          email: session.user.email,
+          role: session.user.role
+        });
+      }
+
+      // Update state
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
-      setInitialized(true);
-    }
+
+      // Only show toast notifications for sign-out events
+      // (sign-in success will be handled by the modal)
+      if (event === 'SIGNED_OUT') {
+        console.log('[AuthContext] User signed out');
+        toast.success('Successfully signed out');
+      } else if (event === 'SIGNED_IN') {
+        console.log('[AuthContext] User signed in');
+        toast.success('Successfully signed in');
+      }
+    });
+
+    return () => {
+      console.log('[AuthContext] Cleaning up auth state change listener');
+      isMounted = false;
+      try {
+        subscription.unsubscribe();
+      } catch (error) {
+        console.error('[AuthContext] Error unsubscribing from auth changes:', error);
+      }
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -256,10 +266,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetPassword,
   };
 
-  // Only render children once the auth context is initialized
-  if (!initialized && loading) {
-    return <div>Loading authentication...</div>;
-  }
+  // Don't block the entire app while loading auth - just set loading state
+  // The individual components that need auth can handle the loading state
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
