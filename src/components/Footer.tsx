@@ -29,6 +29,12 @@ const Footer: React.FC = () => {
               Back to top
             </a>
             <Link
+              to="/support"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              Support
+            </Link>
+            <Link
               to="/privacy"
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >

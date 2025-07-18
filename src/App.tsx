@@ -11,6 +11,8 @@ import Index from "./pages/Index";
 import Agent from "./pages/Agent";
 import ProjectDetail from "./pages/ProjectDetail";
 import SpikePrivacyPolicy from "./pages/SpikePrivacyPolicy";
+import SpikeTermsOfService from "./pages/SpikeTermsOfService";
+import Support from "./pages/Support";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
@@ -36,6 +38,8 @@ const App = () => (
               } />
               <Route path="/project/:projectId" element={<ProjectDetail />} />
               <Route path="/spike/privacy-policy" element={<SpikePrivacyPolicy />} />
+              <Route path="/spike/terms-of-service" element={<SpikeTermsOfService />} />
+              <Route path="/support" element={<Support />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
