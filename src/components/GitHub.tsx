@@ -176,7 +176,7 @@ const GitHub: React.FC = () => {
             </h3>
             <div className="bg-background/50 rounded-lg p-4 overflow-hidden border border-border/50">
               <img
-                src={`https://ghchart.rshah.org/262%2083%25%2058/${username}`}
+                src={`https://ghchart.rshah.org/00FFE6/${username}`}
                 alt="GitHub Contribution Graph"
                 className="w-full h-auto rounded"
                 style={{ filter: 'brightness(1.1) contrast(1.1)' }}

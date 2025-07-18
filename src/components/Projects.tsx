@@ -75,7 +75,7 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
 const Projects: React.FC = () => {
 
   return (
-    <section id="projects" className="py-20 md:py-32">
+    <section id="projects" className="py-20 md:py-32 bg-gradient-to-b from-background to-secondary/20">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">
