@@ -35,17 +35,40 @@ export default defineConfig(({ mode }) => {
       // Code splitting configuration
       rollupOptions: {
         output: {
-          manualChunks: {
+          manualChunks: (id) => {
             // Vendor chunks
-            'react-vendor': ['react', 'react-dom'],
-            'router-vendor': ['react-router-dom'],
-            'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast'],
-            'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
-            'query-vendor': ['@tanstack/react-query'],
-            'supabase-vendor': ['@supabase/supabase-js'],
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom')) {
+                return 'react-vendor';
+              }
+              if (id.includes('react-router-dom')) {
+                return 'router-vendor';
+              }
+              if (id.includes('@radix-ui')) {
+                return 'ui-vendor';
+              }
+              if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+                return 'form-vendor';
+              }
+              if (id.includes('@tanstack/react-query')) {
+                return 'query-vendor';
+              }
+              if (id.includes('@supabase/supabase-js')) {
+                return 'supabase-vendor';
+              }
+              if (id.includes('framer-motion')) {
+                return 'animation-vendor';
+              }
+              return 'vendor';
+            }
+
             // Feature chunks
-            'agent': ['src/pages/Agent.tsx', 'src/components/agent/**'],
-            'github': ['src/components/GitHubStats.tsx', 'src/components/GitHubContributions.tsx'],
+            if (id.includes('GitHubStats') || id.includes('GitHubContributions')) {
+              return 'github';
+            }
+            if (id.includes('pages/Agent')) {
+              return 'agent';
+            }
           },
         },
       },
