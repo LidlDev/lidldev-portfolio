@@ -160,7 +160,7 @@ const Hero: React.FC = () => {
             >
               {heroContent.secondaryButton.text}
             </AnimatedButton>
-          </div>
+          </motion.div>
           <motion.div
             className="mt-12 text-center sm:text-left"
             variants={staggerItem}
