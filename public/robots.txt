@@ -12,18 +12,3 @@ Allow: /
 
 User-agent: *
 Allow: /
-
-# Sitemap
-Sitemap: https://www.lidldev.com/sitemap.xml
-
-# Disallow crawling of admin or private areas
-Disallow: /admin/
-Disallow: /private/
-Disallow: /.env
-Disallow: /api/keys/
-
-# Allow crawling of main content
-Allow: /
-Allow: /project/
-Allow: /agent
-Allow: /spike/privacy-policy

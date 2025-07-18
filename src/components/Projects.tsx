@@ -1,11 +1,7 @@
 import React from "react";
 import { ExternalLink, Github, Star } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { projectsData, ProjectData } from "../data/projects";
-import LazySection from "./LazySection";
-import AnimatedCard from "./AnimatedCard";
-import { staggerContainer, staggerItem } from "../utils/animations";
 
 const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
   const {
@@ -19,19 +15,14 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
     featured = false,
   } = project;
   return (
-    <motion.div
-      className={`group rounded-2xl overflow-hidden ${
-        featured
-          ? "md:col-span-2 row-span-2"
+    <div
+      className={`group rounded-2xl overflow-hidden hover-card ${
+        featured 
+          ? "md:col-span-2 row-span-2" 
           : ""
       }`}
-      variants={staggerItem}
     >
-      <AnimatedCard
-        variant="glass"
-        hover="lift"
-        className="h-full flex flex-col"
-      >
+      <div className="glass-card h-full flex flex-col">
         <div className="relative overflow-hidden h-48">
           <img
             src={imageUrl}
@@ -76,41 +67,33 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
             )}
           </div>
         </div>
-      </AnimatedCard>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 
 const Projects: React.FC = () => {
 
   return (
-    <LazySection>
-      <section id="projects" className="py-20 md:py-32">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">
-              My <span className="magic-text">Projects</span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Explore my recent work and personal projects. Each one represents a
-              unique challenge and learning opportunity.
-            </p>
-          </div>
-
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, amount: 0.3 }}
-          >
-            {projectsData.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </motion.div>
+    <section id="projects" className="py-20 md:py-32">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">
+            My <span className="magic-text">Projects</span>
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Explore my recent work and personal projects. Each one represents a
+            unique challenge and learning opportunity.
+          </p>
         </div>
-      </section>
-    </LazySection>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {projectsData.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 
