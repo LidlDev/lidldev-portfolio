@@ -99,12 +99,15 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       });
 
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Email scanning API endpoint not found. Please check your server configuration.');
+        }
         try {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to scan emails');
+          throw new Error(errorData.error || `Failed to scan emails (${response.status})`);
         } catch (jsonError) {
           // If the response is not valid JSON, use a generic error message
-          throw new Error('Failed to scan emails. The server returned an invalid response.');
+          throw new Error(`Failed to scan emails. Server returned ${response.status}: ${response.statusText}`);
         }
       }
 

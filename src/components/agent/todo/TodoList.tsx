@@ -177,12 +177,12 @@ const TodoList: React.FC = () => {
   return (
     <div className="h-full overflow-y-auto pb-4">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-primary mb-4">Tasks</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">Tasks</h2>
         <AddTodo onAddTask={handleAddTask} />
 
         <div className="space-y-1">
           {activeTasks.length === 0 ? (
-            <p className="text-center text-primary/50 py-4">No tasks yet. Add a task to get started!</p>
+            <p className="text-center text-muted-foreground py-4">No tasks yet. Add a task to get started!</p>
           ) : (
             activeTasks.map(task => (
               <TodoItem

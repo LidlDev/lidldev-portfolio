@@ -7,15 +7,20 @@ import Header from '@/components/agent/Header';
 import Sidebar from '@/components/agent/Sidebar';
 import MobileNav from '@/components/agent/MobileNav';
 import TodoList from '@/components/agent/todo/TodoList';
-import FinancialGoals from '@/components/agent/finance/FinancialGoals';
+import EnhancedTodoList from '@/components/agent/todo/EnhancedTodoList';
 import SpendingTracker from '@/components/agent/finance/SpendingTracker';
-import UpcomingPayments from '@/components/agent/finance/UpcomingPayments';
+import Dashboard from '@/components/agent/dashboard/Dashboard';
+import Calendar from '@/components/agent/calendar/Calendar';
+import Projects from '@/components/agent/projects/Projects';
+import Habits from '@/components/agent/habits/Habits';
+import Notes from '@/components/agent/notes/Notes';
+import BudgetTracker from '@/components/agent/finance/BudgetTracker';
 
 // Import auth redirect utility
 import { useAuthRedirect } from '@/utils/authRedirect';
 
 const Agent = () => {
-  const [activePage, setActivePage] = useState('tasks');
+  const [activePage, setActivePage] = useState('dashboard');
 
   // Use the auth redirect hook to handle OAuth redirects
   useAuthRedirect();
@@ -32,21 +37,31 @@ const Agent = () => {
 
   const renderActivePage = () => {
     switch (activePage) {
+      case 'dashboard':
+        return <Dashboard onNavigate={setActivePage} />;
       case 'tasks':
-        return <TodoList />;
-      case 'goals':
-        return <FinancialGoals />;
+        return <EnhancedTodoList />;
+      case 'calendar':
+        return <Calendar />;
+      case 'projects':
+        return <Projects />;
+      case 'habits':
+        return <Habits />;
+      case 'notes':
+        return <Notes />;
+      case 'budget':
+        return <BudgetTracker />;
       case 'spending':
         return <SpendingTracker />;
       case 'payments':
-        return <UpcomingPayments />;
+        return <SpendingTracker initialTab="payments" />;
       default:
-        return <TodoList />;
+        return <Dashboard />;
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="min-h-screen w-full flex flex-col bg-background">
       <SEO
         title="Agent Dashboard - LidlDev"
         description="Personal productivity dashboard with task management, financial tracking, and goal setting tools. Secure and private workspace for managing your digital life."
@@ -65,7 +80,7 @@ const Agent = () => {
 
         {/* Main content area */}
         <main className="flex-1 p-2 md:p-6 overflow-auto pb-24 md:pb-6 w-full">
-          <div className="bg-white p-3 md:p-6 h-full rounded-xl shadow-lg">
+          <div className="bg-card text-card-foreground p-3 md:p-6 h-full rounded-xl shadow-lg border border-border">
             {renderActivePage()}
           </div>
         </main>

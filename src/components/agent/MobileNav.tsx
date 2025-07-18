@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarCheck, ListTodo, PieChart, Wallet } from 'lucide-react';
+import { CalendarCheck, ListTodo, PieChart, Wallet, BarChart3, Calendar, FolderKanban } from 'lucide-react';
 
 interface MobileNavProps {
   activePage: string;
@@ -8,14 +8,15 @@ interface MobileNavProps {
 
 const MobileNav: React.FC<MobileNavProps> = ({ activePage, setActivePage }) => {
   const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="w-5 h-5" /> },
     { id: 'tasks', label: 'Tasks', icon: <ListTodo className="w-5 h-5" /> },
-    { id: 'goals', label: 'Goals', icon: <PieChart className="w-5 h-5" /> },
-    { id: 'spending', label: 'Spending', icon: <Wallet className="w-5 h-5" /> },
-    { id: 'payments', label: 'Payments', icon: <CalendarCheck className="w-5 h-5" /> }
+    { id: 'calendar', label: 'Calendar', icon: <Calendar className="w-5 h-5" /> },
+    { id: 'projects', label: 'Projects', icon: <FolderKanban className="w-5 h-5" /> },
+    { id: 'budget', label: 'Budget', icon: <PieChart className="w-5 h-5" /> }
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-primary shadow-lg z-10">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card text-card-foreground shadow-lg z-10 border-t border-border">
       <div className="flex justify-around items-center py-3 px-2">
         {menuItems.map((item) => (
           <button
@@ -23,8 +24,8 @@ const MobileNav: React.FC<MobileNavProps> = ({ activePage, setActivePage }) => {
             onClick={() => setActivePage(item.id)}
             className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all relative ${
               activePage === item.id
-                ? 'text-primary bg-white shadow-md border-t-2 border-accent tab-active-glow animate-pulse-subtle'
-                : 'text-white/90 hover:text-white hover:bg-primary/70'
+                ? 'text-primary bg-primary/10 shadow-md border-t-2 border-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }`}
           >
             <div className="relative">
@@ -32,7 +33,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ activePage, setActivePage }) => {
                 {item.icon}
               </div>
               {activePage === item.id && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full"></span>
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
               )}
             </div>
             <span className={`text-xs mt-1 font-medium ${activePage === item.id ? 'font-bold' : ''}`}>
@@ -41,7 +42,6 @@ const MobileNav: React.FC<MobileNavProps> = ({ activePage, setActivePage }) => {
           </button>
         ))}
       </div>
-      <div className="h-1 bg-primary/80"></div>
     </div>
   );
 };

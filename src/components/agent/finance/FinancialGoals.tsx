@@ -23,7 +23,7 @@ interface DatabaseGoal {
 
 const Progress = ({ value }: { value: number }) => {
   return (
-    <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
+    <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
       <div
         className="bg-primary h-full transition-all duration-500 ease-out"
         style={{ width: `${value}%` }}
@@ -485,25 +485,25 @@ const FinancialGoals: React.FC = () => {
   return (
     <div className="h-full overflow-y-auto pb-4">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-primary">Financial Goals</h2>
+        <h2 className="text-xl font-semibold text-foreground">Financial Goals</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
           {showForm ? 'Cancel' : 'New Goal'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleAddGoal} className="glass-card p-4 mb-6 animate-scale-in">
+        <form onSubmit={handleAddGoal} className="bg-card border border-border p-4 mb-6 rounded-lg animate-scale-in">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Goal Name</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Goal Name</label>
               <input
                 type="text"
                 value={newGoal.title}
                 onChange={(e) => setNewGoal({...newGoal, title: e.target.value})}
-                className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                className="px-3 py-2 bg-input text-foreground rounded-lg w-full border border-border focus:ring-1 focus:ring-ring focus:outline-none"
                 placeholder="e.g., New Car"
                 required
               />
@@ -511,12 +511,12 @@ const FinancialGoals: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Target Amount</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Target Amount</label>
                 <input
                   type="number"
                   value={newGoal.target || ''}
                   onChange={(e) => setNewGoal({...newGoal, target: Number(e.target.value)})}
-                  className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="px-3 py-2 bg-input text-foreground rounded-lg w-full border border-border focus:ring-1 focus:ring-ring focus:outline-none"
                   placeholder="0"
                   min="1"
                   required
@@ -524,12 +524,12 @@ const FinancialGoals: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Current Savings</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Current Savings</label>
                 <input
                   type="number"
                   value={newGoal.current || ''}
                   onChange={(e) => setNewGoal({...newGoal, current: Number(e.target.value)})}
-                  className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+                  className="px-3 py-2 bg-input text-foreground rounded-lg w-full border border-border focus:ring-1 focus:ring-ring focus:outline-none"
                   placeholder="0"
                   min="0"
                 />

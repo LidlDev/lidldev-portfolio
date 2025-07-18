@@ -56,18 +56,7 @@ const ProjectHero: React.FC<ProjectHeroProps> = ({ project }) => {
             </span>
           </div>
           
-          {/* Hero Image */}
-          <div className="relative max-w-4xl mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-3xl blur-3xl"></div>
-            <div className="relative glass-card rounded-3xl overflow-hidden hover-card">
-              <img 
-                src={project.imageUrl} 
-                alt={project.title}
-                className="w-full h-64 md:h-96 object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
-            </div>
-          </div>
+
         </div>
       </div>
       

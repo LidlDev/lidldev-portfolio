@@ -44,40 +44,40 @@ const TodoItem: React.FC<TodoItemProps> = ({ task, onComplete, onDelete, onEdit 
 
   if (isEditing) {
     return (
-      <div className="p-3 rounded-lg mb-2 bg-white/60 animate-scale-in">
+      <div className="p-3 rounded-lg mb-2 bg-card/60 border border-border animate-scale-in">
         <div className="space-y-2">
           <div>
-            <label className="block text-xs font-medium mb-1">Task</label>
+            <label className="block text-xs font-medium mb-1 text-foreground">Task</label>
             <input
               type="text"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+              className="px-3 py-2 bg-input text-foreground rounded-lg w-full border border-border focus:ring-1 focus:ring-ring focus:outline-none"
               autoFocus
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium mb-1">Due Date (Optional)</label>
+            <label className="block text-xs font-medium mb-1 text-foreground">Due Date (Optional)</label>
             <input
               type="date"
               value={editDueDate}
               onChange={(e) => setEditDueDate(e.target.value)}
-              className="px-3 py-2 bg-white/30 rounded-lg w-full border-none focus:ring-1 focus:ring-primary focus:outline-none"
+              className="px-3 py-2 bg-input text-foreground rounded-lg w-full border border-border focus:ring-1 focus:ring-ring focus:outline-none"
             />
           </div>
 
           <div className="flex justify-end space-x-2 pt-1">
             <button
               onClick={handleCancelEdit}
-              className="px-2 py-1 text-xs bg-white/50 rounded-lg hover:bg-white/70 transition-colors"
+              className="px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSaveEdit}
-              className="px-2 py-1 text-xs bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >
               Save
             </button>
@@ -89,22 +89,22 @@ const TodoItem: React.FC<TodoItemProps> = ({ task, onComplete, onDelete, onEdit 
 
   return (
     <div
-      className={`flex items-center justify-between p-3 rounded-lg mb-2 transition-all duration-300
-        ${task.completed ? 'bg-primary/10 text-primary/60' : 'bg-white/40 hover:bg-white/50'}`}
+      className={`flex items-center justify-between p-3 rounded-lg mb-2 transition-all duration-300 border
+        ${task.completed ? 'bg-primary/10 text-muted-foreground border-primary/20' : 'bg-card hover:bg-accent/50 border-border'}`}
     >
       <div className="flex items-center">
         <button
           onClick={() => onComplete(task.id)}
           className={`w-6 h-6 rounded-full mr-3 flex items-center justify-center transition-colors
-            ${task.completed ? 'bg-primary text-white' : 'border-2 border-primary'}`}
+            ${task.completed ? 'bg-primary text-primary-foreground' : 'border-2 border-primary hover:bg-primary/10'}`}
         >
           {task.completed && <Check className="w-4 h-4" />}
         </button>
 
         <div className="flex flex-col">
-          <span className={`text-sm transition-all ${task.completed ? 'line-through opacity-70' : ''}`}>{task.title}</span>
+          <span className={`text-sm transition-all ${task.completed ? 'line-through opacity-70' : 'text-foreground'}`}>{task.title}</span>
           {task.dueDate && (
-            <span className="text-xs text-primary/70">{formatDate(task.dueDate)}</span>
+            <span className="text-xs text-muted-foreground">{formatDate(task.dueDate)}</span>
           )}
         </div>
       </div>
@@ -113,7 +113,7 @@ const TodoItem: React.FC<TodoItemProps> = ({ task, onComplete, onDelete, onEdit 
         {onEdit && !task.completed && (
           <button
             onClick={() => setIsEditing(true)}
-            className="p-1 text-primary/70 hover:text-primary transition-colors"
+            className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             title="Edit task"
           >
             <Pencil className="w-4 h-4" />
@@ -121,7 +121,7 @@ const TodoItem: React.FC<TodoItemProps> = ({ task, onComplete, onDelete, onEdit 
         )}
         <button
           onClick={() => onDelete(task.id)}
-          className="p-1 text-primary/70 hover:text-primary transition-colors"
+          className="p-1 text-muted-foreground hover:text-destructive transition-colors"
           title="Delete task"
         >
           <Trash className="w-4 h-4" />

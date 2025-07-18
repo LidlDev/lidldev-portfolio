@@ -1,30 +1,30 @@
 /* Agent page specific styles */
 
 .glass-card {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: hsl(var(--card) / 0.8);
   backdrop-filter: blur(12px);
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid hsl(var(--border) / 0.4);
+  box-shadow: 0 8px 32px hsl(var(--foreground) / 0.1);
   overflow: hidden;
 }
 
 .glass {
-  background-color: rgba(255, 255, 255, 0.6);
+  background-color: hsl(var(--card) / 0.6);
   backdrop-filter: blur(8px);
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid hsl(var(--border) / 0.3);
+  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.05);
 }
 
 .frosted-glass {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: hsl(var(--card) / 0.25);
   backdrop-filter: blur(16px);
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid hsl(var(--border) / 0.2);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+    0 8px 32px hsl(var(--foreground) / 0.1),
+    inset 0 0 0 1px hsl(var(--border) / 0.15);
   overflow: hidden;
 }
 
@@ -35,17 +35,17 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  background: hsl(var(--muted) / 0.3);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(23, 78, 79, 0.5); /* Using teal color from the site */
+  background: hsl(var(--primary) / 0.5);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(23, 78, 79, 0.7);
+  background: hsl(var(--primary) / 0.7);
 }
 
 /* Animations */
@@ -88,7 +88,7 @@
   top: 0;
   height: 100%;
   width: 4px;
-  background-color: #F3E5C3; /* accent color */
+  background-color: hsl(var(--primary));
   border-radius: 0 4px 4px 0;
   transform: scaleY(0);
   transform-origin: bottom;
@@ -178,6 +178,6 @@
 
 /* Active tab glow effect */
 .tab-active-glow {
-  box-shadow: 0 0 15px rgba(243, 229, 195, 0.5);
+  box-shadow: 0 0 15px hsl(var(--primary) / 0.3);
   transition: box-shadow 0.3s ease;
 }

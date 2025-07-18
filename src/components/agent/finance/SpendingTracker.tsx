@@ -9,8 +9,10 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
-import { ChevronLeft, ChevronRight, Calendar, Pencil, Trash, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Pencil, Trash, X, CreditCard, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import EmailScanner, { DetectedBill } from '@/components/agent/email/EmailScanner';
+import { initialPayments } from '@/utils/agentData';
 
 interface DatabaseExpense {
   id: string;
@@ -22,7 +24,23 @@ interface DatabaseExpense {
   payment_id?: string | null; // Optional field to link to a payment
 }
 
-const SpendingTracker: React.FC = () => {
+interface DatabasePayment {
+  id: string;
+  title: string;
+  amount: number;
+  due_date: string;
+  recurring: boolean;
+  category: string;
+  paid: boolean;
+  user_id: string;
+  created_at: string;
+}
+
+interface SpendingTrackerProps {
+  initialTab?: 'expenses' | 'payments';
+}
+
+const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expenses' }) => {
   const { user } = useAuth();
   const [localExpenses, setLocalExpenses] = useState<Expense[]>(initialExpenses);
   const [showForm, setShowForm] = useState(false);
@@ -31,6 +49,17 @@ const SpendingTracker: React.FC = () => {
     amount: 0,
     date: new Date().toISOString().split('T')[0]
   });
+
+  const [newPayment, setNewPayment] = useState({
+    title: '',
+    amount: 0,
+    dueDate: new Date().toISOString().split('T')[0],
+    category: 'Housing',
+    recurring: false
+  });
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'expenses' | 'payments'>(initialTab);
 
   // Time period filtering
   const [timePeriod, setTimePeriod] = useState<'month' | 'week' | 'fortnight'>('month');
@@ -73,6 +102,27 @@ const SpendingTracker: React.FC = () => {
     console.error('Error using Supabase data:', error);
     // Fall back to local state
   }
+
+  // Get payments data
+  const {
+    data: paymentsData = [],
+    updateItem: updatePaymentItem,
+    deleteItem: deletePaymentItem
+  } = useSupabaseData<DatabasePayment>({
+    table: 'payments',
+    initialData: initialPayments.map(payment => ({
+      id: payment.id,
+      title: payment.title,
+      amount: payment.amount,
+      due_date: payment.dueDate.toISOString(),
+      recurring: payment.recurring,
+      category: payment.category,
+      paid: payment.paid,
+      user_id: 'anonymous',
+      created_at: new Date().toISOString()
+    })),
+    orderBy: { column: 'due_date', ascending: true }
+  });
 
   // Local handlers (used when Supabase is not available)
   const handleAddExpenseLocal = (e: React.FormEvent) => {
@@ -130,6 +180,132 @@ const SpendingTracker: React.FC = () => {
   const handleDeleteExpenseLocal = (id: string) => {
     setLocalExpenses(localExpenses.filter(expense => expense.id !== id));
     toast.success('Expense deleted');
+  };
+
+  // Payment handlers
+  const handleAddPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newPayment.title.trim() || newPayment.amount <= 0) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      if (user) {
+        // Add to Supabase
+        await addItem({
+          title: newPayment.title,
+          amount: newPayment.amount,
+          due_date: new Date(newPayment.dueDate).toISOString(),
+          category: newPayment.category,
+          recurring: newPayment.recurring,
+          paid: false
+        });
+        toast.success('Payment added successfully');
+      } else {
+        // For local storage, we'd need to implement local payment storage
+        toast.success('Payment added (local mode)');
+      }
+
+      setNewPayment({
+        title: '',
+        amount: 0,
+        dueDate: new Date().toISOString().split('T')[0],
+        category: 'Housing',
+        recurring: false
+      });
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error adding payment:', error);
+      toast.error('Failed to add payment');
+    }
+  };
+
+  // Handle detected bills from email scanning
+  const handleBillsDetected = (bills: DetectedBill[]) => {
+    // Convert detected bills to payments and add them
+    bills.forEach(async (bill) => {
+      if (bill.approved) {
+        try {
+          if (user) {
+            await addItem({
+              title: bill.title,
+              amount: bill.amount,
+              due_date: bill.dueDate.toISOString(),
+              category: bill.category,
+              recurring: false,
+              paid: false
+            });
+          }
+        } catch (error) {
+          console.error('Error adding detected bill as payment:', error);
+        }
+      }
+    });
+  };
+
+  // Handle toggling payment status (paid/unpaid)
+  const handleMarkPaymentPaid = async (paymentId: string) => {
+    try {
+      if (user) {
+        // Update payment status in Supabase
+        const payment = paymentsData.find(p => p.id === paymentId);
+        if (!payment) return;
+
+        const newPaidStatus = !payment.paid;
+
+        // Update the payment status
+        await updatePaymentItem(paymentId, { paid: newPaidStatus });
+
+        if (newPaidStatus) {
+          // Payment is being marked as paid - create an expense record
+          await addItem({
+            category: payment.category,
+            amount: payment.amount,
+            date: new Date().toISOString(),
+            payment_id: paymentId
+          });
+          toast.success('Payment marked as paid and expense recorded');
+        } else {
+          // Payment is being marked as unpaid - remove the expense record
+          // Find the expense record that matches this payment
+          const expenseToDelete = expenses.find(expense =>
+            expense.payment_id === paymentId ||
+            (expense.category === payment.category &&
+             expense.amount === payment.amount &&
+             Math.abs(new Date(expense.date).getTime() - new Date().getTime()) < 24 * 60 * 60 * 1000) // Within 24 hours
+          );
+
+          if (expenseToDelete) {
+            await deleteItem(expenseToDelete.id);
+            toast.success('Payment marked as unpaid and expense record removed');
+          } else {
+            toast.success('Payment marked as unpaid');
+          }
+        }
+      } else {
+        toast.success('Payment status updated (local mode)');
+      }
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      toast.error('Failed to update payment status');
+    }
+  };
+
+  // Handle removing payment
+  const handleRemovePayment = async (paymentId: string) => {
+    try {
+      if (user) {
+        await deletePaymentItem(paymentId);
+        toast.success('Payment removed');
+      } else {
+        toast.success('Payment removed (local mode)');
+      }
+    } catch (error) {
+      console.error('Error removing payment:', error);
+      toast.error('Failed to remove payment');
+    }
   };
 
   // Supabase handlers
@@ -351,7 +527,7 @@ const SpendingTracker: React.FC = () => {
 
     filteredExpenses.forEach(expense => {
       if (totals[expense.category]) {
-        totals[expense.category] += expense.amount;
+        totals[expense.category] = Math.round((totals[expense.category] + expense.amount) * 100) / 100;
       } else {
         totals[expense.category] = expense.amount;
       }
@@ -367,7 +543,7 @@ const SpendingTracker: React.FC = () => {
     });
   };
 
-  const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalExpenses = Math.round(filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0) * 100) / 100;
   const pieData = getTotalByCategory();
 
   if (!useLocalData && loading) {
@@ -385,16 +561,45 @@ const SpendingTracker: React.FC = () => {
   return (
     <div className="h-full overflow-y-auto pb-4">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-primary">Spending Tracker</h2>
+        <h2 className="text-xl font-semibold text-foreground">Spending & Payments</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
-          {showForm ? 'Cancel' : 'Add Expense'}
+          {showForm ? 'Cancel' : activeTab === 'expenses' ? 'Add Expense' : 'Add Payment'}
         </button>
       </div>
 
-      {showForm && (
+      {/* Tab Navigation */}
+      <div className="flex space-x-1 mb-6 bg-secondary rounded-lg p-1">
+        <button
+          onClick={() => setActiveTab('expenses')}
+          className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+            activeTab === 'expenses'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <CreditCard className="w-4 h-4" />
+          <span>Expenses</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('payments')}
+          className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+            activeTab === 'payments'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <AlertCircle className="w-4 h-4" />
+          <span>Payments</span>
+        </button>
+      </div>
+
+      {/* Expenses Tab */}
+      {activeTab === 'expenses' && (
+        <>
+          {showForm && (
         <form onSubmit={handleAddExpense} className="glass-card p-4 mb-6 animate-scale-in">
           <div className="space-y-4">
             <div>
@@ -704,6 +909,232 @@ const SpendingTracker: React.FC = () => {
           )}
         </div>
       </div>
+        </>
+      )}
+
+      {/* Payments Tab */}
+      {activeTab === 'payments' && (
+        <div className="space-y-6">
+          {/* Payment Form */}
+          {showForm && (
+            <form onSubmit={handleAddPayment} className="glass-card p-4 mb-6 animate-scale-in">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Payment Title</label>
+                  <input
+                    type="text"
+                    value={newPayment.title}
+                    onChange={(e) => setNewPayment({...newPayment, title: e.target.value})}
+                    className="w-full px-3 py-2 bg-input text-foreground rounded-lg border border-border focus:ring-1 focus:ring-ring focus:outline-none"
+                    placeholder="e.g., Rent, Utilities, etc."
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Amount</label>
+                    <input
+                      type="number"
+                      value={newPayment.amount || ''}
+                      onChange={(e) => setNewPayment({...newPayment, amount: Number(e.target.value)})}
+                      className="w-full px-3 py-2 bg-input text-foreground rounded-lg border border-border focus:ring-1 focus:ring-ring focus:outline-none"
+                      placeholder="0.00"
+                      min="0.01"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Due Date</label>
+                    <input
+                      type="date"
+                      value={newPayment.dueDate}
+                      onChange={(e) => setNewPayment({...newPayment, dueDate: e.target.value})}
+                      className="w-full px-3 py-2 bg-input text-foreground rounded-lg border border-border focus:ring-1 focus:ring-ring focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Category</label>
+                  <select
+                    value={newPayment.category}
+                    onChange={(e) => setNewPayment({...newPayment, category: e.target.value})}
+                    className="w-full px-3 py-2 bg-input text-foreground rounded-lg border border-border focus:ring-1 focus:ring-ring focus:outline-none"
+                    required
+                  >
+                    {expenseCategories.map(category => (
+                      <option key={category.name} value={category.name}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="recurring"
+                    checked={newPayment.recurring}
+                    onChange={(e) => setNewPayment({...newPayment, recurring: e.target.checked})}
+                    className="rounded border-border text-primary focus:ring-primary"
+                  />
+                  <label htmlFor="recurring" className="text-sm font-medium">
+                    Recurring monthly payment
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  Add Payment
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Email Scanner Component */}
+          <EmailScanner onBillsDetected={handleBillsDetected} />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-card border border-border rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertCircle className="w-4 h-4 text-orange-500" />
+                <span className="text-sm text-muted-foreground">Overdue</span>
+              </div>
+              <p className="text-lg font-semibold text-orange-500">
+                {paymentsData.filter(p => !p.paid && new Date(p.due_date) < new Date()).length}
+              </p>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Calendar className="w-4 h-4 text-blue-500" />
+                <span className="text-sm text-muted-foreground">Due This Week</span>
+              </div>
+              <p className="text-lg font-semibold text-blue-500">
+                {paymentsData.filter(p => {
+                  const dueDate = new Date(p.due_date);
+                  const weekFromNow = new Date();
+                  weekFromNow.setDate(weekFromNow.getDate() + 7);
+                  return !p.paid && dueDate <= weekFromNow && dueDate >= new Date();
+                }).length}
+              </p>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-muted-foreground">Paid This Month</span>
+              </div>
+              <p className="text-lg font-semibold text-green-500">
+                {paymentsData.filter(p => {
+                  const paidDate = new Date(p.created_at);
+                  const currentMonth = new Date().getMonth();
+                  return p.paid && paidDate.getMonth() === currentMonth;
+                }).length}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Upcoming Payments</h3>
+            <div className="space-y-3">
+              {paymentsData
+                .filter(payment => !payment.paid)
+                .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+                .map(payment => {
+                  const dueDate = new Date(payment.due_date);
+                  const isOverdue = dueDate < new Date();
+                  const daysUntilDue = Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+                  return (
+                    <div key={payment.id} className="flex items-center justify-between p-4 bg-background border border-border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-3 h-3 rounded-full ${isOverdue ? 'bg-red-500' : daysUntilDue <= 7 ? 'bg-orange-500' : 'bg-green-500'}`}></div>
+                        <div>
+                          <h4 className="font-medium text-foreground">{payment.title}</h4>
+                          <p className="text-sm text-muted-foreground">{payment.category}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <div className="text-right">
+                          <p className="font-semibold text-foreground">{formatCurrency(payment.amount)}</p>
+                          <p className={`text-sm ${isOverdue ? 'text-red-500' : 'text-muted-foreground'}`}>
+                            {isOverdue ? 'Overdue' : daysUntilDue === 0 ? 'Due today' : `Due in ${daysUntilDue} days`}
+                          </p>
+                        </div>
+
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleRemovePayment(payment.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            title="Remove payment"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() => handleMarkPaymentPaid(payment.id)}
+                            className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                          >
+                            Mark Paid
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Paid Payments Section */}
+          {paymentsData.filter(p => p.paid).length > 0 && (
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Recently Paid</h3>
+              <div className="space-y-3">
+                {paymentsData
+                  .filter(payment => payment.paid)
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .slice(0, 5)
+                  .map(payment => (
+                    <div key={payment.id} className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/20 rounded-lg opacity-75 hover:opacity-100 transition-opacity">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <div>
+                          <h4 className="font-medium text-foreground">{payment.title}</h4>
+                          <p className="text-sm text-muted-foreground">{payment.category}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <p className="font-semibold text-foreground">{formatCurrency(payment.amount)}</p>
+                          <p className="text-sm text-green-600 flex items-center">
+                            <CheckCircle2 className="w-4 h-4 mr-1" />
+                            Paid
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => handleMarkPaymentPaid(payment.id)}
+                          className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Mark as unpaid"
+                        >
+                          <X className="w-4 h-4 text-muted-foreground hover:text-red-500" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
