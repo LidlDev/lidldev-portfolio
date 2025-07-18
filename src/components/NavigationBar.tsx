@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu, X, Home, Briefcase, User, Mail, Code, Cpu } from "lucide-react";
+import { Menu, X, Home, Briefcase, User, Mail, Code, Cpu, Github } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { scrollToElement } from "../utils/scrollUtils";
 import { Link } from "react-router-dom";
@@ -30,6 +30,7 @@ const NavigationBar: React.FC = () => {
     { name: "About", icon: User, href: "#about" },
     { name: "Projects", icon: Briefcase, href: "#projects" },
     { name: "Skills", icon: Code, href: "#skills" },
+    { name: "GitHub", icon: Github, href: "#github" },
     { name: "Contact", icon: Mail, href: "#contact" },
   ];
 
