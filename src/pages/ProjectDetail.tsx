@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Github, Calendar, Tag } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Github, Calendar, Code } from 'lucide-react';
 import { projectsData } from '../data/projects';
 import SEO from '../components/SEO';
 import ProjectHero from '../components/ProjectHero';
@@ -98,7 +98,7 @@ const ProjectDetail: React.FC = () => {
             <span>{project.year}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Tag className="w-4 h-4" />
+            <Code className="w-4 h-4" />
             <span className="capitalize">{project.status.replace('-', ' ')}</span>
           </div>
           <div className="flex gap-4 ml-auto">
@@ -124,12 +124,26 @@ const ProjectDetail: React.FC = () => {
               </a>
             )}
             {project.id === 'Spike' && (
-              <Link
-                to="/spike/privacy-policy"
-                className="inline-flex items-center px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
-              >
-                Privacy Policy
-              </Link>
+              <>
+                <Link
+                  to="/spike/privacy-policy"
+                  className="inline-flex items-center px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+                <Link
+                  to="/spike/terms-of-service"
+                  className="inline-flex items-center px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
+                >
+                  Terms of Service
+                </Link>
+                <Link
+                  to="/support"
+                  className="inline-flex items-center px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
+                >
+                  Support
+                </Link>
+              </>
             )}
           </div>
         </div>

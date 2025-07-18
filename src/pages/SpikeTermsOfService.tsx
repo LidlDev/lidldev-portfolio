@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Scale, FileText, Users, Shield, Smartphone, Trophy, MessageCircle, BarChart3, Mail } from "lucide-react";
+import { ArrowLeft, Scale, FileText, User, Shield, Phone, Award, BarChart3, Mail } from "lucide-react";
 import NavigationBar from "../components/NavigationBar";
 import Footer from "../components/Footer";
 import SEO from "../components/SEO";
@@ -17,12 +17,12 @@ const SpikeTermsOfService: React.FC = () => {
       
       {/* Back Navigation */}
       <div className="container mx-auto px-4 pt-24 pb-8">
-        <Link 
-          to="/" 
+        <Link
+          to="/project/Spike"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
         >
           <ArrowLeft className="mr-2 w-4 h-4" />
-          Back to Home
+          Back to Spike! Project
         </Link>
       </div>
 
@@ -63,7 +63,7 @@ const SpikeTermsOfService: React.FC = () => {
             {/* App Description */}
             <section>
               <h2 className="text-2xl font-display font-bold mb-4 flex items-center">
-                <Smartphone className="w-6 h-6 mr-3 text-primary" />
+                <Phone className="w-6 h-6 mr-3 text-primary" />
                 About Spike!
               </h2>
               <p className="text-muted-foreground mb-4">
@@ -82,7 +82,7 @@ const SpikeTermsOfService: React.FC = () => {
             {/* User Accounts */}
             <section>
               <h2 className="text-2xl font-display font-bold mb-4 flex items-center">
-                <Users className="w-6 h-6 mr-3 text-primary" />
+                <User className="w-6 h-6 mr-3 text-primary" />
                 User Accounts and Registration
               </h2>
               <div className="space-y-4 text-muted-foreground">
@@ -127,7 +127,7 @@ const SpikeTermsOfService: React.FC = () => {
             {/* Team Features */}
             <section>
               <h2 className="text-2xl font-display font-bold mb-4 flex items-center">
-                <Trophy className="w-6 h-6 mr-3 text-primary" />
+                <Award className="w-6 h-6 mr-3 text-primary" />
                 Team Features and Data
               </h2>
               <div className="space-y-4 text-muted-foreground">
