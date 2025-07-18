@@ -26,11 +26,11 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
       <div className="group md:col-span-2 row-span-2 rounded-2xl overflow-hidden hover-card">
         <div className="glass-card h-full flex flex-col md:flex-row">
           {/* Image Section */}
-          <div className="relative overflow-hidden h-48 md:h-full md:w-1/2">
+          <div className="relative h-48 md:h-full md:w-1/2 bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center p-6">
             <img
               src={displayImage}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute top-3 left-3 bg-primary text-white text-xs py-1 px-2 rounded-full flex items-center gap-1">
               <Star className="w-3 h-3" /> Featured
@@ -104,11 +104,11 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
   return (
     <div className="group rounded-2xl overflow-hidden hover-card">
       <div className="glass-card h-full flex flex-col">
-        <div className="relative overflow-hidden h-48">
+        <div className="relative h-48 bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center p-4">
           <img
             src={displayImage}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105"
           />
         </div>
         <div className="p-6 flex flex-col flex-grow">
