@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu, X, Home, Briefcase, User, Mail, Code, Bot } from "lucide-react";
+import { Menu, X, Home, Briefcase, User, Mail, Code, Cpu } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { scrollToElement } from "../utils/scrollUtils";
 import { Link } from "react-router-dom";
@@ -39,7 +39,7 @@ const NavigationBar: React.FC = () => {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/80 backdrop-blur-md shadow-md py-3"
+          ? "bg-background/80 backdrop-blur-md shadow-md py-3"
           : "bg-transparent py-5"
       }`}
     >
@@ -71,7 +71,7 @@ const NavigationBar: React.FC = () => {
             to="/agent"
             className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors group"
           >
-            <Bot className="h-4 w-4 group-hover:text-primary transition-colors" />
+            <Cpu className="h-4 w-4 group-hover:text-primary transition-colors" />
             Agent
             <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary"></span>
           </Link>
@@ -93,7 +93,7 @@ const NavigationBar: React.FC = () => {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg p-4 flex flex-col space-y-4 animate-fade-in">
+        <div className="md:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-md shadow-lg p-4 flex flex-col space-y-4 animate-fade-in">
           {navLinks.map((link) => (
             <a
               key={link.name}
@@ -110,7 +110,7 @@ const NavigationBar: React.FC = () => {
             className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            <Bot className="h-5 w-5 text-primary" />
+            <Cpu className="h-5 w-5 text-primary" />
             Agent
           </Link>
         </div>

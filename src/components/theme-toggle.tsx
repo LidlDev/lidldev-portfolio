@@ -1,36 +1,77 @@
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun, Monitor } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/components/theme-provider"
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const themes = [
+    { value: "light", icon: Sun, label: "Light" },
+    { value: "dark", icon: Moon, label: "Dark" },
+    { value: "system", icon: Monitor, label: "System" },
+  ]
+
+  const currentTheme = themes.find(t => t.value === theme) || themes[2]
+
+  const handleThemeSelect = (newTheme: string) => {
+    setTheme(newTheme as "light" | "dark" | "system")
+    setIsExpanded(false)
+  }
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded)
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="relative">
+      {/* Main toggle button */}
+      <Button
+        variant="outline"
+        size="icon"
+        className={`relative transition-all duration-300 ${
+          isExpanded ? 'rounded-l-md rounded-r-none border-r-0' : 'rounded-md'
+        }`}
+        onClick={toggleExpanded}
+      >
+        <currentTheme.icon className="h-[1.2rem] w-[1.2rem] transition-all" />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+
+      {/* Expanded options */}
+      <div className={`absolute top-0 left-full flex transition-all duration-300 ${
+        isExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+      }`}>
+        {themes.map((themeOption, index) => {
+          const Icon = themeOption.icon
+          const isActive = themeOption.value === theme
+          const isLast = index === themes.length - 1
+
+          return (
+            <Button
+              key={themeOption.value}
+              variant={isActive ? "default" : "outline"}
+              size="icon"
+              className={`transition-all duration-200 border-l-0 ${
+                isLast ? 'rounded-r-md rounded-l-none' : 'rounded-none'
+              } ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+              onClick={() => handleThemeSelect(themeOption.value)}
+            >
+              <Icon className="h-[1.2rem] w-[1.2rem]" />
+              <span className="sr-only">{themeOption.label}</span>
+            </Button>
+          )
+        })}
+      </div>
+
+      {/* Backdrop to close when clicking outside */}
+      {isExpanded && (
+        <div
+          className="fixed inset-0 z-[-1]"
+          onClick={() => setIsExpanded(false)}
+        />
+      )}
+    </div>
   )
 }

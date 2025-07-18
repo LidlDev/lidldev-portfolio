@@ -86,8 +86,8 @@ const SEO: React.FC<SEOProps> = ({
       {/* Additional Meta Tags */}
       <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
       <meta name="googlebot" content="index, follow" />
-      <meta name="theme-color" content="#8B5CF6" />
-      <meta name="msapplication-TileColor" content="#8B5CF6" />
+      <meta name="theme-color" content="#F8F9FA" />
+      <meta name="msapplication-TileColor" content="#F8F9FA" />
 
       {/* Article specific tags */}
       {publishedTime && <meta property="article:published_time" content={publishedTime} />}

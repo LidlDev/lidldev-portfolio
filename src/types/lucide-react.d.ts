@@ -23,5 +23,7 @@ declare module 'lucide-react' {
   export const Briefcase: Icon;
   export const User: Icon;
   export const Code: Icon;
+  export const Cpu: Icon;
+  export const Monitor: Icon;
   // Add any other icons used in your project
 } 
