@@ -2,6 +2,11 @@
 // All images should be stored in the public/images/ directory
 
 export const IMAGE_PATHS = {
+  // Profile images
+  PROFILE: {
+    HARRY: '/images/Harry.png',
+  },
+
   // Project logos
   LOGOS: {
     SPIKE_VOLLEYBALL: '/images/projects/spike-volleyball/app_logo.png',

@@ -34,5 +34,7 @@ declare module 'lucide-react' {
   export const FileText: Icon;
   export const Scale: Icon;
   export const AlertTriangle: Icon;
+  export const Award: Icon;
+  export const Calendar: Icon;
   // Add any other icons used in your project
 } 

@@ -1,6 +1,8 @@
 
 import React from "react";
 import { User, Star, Award, Calendar } from "lucide-react";
+import { IMAGE_PATHS } from "../config/images";
+import LazyImage from "./LazyImage";
 
 const About: React.FC = () => {
   return (
@@ -73,10 +75,12 @@ const About: React.FC = () => {
           <div className="md:w-1/2">
             <div className="relative">
               <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-xl">
-                <img
-                  src="https://images.unsplash.com/photo-1607705703571-c5a8695f18f6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
-                  alt="Developer working"
+                <LazyImage
+                  src={IMAGE_PATHS.PROFILE.HARRY}
+                  alt="Harry - Full Stack Developer and Software Engineer"
                   className="w-full h-full object-cover"
+                  loading="eager"
+                  placeholder="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkhhcnJ5PC90ZXh0Pjwvc3ZnPg=="
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 w-40 h-40 rounded-2xl glass-card p-4 flex flex-col justify-center animate-float">

@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { IMAGE_PATHS } from '../config/images';
 
 interface SEOProps {
   title?: string;
@@ -17,7 +18,7 @@ const SEO: React.FC<SEOProps> = ({
   title = "LidlDev - Full Stack Developer & Software Engineer",
   description = "Harry - Full Stack Developer specializing in React, TypeScript, Swift, and modern web technologies. Building beautiful, scalable applications and mobile experiences.",
   keywords = "full stack developer, react developer, typescript, swift, ios development, web development, software engineer, portfolio, lidldev, harry",
-  image = "/harry-profile.png",
+  image = IMAGE_PATHS.PROFILE.HARRY,
   url = "https://www.lidldev.com",
   type = "website",
   author = "Harry - LidlDev",
