@@ -10,30 +10,106 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
     description,
     tags,
     imageUrl,
+    logo,
     projectUrl,
     githubUrl,
     featured = false,
+    features,
+    status,
+    year,
   } = project;
-  return (
-    <div
-      className={`group rounded-2xl overflow-hidden hover-card ${
-        featured 
-          ? "md:col-span-2 row-span-2" 
-          : ""
-      }`}
-    >
-      <div className="glass-card h-full flex flex-col">
-        <div className="relative overflow-hidden h-48">
-          <img
-            src={imageUrl}
-            alt={title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-          {featured && (
+  // Use logo for project card, fallback to imageUrl if no logo
+  const displayImage = logo || imageUrl;
+
+  if (featured) {
+    return (
+      <div className="group md:col-span-2 row-span-2 rounded-2xl overflow-hidden hover-card">
+        <div className="glass-card h-full flex flex-col md:flex-row">
+          {/* Image Section */}
+          <div className="relative overflow-hidden h-48 md:h-full md:w-1/2">
+            <img
+              src={displayImage}
+              alt={title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
             <div className="absolute top-3 left-3 bg-primary text-white text-xs py-1 px-2 rounded-full flex items-center gap-1">
               <Star className="w-3 h-3" /> Featured
             </div>
-          )}
+            <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+              {year} • {status.replace('-', ' ')}
+            </div>
+          </div>
+
+          {/* Content Section */}
+          <div className="p-6 flex flex-col flex-grow md:w-1/2">
+            <h3 className="text-2xl font-display font-bold mb-3">{title}</h3>
+            <p className="text-muted-foreground mb-4 leading-relaxed">{description}</p>
+
+            {/* Key Features */}
+            {features && features.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold mb-2 text-foreground">Key Features:</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {features.slice(0, 3).map((feature, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <span className="text-sm font-medium text-foreground">{feature.title}</span>
+                        <p className="text-xs text-muted-foreground">{feature.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-xs py-1 px-2 bg-secondary rounded-full text-secondary-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 mt-auto">
+              <Link
+                to={`/project/${id}`}
+                className="inline-flex items-center text-sm font-medium text-primary hover:text-accent transition-colors"
+              >
+                View Details <ExternalLink className="ml-1 w-4 h-4" />
+              </Link>
+              {githubUrl && (
+                <a
+                  href={githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-sm font-medium text-foreground hover:text-primary transition-colors"
+                >
+                  Code <Github className="ml-1 w-4 h-4" />
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular project card
+  return (
+    <div className="group rounded-2xl overflow-hidden hover-card">
+      <div className="glass-card h-full flex flex-col">
+        <div className="relative overflow-hidden h-48">
+          <img
+            src={displayImage}
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
         </div>
         <div className="p-6 flex flex-col flex-grow">
           <h3 className="text-xl font-display font-bold">{title}</h3>
