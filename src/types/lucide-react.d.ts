@@ -36,5 +36,13 @@ declare module 'lucide-react' {
   export const AlertTriangle: Icon;
   export const Award: Icon;
   export const Calendar: Icon;
+  export const ArrowLeft: Icon;
+  export const ExternalLink: Icon;
+  export const Code: Icon;
+  export const ChevronLeft: Icon;
+  export const ChevronRight: Icon;
+  export const ZoomIn: Icon;
+  export const Play: Icon;
+  export const Pause: Icon;
   // Add any other icons used in your project
 } 

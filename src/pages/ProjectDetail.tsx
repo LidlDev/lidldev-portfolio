@@ -4,7 +4,7 @@ import { ArrowLeft, ExternalLink, Github, Calendar, Code } from 'lucide-react';
 import { projectsData } from '../data/projects';
 import SEO from '../components/SEO';
 import ProjectHero from '../components/ProjectHero';
-import ProjectGallery from '../components/ProjectGallery';
+import DynamicProjectGallery from '../components/DynamicProjectGallery';
 import ProjectFeatures from '../components/ProjectFeatures';
 import ProjectTechStack from '../components/ProjectTechStack';
 import NavigationBar from '../components/NavigationBar';
@@ -171,7 +171,7 @@ const ProjectDetail: React.FC = () => {
         {/* Screenshots Gallery */}
         {project.screenshots && project.screenshots.length > 0 && (
           <div className="mb-16">
-            <ProjectGallery screenshots={project.screenshots} title={project.title} />
+            <DynamicProjectGallery screenshots={project.screenshots} title={project.title} />
           </div>
         )}
 

@@ -24,10 +24,16 @@ export const IMAGE_PATHS = {
   // Project screenshots
   SCREENSHOTS: {
     SPIKE_VOLLEYBALL: [
-      '/images/projects/spike-volleyball/screenshot-1.jpg',
-      '/images/projects/spike-volleyball/screenshot-2.jpg',
-      '/images/projects/spike-volleyball/screenshot-3.jpg',
-      '/images/projects/spike-volleyball/screenshot-4.jpg',
+      '/images/projects/spike-volleyball/Home - large.jpg',
+      '/images/projects/spike-volleyball/Team - large.jpg',
+      '/images/projects/spike-volleyball/Stats - large.jpg',
+      '/images/projects/spike-volleyball/Lineups - large.jpg',
+      '/images/projects/spike-volleyball/Tactics - large.jpg',
+      '/images/projects/spike-volleyball/Training - large.jpg',
+      '/images/projects/spike-volleyball/VolleyChat - large.jpg',
+      '/images/projects/spike-volleyball/Competitions - large.jpg',
+      '/images/projects/spike-volleyball/Coaches Tools - large.jpg',
+      '/images/projects/spike-volleyball/Development - large.jpg',
     ],
     CHESS_APP: [
       '/images/projects/chess-app/screenshot-1.jpg',
