@@ -1,39 +1,61 @@
 import React, { useState, useRef } from "react";
 import { Mail, MapPin, Phone, Send } from "lucide-react";
 import emailjs from '@emailjs/browser';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+
+// Validation schema
+const contactSchema = z.object({
+  name: z.string()
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name must be less than 50 characters")
+    .regex(/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces"),
+  email: z.string()
+    .email("Please enter a valid email address")
+    .min(5, "Email must be at least 5 characters")
+    .max(100, "Email must be less than 100 characters"),
+  subject: z.string()
+    .min(5, "Subject must be at least 5 characters")
+    .max(100, "Subject must be less than 100 characters"),
+  message: z.string()
+    .min(10, "Message must be at least 10 characters")
+    .max(1000, "Message must be less than 1000 characters"),
+});
+
+type ContactFormData = z.infer<typeof contactSchema>;
 
 const Contact: React.FC = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    watch,
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactSchema),
+    mode: "onChange", // Validate on change for real-time feedback
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Watch message field for character count
+  const messageValue = watch("message", "");
+
+  const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
-    setSubmitStatus(null);
 
     try {
       // Get EmailJS configuration from environment variables
       const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
       const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '';
       const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '';
+
+      if (!serviceId || !templateId || !publicKey) {
+        throw new Error('EmailJS configuration is missing');
+      }
 
       if (formRef.current) {
         await emailjs.sendForm(
@@ -43,24 +65,13 @@ const Contact: React.FC = () => {
           publicKey
         );
 
-        setSubmitStatus({
-          success: true,
-          message: "Thanks for your message! I'll get back to you soon."
-        });
+        toast.success("Thanks for your message! I'll get back to you soon.");
 
-        setFormData({
-          name: "",
-          email: "",
-          subject: "",
-          message: "",
-        });
+        reset(); // Reset form using react-hook-form
       }
     } catch (error) {
       console.error('Failed to send email:', error);
-      setSubmitStatus({
-        success: false,
-        message: "Sorry, there was an error sending your message. Please try again or email me directly."
-      });
+      toast.error("Sorry, there was an error sending your message. Please try again or email me directly.");
     } finally {
       setIsSubmitting(false);
     }
@@ -205,13 +216,7 @@ const Contact: React.FC = () => {
           <div className="md:col-span-3 glass-card p-6 rounded-2xl">
             <h3 className="text-xl font-display font-semibold mb-6">Send Me a Message</h3>
 
-            {submitStatus && (
-              <div className={`p-4 mb-4 rounded-lg ${submitStatus.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                {submitStatus.message}
-              </div>
-            )}
-
-            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+            <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-sm font-medium">
@@ -220,13 +225,16 @@ const Contact: React.FC = () => {
                   <input
                     type="text"
                     id="name"
-                    name="user_name" // Changed to match EmailJS template parameters
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 bg-white/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                    {...register("name")}
+                    name="user_name" // EmailJS template parameter
+                    className={`w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+                      errors.name ? 'border-red-500' : 'border-border'
+                    }`}
                     placeholder="John Doe"
                   />
+                  {errors.name && (
+                    <p className="text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium">
@@ -235,13 +243,16 @@ const Contact: React.FC = () => {
                   <input
                     type="email"
                     id="email"
-                    name="user_email" // Changed to match EmailJS template parameters
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 bg-white/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                    {...register("email")}
+                    name="user_email" // EmailJS template parameter
+                    className={`w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+                      errors.email ? 'border-red-500' : 'border-border'
+                    }`}
                     placeholder="john@example.com"
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -252,29 +263,36 @@ const Contact: React.FC = () => {
                 <input
                   type="text"
                   id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 bg-white/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  {...register("subject")}
+                  className={`w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+                    errors.subject ? 'border-red-500' : 'border-border'
+                  }`}
                   placeholder="Project Inquiry"
                 />
+                {errors.subject && (
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors.subject.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="message" className="text-sm font-medium">
-                  Message
+                <label htmlFor="message" className="text-sm font-medium flex justify-between">
+                  <span>Message</span>
+                  <span className="text-xs text-muted-foreground">
+                    {messageValue.length}/1000
+                  </span>
                 </label>
                 <textarea
                   id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
+                  {...register("message")}
                   rows={5}
-                  className="w-full px-4 py-2 bg-white/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  className={`w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none ${
+                    errors.message ? 'border-red-500' : 'border-border'
+                  }`}
                   placeholder="How can I help you?"
-                ></textarea>
+                />
+                {errors.message && (
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors.message.message}</p>
+                )}
               </div>
 
               {/* Hidden field for recipient email */}
@@ -283,10 +301,17 @@ const Contact: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`inline-flex items-center justify-center rounded-lg bg-primary text-white px-6 py-3 font-medium transition-colors ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-primary/90'}`}
+                className={`inline-flex items-center justify-center rounded-lg bg-primary text-white px-6 py-3 font-medium transition-colors ${
+                  isSubmitting
+                    ? 'opacity-70 cursor-not-allowed'
+                    : 'hover:bg-primary/90 focus:ring-2 focus:ring-primary/50 focus:outline-none'
+                }`}
               >
                 {isSubmitting ? (
-                  <>Sending... <span className="ml-2 animate-spin">⟳</span></>
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Sending...
+                  </>
                 ) : (
                   <>Send Message <Send className="ml-2 h-4 w-4" /></>
                 )}

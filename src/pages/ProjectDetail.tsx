@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, Github, Calendar, Tag } from 'lucide-react';
 import { projectsData } from '../data/projects';
+import SEO from '../components/SEO';
 import ProjectHero from '../components/ProjectHero';
 import ProjectGallery from '../components/ProjectGallery';
 import ProjectFeatures from '../components/ProjectFeatures';
@@ -45,6 +46,33 @@ const ProjectDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={`${project.title} - Project Details`}
+        description={project.detailedDescription}
+        keywords={`${project.tags.join(', ')}, project, portfolio, ${project.title.toLowerCase()}`}
+        url={`https://www.lidldev.com/project/${project.id}`}
+        image={project.imageUrl}
+        type="article"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "CreativeWork",
+          "name": project.title,
+          "description": project.detailedDescription,
+          "image": project.imageUrl,
+          "url": `https://www.lidldev.com/project/${project.id}`,
+          "author": {
+            "@type": "Person",
+            "name": "Harry",
+            "alternateName": "LidlDev"
+          },
+          "dateCreated": project.year,
+          "keywords": project.tags.join(', '),
+          "genre": project.tags,
+          "programmingLanguage": project.tags.filter(tag =>
+            ['JavaScript', 'TypeScript', 'Swift', 'Java', 'Python', 'React', 'Node.js'].includes(tag)
+          )
+        }}
+      />
       <NavigationBar />
       
       {/* Back Navigation */}

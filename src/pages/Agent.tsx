@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../components/agent/agent.css';
 
 // Import components
+import SEO from '@/components/SEO';
 import Header from '@/components/agent/Header';
 import Sidebar from '@/components/agent/Sidebar';
 import MobileNav from '@/components/agent/MobileNav';
@@ -46,6 +47,13 @@ const Agent = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+      <SEO
+        title="Agent Dashboard - LidlDev"
+        description="Personal productivity dashboard with task management, financial tracking, and goal setting tools. Secure and private workspace for managing your digital life."
+        keywords="productivity dashboard, task management, financial tracker, personal finance, goal setting, todo list, expense tracker"
+        url="https://www.lidldev.com/agent"
+        type="webapp"
+      />
       {/* Fixed header at the top */}
       <div className="fixed top-0 left-0 right-0 z-20 w-full">
         <Header />
