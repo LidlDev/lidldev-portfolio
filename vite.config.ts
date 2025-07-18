@@ -31,5 +31,46 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env': env,
     },
+    build: {
+      // Code splitting configuration
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Vendor chunks
+            'react-vendor': ['react', 'react-dom'],
+            'router-vendor': ['react-router-dom'],
+            'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast'],
+            'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+            'query-vendor': ['@tanstack/react-query'],
+            'supabase-vendor': ['@supabase/supabase-js'],
+            // Feature chunks
+            'agent': ['src/pages/Agent.tsx', 'src/components/agent/**'],
+            'github': ['src/components/GitHubStats.tsx', 'src/components/GitHubContributions.tsx'],
+          },
+        },
+      },
+      // Optimize chunk size
+      chunkSizeWarningLimit: 1000,
+      // Enable source maps for production debugging
+      sourcemap: mode === 'development',
+      // Minification
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: mode === 'production',
+          drop_debugger: mode === 'production',
+        },
+      },
+    },
+    // Performance optimizations
+    optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        '@tanstack/react-query',
+        'lucide-react',
+      ],
+    },
   };
 });

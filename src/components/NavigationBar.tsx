@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Menu, X, Home, Briefcase, User, Mail, Code, Bot } from "lucide-react";
 import { scrollToElement } from "../utils/scrollUtils";
 import { Link } from "react-router-dom";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NavigationBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +39,7 @@ const NavigationBar: React.FC = () => {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/80 backdrop-blur-md shadow-md py-3"
+          ? "bg-background/80 backdrop-blur-md shadow-md py-3"
           : "bg-transparent py-5"
       }`}
     >
@@ -74,20 +75,25 @@ const NavigationBar: React.FC = () => {
             Agent
             <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary"></span>
           </Link>
+
+          <ThemeToggle />
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          className="md:hidden text-foreground hover:text-primary transition-colors"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        {/* Mobile controls */}
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            className="text-foreground hover:text-primary transition-colors"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg p-4 flex flex-col space-y-4 animate-fade-in">
+        <div className="md:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-md shadow-lg p-4 flex flex-col space-y-4 animate-fade-in">
           {navLinks.map((link) => (
             <a
               key={link.name}

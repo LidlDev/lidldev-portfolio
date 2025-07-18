@@ -1,14 +1,15 @@
 import * as React from "react";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 import { scrollToElement } from "../utils/scrollUtils";
+import { fadeInUp, fadeInLeft, staggerContainer, staggerItem } from "../utils/animations";
+import AnimatedButton from "./AnimatedButton";
+import { useCMS } from "../hooks/useCMS";
 
 const Hero: React.FC = () => {
-  const phrases = [
-    "Crafting Digital Experiences",
-    "Designing Mobile Interfaces",
-    "Building ML-Powered Solutions",
-    "Creating Intuitive UI/UX"
-  ];
+  const { getHeroContent, loading } = useCMS();
+  const heroContent = getHeroContent();
+  const phrases = heroContent.taglines;
   
   const [text, setText] = React.useState("");
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -61,54 +62,125 @@ const Hero: React.FC = () => {
       id="home"
       className="min-h-screen flex items-center pt-16 overflow-hidden relative pattern-bg"
     >
-      <div className="absolute top-40 right-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-float"></div>
-      <div className="absolute bottom-40 left-20 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-float"></div>
+      {/* Animated background elements */}
+      <motion.div
+        className="absolute top-40 right-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl"
+        animate={{
+          y: [-20, 20, -20],
+          scale: [1, 1.1, 1],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      <motion.div
+        className="absolute bottom-40 left-20 w-72 h-72 bg-accent/20 rounded-full blur-3xl"
+        animate={{
+          y: [20, -20, 20],
+          scale: [1.1, 1, 1.1],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
       <div className="container mx-auto px-4 md:px-6 py-10 md:py-20">
-        <div className="flex flex-col gap-8 max-w-4xl">
-          <div className="space-y-2 animate-fade-in">
-            <p className="text-lg md:text-xl font-medium text-primary">Hello, I'm</p>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-balance">
-              <span className="magic-text">Harry</span>
+        <motion.div
+          className="flex flex-col gap-8 max-w-4xl"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          <motion.div className="space-y-2" variants={staggerItem}>
+            <motion.p
+              className="text-lg md:text-xl font-medium text-primary"
+              variants={fadeInLeft}
+            >
+              {heroContent.greeting}
+            </motion.p>
+            <motion.h1
+              className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-balance"
+              variants={fadeInUp}
+            >
+              <motion.span
+                className="magic-text"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+              >
+                {heroContent.name}
+              </motion.span>
               <br />
               <span className="relative">
                 {text}
-                <span className="absolute -right-2 animate-pulse">|</span>
+                <motion.span
+                  className="absolute -right-2"
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  |
+                </motion.span>
               </span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl">
-              I build beautiful, interactive web applications with modern technologies.
-              Turning ideas into exceptional digital experiences.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 animate-fade-in">
-            <a
-              href="#projects"
-              onClick={(e) => handleNavClick(e, "#projects")}
-              className="inline-flex items-center justify-center rounded-full bg-primary text-white px-6 py-3 text-base font-medium shadow-sm hover:bg-primary/90 transition-colors"
+            </motion.h1>
+            <motion.p
+              className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl"
+              variants={fadeInUp}
             >
-              View My Work
+              {heroContent.description}
+            </motion.p>
+          </motion.div>
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4"
+            variants={staggerItem}
+          >
+            <AnimatedButton
+              variant="magnetic"
+              size="lg"
+              onClick={() => {
+                const e = { preventDefault: () => {} } as React.MouseEvent<HTMLAnchorElement>;
+                handleNavClick(e, heroContent.primaryButton.url);
+              }}
+              className="rounded-full"
+            >
+              {heroContent.primaryButton.text}
               <ArrowRight className="ml-2 h-5 w-5" />
-            </a>
-            <a
-              href="#contact"
-              onClick={(e) => handleNavClick(e, "#contact")}
-              className="inline-flex items-center justify-center rounded-full border border-primary text-primary px-6 py-3 text-base font-medium hover:bg-primary/10 transition-colors"
+            </AnimatedButton>
+            <AnimatedButton
+              variant="ghost"
+              size="lg"
+              onClick={() => {
+                const e = { preventDefault: () => {} } as React.MouseEvent<HTMLAnchorElement>;
+                handleNavClick(e, heroContent.secondaryButton.url);
+              }}
+              className="rounded-full border border-primary text-primary hover:bg-primary/10"
             >
-              Contact Me
-            </a>
+              {heroContent.secondaryButton.text}
+            </AnimatedButton>
           </div>
-          <div className="animate-bounce-subtle mt-12 text-center sm:text-left">
-            <a
+          <motion.div
+            className="mt-12 text-center sm:text-left"
+            variants={staggerItem}
+          >
+            <motion.a
               href="#about"
               onClick={(e) => handleNavClick(e, "#about")}
-              className="text-sm text-muted-foreground flex flex-col items-center sm:items-start">
-              <span>Scroll down</span>
-              <svg
-                className="w-6 h-6 mt-2"
+              className="text-sm text-muted-foreground flex flex-col items-center sm:items-start cursor-pointer group"
+              whileHover={{ y: -2 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span>{heroContent.scrollText}</span>
+              <motion.svg
+                className="w-6 h-6 mt-2 group-hover:text-primary transition-colors"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
+                animate={{ y: [0, 5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               >
                 <path
                   strokeLinecap="round"
@@ -116,10 +188,10 @@ const Hero: React.FC = () => {
                   strokeWidth="2"
                   d="M19 14l-7 7m0 0l-7-7m7 7V3"
                 ></path>
-              </svg>
-            </a>
-          </div>
-        </div>
+              </motion.svg>
+            </motion.a>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

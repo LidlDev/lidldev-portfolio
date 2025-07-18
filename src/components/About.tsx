@@ -1,6 +1,10 @@
 
 import React from "react";
-import { User, Star, Award, Calendar } from "lucide-react";
+import { User, Star } from "lucide-react";
+import GitHubStats from "./GitHubStats";
+import GitHubContributions from "./GitHubContributions";
+import LazyImage from "./LazyImage";
+import LazySection from "./LazySection";
 
 const About: React.FC = () => {
   return (
@@ -50,17 +54,17 @@ const About: React.FC = () => {
               
               <div className="flex items-start gap-3">
                 <div className="p-3 bg-primary/10 text-primary rounded-full">
-                  <Award className="w-5 h-5" />
+                  <User className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-medium">Education</h3>
                   <p className="text-muted-foreground">CS Degree</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="p-3 bg-accent/10 text-accent rounded-full">
-                  <Calendar className="w-5 h-5" />
+                  <Star className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-medium">Availability</h3>
@@ -73,10 +77,10 @@ const About: React.FC = () => {
           <div className="md:w-1/2">
             <div className="relative">
               <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-xl">
-                <img
+                <LazyImage
                   src="https://images.unsplash.com/photo-1607705703571-c5a8695f18f6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
                   alt="Developer working"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full"
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 w-40 h-40 rounded-2xl glass-card p-4 flex flex-col justify-center animate-float">
@@ -88,6 +92,23 @@ const About: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* GitHub Stats Section */}
+      <LazySection className="mt-20">
+        <div className="text-center mb-12">
+          <h3 className="text-2xl md:text-3xl font-display font-bold mb-4">
+            GitHub <span className="magic-text">Activity</span>
+          </h3>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Here's a look at my coding activity and contributions on GitHub.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          <GitHubStats username="LidlDev" className="lg:col-span-1" />
+          <GitHubContributions username="LidlDev" className="lg:col-span-2" />
+        </div>
+      </LazySection>
     </section>
   );
 };
