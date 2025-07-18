@@ -31,7 +31,7 @@ export function ThemeToggle() {
         variant="outline"
         size="icon"
         className={`relative transition-all duration-300 ${
-          isExpanded ? 'rounded-l-md rounded-r-none border-r-0' : 'rounded-md'
+          isExpanded ? 'rounded-t-md rounded-b-none border-b-0' : 'rounded-md'
         }`}
         onClick={toggleExpanded}
       >
@@ -40,7 +40,7 @@ export function ThemeToggle() {
       </Button>
 
       {/* Expanded options */}
-      <div className={`absolute top-0 left-full flex transition-all duration-300 ${
+      <div className={`absolute top-full left-0 flex flex-col transition-all duration-300 ${
         isExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
       }`}>
         {themes.map((themeOption, index) => {
@@ -53,8 +53,8 @@ export function ThemeToggle() {
               key={themeOption.value}
               variant={isActive ? "default" : "outline"}
               size="icon"
-              className={`transition-all duration-200 border-l-0 ${
-                isLast ? 'rounded-r-md rounded-l-none' : 'rounded-none'
+              className={`transition-all duration-200 border-t-0 ${
+                isLast ? 'rounded-b-md rounded-t-none' : 'rounded-none'
               } ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
               onClick={() => handleThemeSelect(themeOption.value)}
             >
