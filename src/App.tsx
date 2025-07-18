@@ -1,54 +1,56 @@
 import React from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
-import { AuthProvider } from "./contexts/AuthContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import AuthGuard from "./components/AuthGuard";
-import Index from "./pages/Index";
-import Agent from "./pages/Agent";
-import ProjectDetail from "./pages/ProjectDetail";
-import SpikePrivacyPolicy from "./pages/SpikePrivacyPolicy";
-import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Simple diagnostic App to isolate the issue
+const App = () => {
+  console.log("App component rendering...");
 
-const AppContent = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/agent" element={
-          <AuthProvider>
-            <AuthGuard>
-              <Agent />
-            </AuthGuard>
-          </AuthProvider>
-        } />
-        <Route path="/project/:projectId" element={<ProjectDetail />} />
-        <Route path="/spike/privacy-policy" element={<SpikePrivacyPolicy />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
-  );
+  try {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'system-ui, sans-serif',
+        backgroundColor: '#f8fafc'
+      }}>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <h1 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#1e293b' }}>
+            Harry Liddle - Full Stack Developer
+          </h1>
+          <p style={{ color: '#64748b', marginBottom: '2rem' }}>
+            Portfolio is loading... If you see this, React is working!
+          </p>
+          <div style={{
+            padding: '1rem',
+            backgroundColor: '#e2e8f0',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            color: '#475569'
+          }}>
+            Debug: App component loaded successfully
+          </div>
+        </div>
+      </div>
+    );
+  } catch (error) {
+    console.error("Error in App component:", error);
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'system-ui, sans-serif',
+        backgroundColor: '#fef2f2'
+      }}>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <h1 style={{ color: '#dc2626' }}>Error Loading Portfolio</h1>
+          <p style={{ color: '#7f1d1d' }}>Check console for details</p>
+        </div>
+      </div>
+    );
+  }
 };
-
-const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AppContent />
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </HelmetProvider>
-);
 
 export default App;
