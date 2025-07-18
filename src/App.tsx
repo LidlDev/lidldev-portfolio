@@ -1,69 +1,48 @@
 import React from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import AuthGuard from "./components/AuthGuard";
+import Index from "./pages/Index";
+import Agent from "./pages/Agent";
+import ProjectDetail from "./pages/ProjectDetail";
+import SpikePrivacyPolicy from "./pages/SpikePrivacyPolicy";
+import NotFound from "./pages/NotFound";
 
-// Simple components to test step by step
-const SimpleIndex = () => {
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="container mx-auto px-4 py-20">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Harry Liddle</h1>
-          <p className="text-xl text-muted-foreground mb-8">Full Stack Developer</p>
-          <p className="max-w-2xl mx-auto">
-            I build beautiful, interactive web applications with modern technologies.
-            Turning ideas into exceptional digital experiences.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+const queryClient = new QueryClient();
 
-const SimpleNotFound = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center">
-      <h1 className="text-2xl font-bold">404 - Page Not Found</h1>
-      <p className="text-muted-foreground">The page you're looking for doesn't exist.</p>
-    </div>
-  </div>
-);
-
-const App = () => {
-  console.log("App component rendering...");
-
-  try {
-    return (
-      <HelmetProvider>
-        <ThemeProvider>
+const App = () => (
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<SimpleIndex />} />
-              <Route path="*" element={<SimpleNotFound />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/agent" element={
+                <AuthProvider>
+                  <AuthGuard>
+                    <Agent />
+                  </AuthGuard>
+                </AuthProvider>
+              } />
+              <Route path="/project/:projectId" element={<ProjectDetail />} />
+              <Route path="/spike/privacy-policy" element={<SpikePrivacyPolicy />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </ThemeProvider>
-      </HelmetProvider>
-    );
-  } catch (error) {
-    console.error("Error in App component:", error);
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'system-ui, sans-serif',
-        backgroundColor: '#fef2f2'
-      }}>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <h1 style={{ color: '#dc2626' }}>Error Loading Portfolio</h1>
-          <p style={{ color: '#7f1d1d' }}>Check console for details</p>
-        </div>
-      </div>
-    );
-  }
-};
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
+);
 
 export default App;

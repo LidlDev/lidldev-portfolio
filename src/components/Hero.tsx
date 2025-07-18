@@ -4,29 +4,9 @@ import { motion } from "framer-motion";
 import { scrollToElement } from "../utils/scrollUtils";
 import { fadeInUp, fadeInLeft, staggerContainer, staggerItem } from "../utils/animations";
 import AnimatedButton from "./AnimatedButton";
-import { useCMS } from "../hooks/useCMS";
 
 const Hero: React.FC = () => {
-  const { getHeroContent, loading, error } = useCMS();
-
-  if (loading) {
-    return (
-      <section className="min-h-screen flex items-center justify-center">
-        <div>Loading...</div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="min-h-screen flex items-center justify-center">
-        <div>Error loading content: {error}</div>
-      </section>
-    );
-  }
-
-  const heroContent = getHeroContent();
-  const phrases = heroContent?.taglines || [
+  const phrases = [
     "Crafting Digital Experiences",
     "Designing Mobile Interfaces",
     "Building ML-Powered Solutions",
@@ -122,7 +102,7 @@ const Hero: React.FC = () => {
               className="text-lg md:text-xl font-medium text-primary"
               variants={fadeInLeft}
             >
-              {heroContent?.greeting || "Hello, I'm"}
+              Hello, I'm
             </motion.p>
             <motion.h1
               className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-balance"
@@ -134,7 +114,7 @@ const Hero: React.FC = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
               >
-                {heroContent?.name || "Harry"}
+                Harry
               </motion.span>
               <br />
               <span className="relative">
@@ -152,7 +132,8 @@ const Hero: React.FC = () => {
               className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl"
               variants={fadeInUp}
             >
-              {heroContent?.description || "I build beautiful, interactive web applications with modern technologies. Turning ideas into exceptional digital experiences."}
+              I build beautiful, interactive web applications with modern technologies.
+              Turning ideas into exceptional digital experiences.
             </motion.p>
           </motion.div>
           <motion.div
@@ -164,11 +145,11 @@ const Hero: React.FC = () => {
               size="lg"
               onClick={() => {
                 const e = { preventDefault: () => {} } as React.MouseEvent<HTMLAnchorElement>;
-                handleNavClick(e, heroContent?.primaryButton?.url || "#projects");
+                handleNavClick(e, "#projects");
               }}
               className="rounded-full"
             >
-              {heroContent?.primaryButton?.text || "View My Work"}
+              View My Work
               <ArrowRight className="ml-2 h-5 w-5" />
             </AnimatedButton>
             <AnimatedButton
@@ -176,11 +157,11 @@ const Hero: React.FC = () => {
               size="lg"
               onClick={() => {
                 const e = { preventDefault: () => {} } as React.MouseEvent<HTMLAnchorElement>;
-                handleNavClick(e, heroContent?.secondaryButton?.url || "#contact");
+                handleNavClick(e, "#contact");
               }}
               className="rounded-full border border-primary text-primary hover:bg-primary/10"
             >
-              {heroContent?.secondaryButton?.text || "Contact Me"}
+              Contact Me
             </AnimatedButton>
           </motion.div>
           <motion.div
@@ -194,7 +175,7 @@ const Hero: React.FC = () => {
               whileHover={{ y: -2 }}
               transition={{ duration: 0.2 }}
             >
-              <span>{heroContent?.scrollText || "Scroll down"}</span>
+              <span>Scroll down</span>
               <motion.svg
                 className="w-6 h-6 mt-2 group-hover:text-primary transition-colors"
                 fill="none"

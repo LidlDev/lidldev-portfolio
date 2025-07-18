@@ -3,7 +3,6 @@ import { ExternalLink, Github, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { projectsData, ProjectData } from "../data/projects";
-import LazyImage from "./LazyImage";
 import LazySection from "./LazySection";
 import AnimatedCard from "./AnimatedCard";
 import { staggerContainer, staggerItem } from "../utils/animations";
@@ -34,11 +33,10 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
         className="h-full flex flex-col"
       >
         <div className="relative overflow-hidden h-48">
-          <LazyImage
+          <img
             src={imageUrl}
             alt={title}
-            className="w-full h-full transition-transform duration-500 group-hover:scale-110"
-            priority={featured}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           {featured && (
             <div className="absolute top-3 left-3 bg-primary text-white text-xs py-1 px-2 rounded-full flex items-center gap-1">

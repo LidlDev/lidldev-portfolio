@@ -3,7 +3,6 @@ import React from "react";
 import { User, Star } from "lucide-react";
 import GitHubStats from "./GitHubStats";
 import GitHubContributions from "./GitHubContributions";
-import LazyImage from "./LazyImage";
 import LazySection from "./LazySection";
 
 const About: React.FC = () => {
@@ -77,10 +76,10 @@ const About: React.FC = () => {
           <div className="md:w-1/2">
             <div className="relative">
               <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-xl">
-                <LazyImage
+                <img
                   src="https://images.unsplash.com/photo-1607705703571-c5a8695f18f6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
                   alt="Developer working"
-                  className="w-full h-full"
+                  className="w-full h-full object-cover"
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 w-40 h-40 rounded-2xl glass-card p-4 flex flex-col justify-center animate-float">
