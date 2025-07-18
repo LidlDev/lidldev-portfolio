@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { usePerformance } from "./hooks/usePerformance";
 import AuthGuard from "./components/AuthGuard";
 import Index from "./pages/Index";
 import Agent from "./pages/Agent";
@@ -18,18 +17,6 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { preloadResource } = usePerformance();
-
-  // Preload critical resources
-  React.useEffect(() => {
-    // Preload fonts
-    preloadResource('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap', 'style');
-    preloadResource('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap', 'style');
-
-    // Preload critical images
-    preloadResource('https://images.unsplash.com/photo-1607705703571-c5a8695f18f6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80', 'image');
-  }, [preloadResource]);
-
   return (
     <BrowserRouter>
       <Routes>
