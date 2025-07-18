@@ -25,5 +25,14 @@ declare module 'lucide-react' {
   export const Code: Icon;
   export const Cpu: Icon;
   export const Monitor: Icon;
+  export const Shield: Icon;
+  export const Eye: Icon;
+  export const Lock: Icon;
+  export const Database: Icon;
+  export const Bell: Icon;
+  export const Globe: Icon;
+  export const FileText: Icon;
+  export const Scale: Icon;
+  export const AlertTriangle: Icon;
   // Add any other icons used in your project
 } 

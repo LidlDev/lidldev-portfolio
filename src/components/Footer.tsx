@@ -1,7 +1,14 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { scrollToElement } from "../utils/scrollUtils";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+
+  const handleBackToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    scrollToElement("home");
+  };
 
   return (
     <footer className="py-10 border-t border-border">
@@ -16,22 +23,23 @@ const Footer: React.FC = () => {
           <div className="mt-4 md:mt-0 flex gap-6">
             <a
               href="#home"
+              onClick={handleBackToTop}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               Back to top
             </a>
-            <a
-              href="/privacy"
+            <Link
+              to="/privacy"
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               Privacy Policy
-            </a>
-            <a
-              href="/terms"
+            </Link>
+            <Link
+              to="/terms"
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              Terms
-            </a>
+              Terms of Service
+            </Link>
           </div>
         </div>
       </div>

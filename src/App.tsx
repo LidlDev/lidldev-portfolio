@@ -11,6 +11,8 @@ import Index from "./pages/Index";
 import Agent from "./pages/Agent";
 import ProjectDetail from "./pages/ProjectDetail";
 import SpikePrivacyPolicy from "./pages/SpikePrivacyPolicy";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ const App = () => (
               } />
               <Route path="/project/:projectId" element={<ProjectDetail />} />
               <Route path="/spike/privacy-policy" element={<SpikePrivacyPolicy />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
