@@ -19,7 +19,7 @@ const About: React.FC = () => {
             
             <p className="text-lg text-muted-foreground">
               I'm a passionate developer focused on creating modern, user-friendly web and mobile experiences. 
-              With a strong foundation in front-end development and an eye for design, I craft 
+              With a strong foundation in front-end and back-enddevelopment and an eye for design, I craft 
               interfaces that are both beautiful and functional.
             </p>
             
