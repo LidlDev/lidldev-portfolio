@@ -88,21 +88,28 @@ const CATEGORY_KEYWORDS = {
   'Other': []
 };
 
-// Initialize Supabase client
+// Initialize Supabase clients
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 
 // Check if Supabase environment variables are set
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error('Supabase environment variables are not set:', {
     NEXT_PUBLIC_SUPABASE_URL: supabaseUrl ? 'Set' : 'Not set',
-    SUPABASE_SERVICE_KEY: supabaseServiceKey ? 'Set' : 'Not set'
+    SUPABASE_SERVICE_KEY: supabaseServiceKey ? 'Set' : 'Not set',
+    VITE_SUPABASE_ANON_KEY: supabaseAnonKey ? 'Set' : 'Not set'
   });
 }
 
-// Only create the Supabase client if the URL and key are available
-const supabase = supabaseUrl && supabaseServiceKey ?
+// Create service client for database operations
+const supabaseService = supabaseUrl && supabaseServiceKey ?
   createClient(supabaseUrl, supabaseServiceKey) :
+  null;
+
+// Create client for user token validation (using anon key)
+const supabaseClient = supabaseUrl && supabaseAnonKey ?
+  createClient(supabaseUrl, supabaseAnonKey) :
   null;
 
 export default async function handler(req, res) {
@@ -112,9 +119,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Check if Supabase client is initialized
-    if (!supabase) {
-      console.error('Supabase client is not initialized due to missing environment variables');
+    // Check if Supabase clients are initialized
+    if (!supabaseService || !supabaseClient) {
+      console.error('Supabase clients are not initialized due to missing environment variables');
       return res.status(500).json({
         error: 'Server configuration error. Please contact the administrator.',
         details: 'Supabase environment variables are not set'
@@ -135,10 +142,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Verify the user's token
+    // Verify the user's token using the client instance
     let user;
     try {
-      const { data: userData, error: authError } = await supabase.auth.getUser(userAccessToken);
+      // Create a temporary client instance with the user's token
+      const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+          headers: {
+            Authorization: `Bearer ${userAccessToken}`
+          }
+        }
+      });
+
+      const { data: userData, error: authError } = await userSupabase.auth.getUser();
 
       if (authError) {
         console.error('Auth error:', authError);
@@ -199,7 +215,7 @@ export default async function handler(req, res) {
     }
 
     // Check if the user has granted permission to scan emails
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabaseService
       .from('profiles')
       .select('email_scan_permission')
       .eq('id', userId)
@@ -210,7 +226,7 @@ export default async function handler(req, res) {
     }
 
     // Get the user's OAuth tokens from the database
-    const { data: authData, error: authDataError } = await supabase
+    const { data: authData, error: authDataError } = await supabaseService
       .from('email_auth')
       .select('*')
       .eq('user_id', userId)
@@ -245,7 +261,7 @@ export default async function handler(req, res) {
         gmailToken = token;
 
         // Update the token in the database
-        await supabase
+        await supabaseService
           .from('email_auth')
           .update({
             access_token: gmailToken,
@@ -562,7 +578,7 @@ export default async function handler(req, res) {
       const sortedBills = filteredBills.sort((a, b) => b.confidence - a.confidence);
 
       // Check if these bills already exist in the database
-      const { data: existingBills, error: billsError } = await supabase
+      const { data: existingBills, error: billsError } = await supabaseService
         .from('detected_bills')
         .select('source, amount, approved')
         .eq('user_id', userId);
@@ -597,7 +613,7 @@ export default async function handler(req, res) {
 
     // Insert new bills into the database
     if (newBills.length > 0) {
-      const { error: insertError } = await supabase
+      const { error: insertError } = await supabaseService
         .from('detected_bills')
         .insert(
           newBills.map(bill => ({

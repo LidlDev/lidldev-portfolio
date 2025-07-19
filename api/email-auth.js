@@ -13,7 +13,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 }
 
 // Only create the Supabase client if the URL and key are available
-const supabase = supabaseUrl && supabaseServiceKey ?
+const supabaseService = supabaseUrl && supabaseServiceKey ?
   createClient(supabaseUrl, supabaseServiceKey) :
   null;
 
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
   try {
     // Check if Supabase client is initialized
-    if (!supabase) {
+    if (!supabaseService) {
       console.error('Supabase client is not initialized due to missing environment variables');
       return res.status(500).json({
         error: 'Server configuration error. Please contact the administrator.',

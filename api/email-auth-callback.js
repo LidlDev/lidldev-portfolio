@@ -13,7 +13,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 }
 
 // Only create the Supabase client if the URL and key are available
-const supabase = supabaseUrl && supabaseServiceKey ?
+const supabaseService = supabaseUrl && supabaseServiceKey ?
   createClient(supabaseUrl, supabaseServiceKey) :
   null;
 
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
   try {
     // Check if Supabase client is initialized
-    if (!supabase) {
+    if (!supabaseService) {
       console.error('Supabase client is not initialized due to missing environment variables');
       return res.redirect('/agent?auth_error=server_configuration_error');
     }
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
 async function handleOAuthWithUserId(userId, code, res) {
   try {
     // Check if Supabase client is initialized
-    if (!supabase) {
+    if (!supabaseService) {
       console.error('Supabase client is not initialized due to missing environment variables');
       return res.redirect('/agent?auth_error=server_configuration_error');
     }
@@ -152,7 +152,7 @@ async function handleOAuthWithUserId(userId, code, res) {
     const expiresAt = new Date(Date.now() + (expires_in * 1000)).toISOString();
 
     // Store the tokens in Supabase
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseService
       .from('email_auth')
       .upsert({
         user_id: userId,
@@ -168,7 +168,7 @@ async function handleOAuthWithUserId(userId, code, res) {
     }
 
     // Update the user's profile to indicate email scanning permission
-    const { error: profileError } = await supabase
+    const { error: profileError } = await supabaseService
       .from('profiles')
       .update({ email_scan_permission: true })
       .eq('id', userId);
