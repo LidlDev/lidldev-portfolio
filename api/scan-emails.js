@@ -123,15 +123,55 @@ export default async function handler(req, res) {
 
     const { userId, accessToken: userAccessToken } = req.body;
 
+    // Log request details for debugging (without exposing the full token)
+    console.log('Scan emails request:', {
+      userId: userId ? 'Present' : 'Missing',
+      accessToken: userAccessToken ? `${userAccessToken.substring(0, 20)}...` : 'Missing',
+      tokenLength: userAccessToken ? userAccessToken.length : 0
+    });
+
     if (!userId || !userAccessToken) {
+      console.error('Missing required parameters:', { userId: !!userId, accessToken: !!userAccessToken });
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
     // Verify the user's token
-    const { data: user, error: authError } = await supabase.auth.getUser(userAccessToken);
+    let user;
+    try {
+      const { data: userData, error: authError } = await supabase.auth.getUser(userAccessToken);
 
-    if (authError || !user || user.user.id !== userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      if (authError) {
+        console.error('Auth error:', authError);
+        return res.status(401).json({
+          error: 'Authentication failed',
+          details: authError.message
+        });
+      }
+
+      if (!userData || !userData.user) {
+        console.error('No user data returned from token verification');
+        return res.status(401).json({
+          error: 'Invalid token - no user data'
+        });
+      }
+
+      if (userData.user.id !== userId) {
+        console.error('User ID mismatch:', {
+          tokenUserId: userData.user.id,
+          requestUserId: userId
+        });
+        return res.status(401).json({
+          error: 'User ID mismatch'
+        });
+      }
+
+      user = userData.user;
+    } catch (tokenError) {
+      console.error('Token verification error:', tokenError);
+      return res.status(401).json({
+        error: 'Token verification failed',
+        details: tokenError.message
+      });
     }
 
     // Check if Google OAuth credentials are set

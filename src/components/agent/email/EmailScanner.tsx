@@ -102,13 +102,37 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
         if (response.status === 404) {
           throw new Error('Email scanning API endpoint not found. Please check your server configuration.');
         }
+
+        let errorMessage = `Failed to scan emails (${response.status})`;
+        let errorDetails = '';
+
         try {
           const errorData = await response.json();
-          throw new Error(errorData.error || `Failed to scan emails (${response.status})`);
+          errorMessage = errorData.error || errorMessage;
+          errorDetails = errorData.details || '';
+
+          // Log detailed error for debugging
+          console.error('API Error Response:', {
+            status: response.status,
+            error: errorData.error,
+            details: errorData.details,
+            fullResponse: errorData
+          });
+
         } catch (jsonError) {
-          // If the response is not valid JSON, use a generic error message
-          throw new Error(`Failed to scan emails. Server returned ${response.status}: ${response.statusText}`);
+          // If the response is not valid JSON, try to get text
+          try {
+            const errorText = await response.text();
+            console.error('Non-JSON error response:', errorText);
+            errorMessage = `Server error: ${response.status} ${response.statusText}`;
+          } catch (textError) {
+            console.error('Could not parse error response:', textError);
+          }
         }
+
+        // Include details in the error message if available
+        const fullErrorMessage = errorDetails ? `${errorMessage}. ${errorDetails}` : errorMessage;
+        throw new Error(fullErrorMessage);
       }
 
       const data = await response.json();
@@ -117,7 +141,15 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       const generateId = () => Math.random().toString(36).substring(2, 15);
 
       // Process the detected bills
-      const detectedBills: DetectedBill[] = data.bills.map((bill: any) => ({
+      const detectedBills: DetectedBill[] = data.bills.map((bill: {
+        title: string;
+        amount: number;
+        dueDate: string;
+        category: string;
+        confidence: number;
+        source: string;
+        approved: boolean;
+      }) => ({
         id: generateId(),
         title: bill.title,
         amount: bill.amount,
