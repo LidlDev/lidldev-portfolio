@@ -23,7 +23,31 @@ const GitHub: React.FC = () => {
   const [repos, setRepos] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const username = "LidlDev";
+
+  useEffect(() => {
+    // Check for dark mode
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains('dark') || 
+                    window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkMode(isDark);
+    };
+
+    checkDarkMode();
+    
+    // Listen for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addListener(checkDarkMode);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeListener(checkDarkMode);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchGitHubData = async () => {
@@ -69,6 +93,15 @@ const GitHub: React.FC = () => {
       default: '#8B5CF6'
     };
     return colors[language] || colors.default;
+  };
+
+  // Generate contribution graph URL with proper theming
+  const getContributionGraphUrl = () => {
+    // Use your primary color (hsl(207 100% 35%)) converted to hex
+    const primaryColor = isDarkMode ? '1976d2' : '0c4a6e'; // Darker blue for light mode, lighter for dark mode
+    const backgroundColor = isDarkMode ? '1f2937' : 'ffffff'; // Dark background for dark mode
+    
+    return `https://ghchart.rshah.org/${primaryColor}/${username}`;
   };
 
   if (loading) {
@@ -174,12 +207,17 @@ const GitHub: React.FC = () => {
               <Github className="w-5 h-5" />
               Contribution Activity
             </h3>
-            <div className="bg-background/50 rounded-lg p-4 overflow-hidden border border-border/50">
+            <div className="bg-background/50 rounded-lg p-4 overflow-hidden border border-border/50 contribution-graph-container">
               <img
-                src={`https://ghchart.rshah.org/00FFE6/${username}`}
+                src={getContributionGraphUrl()}
                 alt="GitHub Contribution Graph"
-                className="w-full h-auto rounded"
-                style={{ filter: 'brightness(1.1) contrast(1.1)' }}
+                className="w-full h-auto rounded contribution-graph"
+                style={{ 
+                  filter: isDarkMode 
+                    ? 'brightness(0.9) contrast(1.2) hue-rotate(0deg)' 
+                    : 'brightness(1.1) contrast(1.1)',
+                  mixBlendMode: isDarkMode ? 'screen' : 'normal'
+                }}
               />
             </div>
             <div className="mt-4 text-center">
@@ -262,6 +300,32 @@ const GitHub: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .contribution-graph-container {
+          background: ${isDarkMode 
+            ? 'linear-gradient(135deg, rgba(31, 41, 55, 0.8), rgba(17, 24, 39, 0.9))' 
+            : 'linear-gradient(135deg, rgba(248, 250, 252, 0.8), rgba(241, 245, 249, 0.9))'
+          };
+        }
+        
+        .contribution-graph {
+          border-radius: 8px;
+          transition: all 0.3s ease;
+        }
+        
+        .contribution-graph:hover {
+          transform: scale(1.02);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+          .contribution-graph {
+            filter: brightness(0.9) contrast(1.2);
+            mix-blend-mode: screen;
+          }
+        }
+      `}</style>
     </section>
   );
 };
