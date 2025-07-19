@@ -66,7 +66,7 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
 
   // Edit payment state
   const [editingPayment, setEditingPayment] = useState<string | null>(null);
-  const [editFormData, setEditFormData] = useState({
+  const [editPaymentFormData, setEditPaymentFormData] = useState({
     title: '',
     amount: 0,
     due_date: '',
@@ -301,7 +301,7 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
   // Handle editing a payment
   const handleEditPayment = (payment: DatabasePayment) => {
     setEditingPayment(payment.id);
-    setEditFormData({
+    setEditPaymentFormData({
       title: payment.title,
       amount: payment.amount,
       due_date: payment.due_date.split('T')[0], // Convert to YYYY-MM-DD format
@@ -315,14 +315,14 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
     if (!editingPayment) return;
 
     try {
-      console.log('💾 Updating payment:', editingPayment, editFormData);
+      console.log('💾 Updating payment:', editingPayment, editPaymentFormData);
 
       await updatePaymentItem(editingPayment, {
-        title: editFormData.title,
-        amount: editFormData.amount,
-        due_date: new Date(editFormData.due_date).toISOString(),
-        category: editFormData.category,
-        recurring: editFormData.recurring
+        title: editPaymentFormData.title,
+        amount: editPaymentFormData.amount,
+        due_date: new Date(editPaymentFormData.due_date).toISOString(),
+        category: editPaymentFormData.category,
+        recurring: editPaymentFormData.recurring
       });
 
       setEditingPayment(null);
@@ -336,7 +336,7 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
   // Handle canceling edit
   const handleCancelEdit = () => {
     setEditingPayment(null);
-    setEditFormData({
+    setEditPaymentFormData({
       title: '',
       amount: 0,
       due_date: '',
@@ -1306,8 +1306,8 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
                     <label className="block text-sm font-medium text-foreground mb-1">Title</label>
                     <input
                       type="text"
-                      value={editFormData.title}
-                      onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
+                      value={editPaymentFormData.title}
+                      onChange={(e) => setEditPaymentFormData({...editPaymentFormData, title: e.target.value})}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       placeholder="Payment title"
                     />
@@ -1318,8 +1318,8 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
                     <input
                       type="number"
                       step="0.01"
-                      value={editFormData.amount}
-                      onChange={(e) => setEditFormData({...editFormData, amount: parseFloat(e.target.value) || 0})}
+                      value={editPaymentFormData.amount}
+                      onChange={(e) => setEditPaymentFormData({...editPaymentFormData, amount: parseFloat(e.target.value) || 0})}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       placeholder="0.00"
                     />
@@ -1329,8 +1329,8 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
                     <label className="block text-sm font-medium text-foreground mb-1">Due Date</label>
                     <input
                       type="date"
-                      value={editFormData.due_date}
-                      onChange={(e) => setEditFormData({...editFormData, due_date: e.target.value})}
+                      value={editPaymentFormData.due_date}
+                      onChange={(e) => setEditPaymentFormData({...editPaymentFormData, due_date: e.target.value})}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
@@ -1338,8 +1338,8 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">Category</label>
                     <select
-                      value={editFormData.category}
-                      onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
+                      value={editPaymentFormData.category}
+                      onChange={(e) => setEditPaymentFormData({...editPaymentFormData, category: e.target.value})}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     >
                       {expenseCategories.map(category => (
@@ -1354,8 +1354,8 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
                     <input
                       type="checkbox"
                       id="edit-recurring"
-                      checked={editFormData.recurring}
-                      onChange={(e) => setEditFormData({...editFormData, recurring: e.target.checked})}
+                      checked={editPaymentFormData.recurring}
+                      onChange={(e) => setEditPaymentFormData({...editPaymentFormData, recurring: e.target.checked})}
                       className="rounded border-border text-primary focus:ring-primary"
                     />
                     <label htmlFor="edit-recurring" className="text-sm text-foreground">
