@@ -376,7 +376,12 @@ const UpcomingPayments: React.FC = () => {
   }
 
   const handleBillsDetected = (bills: DetectedBill[]) => {
+    console.log('Bills detected in UpcomingPayments:', bills);
     setDetectedBills(bills);
+    // Force a small delay to ensure database operations are complete
+    setTimeout(() => {
+      setDetectedBills([...bills]); // Trigger re-render
+    }, 500);
   };
 
   const handleBillApproved = (bill: DetectedBill) => {

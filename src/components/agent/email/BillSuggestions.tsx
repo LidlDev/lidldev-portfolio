@@ -22,12 +22,20 @@ const BillSuggestions: React.FC<BillSuggestionsProps> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('BillSuggestions useEffect triggered, initialBills:', initialBills);
+
+    // If we have initialBills (from EmailScanner), use them immediately for better UX
     if (initialBills.length > 0) {
-      setBills(initialBills);
-      setLoading(false);
-      return;
+      console.log('Using initialBills immediately:', initialBills);
+      setBills(prevBills => {
+        // Merge with existing bills, avoiding duplicates
+        const existingSources = prevBills.map(b => b.source);
+        const newBills = initialBills.filter(b => !existingSources.includes(b.source));
+        return [...prevBills, ...newBills];
+      });
     }
 
+    // Always also fetch from database to get complete list
     const fetchDetectedBills = async () => {
       if (!user) {
         setLoading(false);
@@ -56,6 +64,7 @@ const BillSuggestions: React.FC<BillSuggestionsProps> = ({
           approved: bill.approved
         }));
 
+        console.log('BillSuggestions fetched bills from database:', formattedBills);
         setBills(formattedBills);
       } catch (error) {
         console.error('Error fetching detected bills:', error);
@@ -64,7 +73,11 @@ const BillSuggestions: React.FC<BillSuggestionsProps> = ({
       }
     };
 
-    fetchDetectedBills();
+    // Small delay to allow database operations to complete if we just got initialBills
+    const delay = initialBills.length > 0 ? 1000 : 0;
+    setTimeout(() => {
+      fetchDetectedBills();
+    }, delay);
   }, [user, initialBills]);
 
   const handleApproveBill = async (bill: DetectedBill) => {
