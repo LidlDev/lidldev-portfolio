@@ -168,10 +168,12 @@ async function handleOAuthWithUserId(userId, code, res, returnPath = null) {
     const expiresAt = new Date(Date.now() + (expires_in * 1000)).toISOString();
 
     // Store the tokens in Supabase - first try to update, then insert if not exists
-    let updateError;
+    let finalError;
+
+    console.log('Attempting to store tokens for user:', userId);
 
     // Try to update existing record first
-    const { error: updateExistingError } = await supabaseService
+    const { data: updateData, error: updateExistingError } = await supabaseService
       .from('email_auth')
       .update({
         access_token,
@@ -179,11 +181,13 @@ async function handleOAuthWithUserId(userId, code, res, returnPath = null) {
         expires_at: expiresAt,
       })
       .eq('user_id', userId)
-      .eq('provider', 'google');
+      .eq('provider', 'google')
+      .select();
 
     if (updateExistingError) {
+      console.log('Update failed, trying insert:', updateExistingError.message);
       // If update failed, try to insert new record
-      const { error: insertError } = await supabaseService
+      const { data: insertData, error: insertError } = await supabaseService
         .from('email_auth')
         .insert({
           user_id: userId,
@@ -191,18 +195,46 @@ async function handleOAuthWithUserId(userId, code, res, returnPath = null) {
           refresh_token,
           expires_at: expiresAt,
           provider: 'google',
-        });
+        })
+        .select();
 
-      updateError = insertError;
+      if (insertError) {
+        console.error('Insert also failed:', insertError);
+        finalError = insertError;
+      } else {
+        console.log('Insert successful:', insertData);
+      }
+    } else if (updateData && updateData.length > 0) {
+      console.log('Update successful:', updateData);
+    } else {
+      console.log('Update returned no data, trying insert...');
+      // Update succeeded but no rows were affected, try insert
+      const { data: insertData, error: insertError } = await supabaseService
+        .from('email_auth')
+        .insert({
+          user_id: userId,
+          access_token,
+          refresh_token,
+          expires_at: expiresAt,
+          provider: 'google',
+        })
+        .select();
+
+      if (insertError) {
+        console.error('Insert failed:', insertError);
+        finalError = insertError;
+      } else {
+        console.log('Insert successful:', insertData);
+      }
     }
 
-    if (updateError) {
-      console.error('Error storing tokens:', updateError);
-      console.error('Update error details:', {
-        message: updateError.message,
-        details: updateError.details,
-        hint: updateError.hint,
-        code: updateError.code
+    if (finalError) {
+      console.error('Error storing tokens:', finalError);
+      console.error('Token storage error details:', {
+        message: finalError.message,
+        details: finalError.details,
+        hint: finalError.hint,
+        code: finalError.code
       });
       return res.redirect(createRedirectUrl(returnPath, false, 'token_storage_failed'));
     }

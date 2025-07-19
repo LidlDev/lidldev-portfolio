@@ -215,15 +215,29 @@ export default async function handler(req, res) {
     }
 
     // Check if the user has granted permission to scan emails
+    console.log('Checking email scan permission for user:', userId);
     const { data: profile, error: profileError } = await supabaseService
       .from('profiles')
       .select('email_scan_permission')
       .eq('id', userId)
       .single();
 
-    if (profileError || !profile || !profile.email_scan_permission) {
+    if (profileError) {
+      console.error('Profile error:', profileError);
+      return res.status(403).json({ error: 'Error checking email scanning permission' });
+    }
+
+    if (!profile) {
+      console.error('No profile found for user:', userId);
+      return res.status(403).json({ error: 'User profile not found' });
+    }
+
+    if (!profile.email_scan_permission) {
+      console.log('Email scan permission not granted for user:', userId);
       return res.status(403).json({ error: 'Email scanning permission not granted' });
     }
+
+    console.log('Email scan permission granted, checking OAuth tokens...');
 
     // Get the user's OAuth tokens from the database
     const { data: authData, error: authDataError } = await supabaseService
@@ -233,9 +247,17 @@ export default async function handler(req, res) {
       .eq('provider', 'google')
       .single();
 
-    if (authDataError || !authData) {
+    if (authDataError) {
+      console.error('Auth data error:', authDataError);
+      return res.status(403).json({ error: 'Error retrieving email authentication data' });
+    }
+
+    if (!authData) {
+      console.log('No OAuth tokens found for user:', userId);
       return res.status(403).json({ error: 'Email authentication not found. Please reconnect your Gmail account.' });
     }
+
+    console.log('OAuth tokens found, expires at:', authData.expires_at);
 
     // Check if the token is expired and refresh if needed
     let gmailToken = authData.access_token;
