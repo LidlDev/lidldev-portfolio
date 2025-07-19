@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Mail } from 'lucide-react';
+import { Mail, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface EmailScannerProps {
@@ -25,6 +25,56 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
   // We'll initialize with false and update in useEffect
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const [tokenExpired, setTokenExpired] = useState(false);
+  const [checkingConnection, setCheckingConnection] = useState(false);
+
+  // Function to check if Gmail connection is still valid
+  const checkGmailConnection = async () => {
+    if (!user) return false;
+
+    setCheckingConnection(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+
+      if (!accessToken) return false;
+
+      const response = await fetch('/api/check-gmail-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          accessToken
+        }),
+      });
+
+      const result = await response.json();
+      return response.ok && result.connected;
+    } catch (error) {
+      console.error('Error checking Gmail connection:', error);
+      return false;
+    } finally {
+      setCheckingConnection(false);
+    }
+  };
+
+  // Function to reconnect Gmail
+  const reconnectGmail = async () => {
+    if (!user) return;
+
+    try {
+      // Clear the expired token state
+      setTokenExpired(false);
+
+      // Redirect to Gmail auth
+      window.location.href = `/api/email-auth?userId=${user.id}`;
+    } catch (error) {
+      console.error('Error reconnecting Gmail:', error);
+      toast.error('Failed to reconnect Gmail. Please try again.');
+    }
+  };
 
   // Use the API endpoint to scan emails
   const scanEmails = async () => {
@@ -128,6 +178,16 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           } catch (textError) {
             console.error('Could not parse error response:', textError);
           }
+        }
+
+        // Check if this is a token expiration error
+        if (response.status === 403 && (
+          errorMessage.includes('refresh authentication') ||
+          errorMessage.includes('reconnect') ||
+          errorDetails.includes('refresh_token')
+        )) {
+          setTokenExpired(true);
+          setPermissionGranted(false);
         }
 
         // Include details in the error message if available
@@ -266,8 +326,18 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           .single();
 
         if (!authError && authData) {
-          console.log('Found existing OAuth tokens');
-          setPermissionGranted(true);
+          console.log('Found existing OAuth tokens, checking if still valid...');
+          // Check if the tokens are still valid
+          const isConnected = await checkGmailConnection();
+          if (isConnected) {
+            setPermissionGranted(true);
+            setTokenExpired(false);
+            console.log('Gmail connection is valid');
+          } else {
+            setPermissionGranted(false);
+            setTokenExpired(true);
+            console.log('Gmail tokens have expired');
+          }
           return;
         }
 
@@ -293,27 +363,58 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium text-primary">Email Bill Detection</h3>
-        <button
-          onClick={scanEmails}
-          disabled={scanning}
-          className="flex items-center px-3 py-1.5 rounded-lg transition-colors bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
-        >
-          {scanning ? (
-            <>
-              <svg className="w-4 h-4 mr-2 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Scanning...
-            </>
-          ) : (
-            <>
-              <Mail className="w-4 h-4 mr-2" />
-              Scan Emails
-            </>
+        <div className="flex items-center space-x-3">
+          <h3 className="font-medium text-primary">Email Bill Detection</h3>
+          {checkingConnection ? (
+            <div className="flex items-center space-x-1">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-yellow-400 border-t-transparent" />
+              <span className="text-yellow-400 text-sm">Checking...</span>
+            </div>
+          ) : tokenExpired ? (
+            <div className="flex items-center space-x-1">
+              <AlertCircle className="h-4 w-4 text-red-400" />
+              <span className="text-red-400 text-sm">Connection expired</span>
+            </div>
+          ) : permissionGranted ? (
+            <div className="flex items-center space-x-1">
+              <div className="h-4 w-4 rounded-full bg-green-400 flex items-center justify-center">
+                <div className="h-2 w-2 rounded-full bg-white" />
+              </div>
+              <span className="text-green-400 text-sm">Connected</span>
+            </div>
+          ) : null}
+        </div>
+        <div className="flex items-center space-x-2">
+          {tokenExpired && (
+            <button
+              onClick={reconnectGmail}
+              className="flex items-center px-3 py-1.5 rounded-lg transition-colors bg-orange-600 text-white hover:bg-orange-700 text-sm"
+            >
+              <div className="w-4 h-4 mr-1 border-2 border-white rounded-full border-t-transparent animate-spin" />
+              Reconnect
+            </button>
           )}
-        </button>
+          <button
+            onClick={scanEmails}
+            disabled={scanning || !permissionGranted || tokenExpired}
+            className="flex items-center px-3 py-1.5 rounded-lg transition-colors bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
+          >
+            {scanning ? (
+              <>
+                <svg className="w-4 h-4 mr-2 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Scanning...
+              </>
+            ) : (
+              <>
+                <Mail className="w-4 h-4 mr-2" />
+                Scan Emails
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {!showPermissionDialog && (
