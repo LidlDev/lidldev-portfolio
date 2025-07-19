@@ -262,6 +262,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       }
 
       const data = await response.json();
+      console.log('📧 EmailScanner: Raw API response:', data);
 
       // Generate IDs for the bills (the API doesn't include IDs)
       const generateId = () => Math.random().toString(36).substring(2, 15);
@@ -286,10 +287,15 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
         approved: bill.approved
       }));
 
+      console.log('🔄 EmailScanner: Processed bills:', detectedBills);
+
       if (detectedBills.length > 0) {
+        console.log('🔥 EmailScanner: About to call onBillsDetected with bills:', detectedBills);
         toast.success(`Found ${detectedBills.length} new bills in your emails`);
         onBillsDetected(detectedBills);
+        console.log('✅ EmailScanner: onBillsDetected callback called');
       } else {
+        console.log('ℹ️ EmailScanner: No new bills found');
         toast.info('No new bills found in your emails');
       }
     } catch (error) {

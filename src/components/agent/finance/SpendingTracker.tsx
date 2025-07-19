@@ -9,7 +9,7 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
-import { ChevronLeft, ChevronRight, Calendar, Pencil, Trash, X, CreditCard, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Pencil, Trash, X, CreditCard, AlertCircle, CheckCircle2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import EmailScanner, { DetectedBill } from '@/components/agent/email/EmailScanner';
 import { initialPayments } from '@/utils/agentData';
@@ -60,6 +60,9 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'expenses' | 'payments'>(initialTab);
+
+  // Detected bills state
+  const [detectedBills, setDetectedBills] = useState<DetectedBill[]>([]);
 
   // Handle URL parameters for tab navigation after auth redirect
   React.useEffect(() => {
@@ -235,25 +238,39 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
 
   // Handle detected bills from email scanning
   const handleBillsDetected = (bills: DetectedBill[]) => {
-    // Convert detected bills to payments and add them
-    bills.forEach(async (bill) => {
-      if (bill.approved) {
-        try {
-          if (user) {
-            await addItem({
-              title: bill.title,
-              amount: bill.amount,
-              due_date: bill.dueDate.toISOString(),
-              category: bill.category,
-              recurring: false,
-              paid: false
-            });
-          }
-        } catch (error) {
-          console.error('Error adding detected bill as payment:', error);
-        }
+    console.log('🎯 SpendingTracker: handleBillsDetected called with bills:', bills);
+    setDetectedBills(bills);
+    toast.success(`Found ${bills.length} bills in your emails. Review them below.`);
+  };
+
+  // Handle approving a detected bill
+  const handleApproveBill = async (bill: DetectedBill) => {
+    try {
+      if (user) {
+        // Add to payments
+        await addItem({
+          title: bill.title,
+          amount: bill.amount,
+          due_date: bill.dueDate.toISOString(),
+          category: bill.category,
+          recurring: false,
+          paid: false
+        });
+
+        // Remove from detected bills
+        setDetectedBills(prev => prev.filter(b => b.id !== bill.id));
+        toast.success(`Added "${bill.title}" to upcoming payments`);
       }
-    });
+    } catch (error) {
+      console.error('Error adding detected bill as payment:', error);
+      toast.error('Failed to add payment');
+    }
+  };
+
+  // Handle rejecting a detected bill
+  const handleRejectBill = (billId: string) => {
+    setDetectedBills(prev => prev.filter(b => b.id !== billId));
+    toast.info('Bill rejected');
   };
 
   // Handle toggling payment status (paid/unpaid)
@@ -1009,6 +1026,59 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
 
           {/* Email Scanner Component */}
           <EmailScanner onBillsDetected={handleBillsDetected} />
+
+          {/* Detected Bills Section */}
+          {detectedBills.length > 0 && (
+            <div className="bg-card border border-border rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                <Mail className="w-5 h-5 mr-2 text-blue-500" />
+                Bills Found in Emails ({detectedBills.length})
+              </h3>
+              <div className="space-y-3">
+                {detectedBills.map(bill => (
+                  <div key={bill.id} className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg border border-border/50">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <h4 className="font-medium text-foreground">{bill.title}</h4>
+                          <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
+                            <span>From: {bill.source}</span>
+                            <span>•</span>
+                            <span>Due: {bill.dueDate.toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>{bill.category}</span>
+                            <span>•</span>
+                            <span>{Math.round(bill.confidence * 100)}% confidence</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-lg font-semibold text-foreground">
+                        {formatCurrency(bill.amount)}
+                      </span>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleRejectBill(bill.id)}
+                          className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                          title="Reject this bill"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleApproveBill(bill)}
+                          className="p-2 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
+                          title="Add to upcoming payments"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-card border border-border rounded-lg p-4">
