@@ -61,6 +61,17 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
   // Tab state
   const [activeTab, setActiveTab] = useState<'expenses' | 'payments'>(initialTab);
 
+  // Handle URL parameters for tab navigation after auth redirect
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    const authRedirect = urlParams.get('auth_redirect');
+
+    if (tabParam && authRedirect === 'true' && (tabParam === 'expenses' || tabParam === 'payments')) {
+      setActiveTab(tabParam);
+    }
+  }, []);
+
   // Time period filtering
   const [timePeriod, setTimePeriod] = useState<'month' | 'week' | 'fortnight'>('month');
   const [periodOffset, setPeriodOffset] = useState(0); // 0 = current period, -1 = previous period, etc.

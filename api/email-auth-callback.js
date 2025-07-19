@@ -167,20 +167,44 @@ async function handleOAuthWithUserId(userId, code, res, returnPath = null) {
     // Calculate the expiration time
     const expiresAt = new Date(Date.now() + (expires_in * 1000)).toISOString();
 
-    // Store the tokens in Supabase
-    const { error: updateError } = await supabaseService
+    // Store the tokens in Supabase - first try to update, then insert if not exists
+    let updateError;
+
+    // Try to update existing record first
+    const { error: updateExistingError } = await supabaseService
       .from('email_auth')
-      .upsert({
-        user_id: userId,
+      .update({
         access_token,
         refresh_token,
         expires_at: expiresAt,
-        provider: 'google',
-      });
+      })
+      .eq('user_id', userId)
+      .eq('provider', 'google');
+
+    if (updateExistingError) {
+      // If update failed, try to insert new record
+      const { error: insertError } = await supabaseService
+        .from('email_auth')
+        .insert({
+          user_id: userId,
+          access_token,
+          refresh_token,
+          expires_at: expiresAt,
+          provider: 'google',
+        });
+
+      updateError = insertError;
+    }
 
     if (updateError) {
       console.error('Error storing tokens:', updateError);
-      return res.redirect('/agent?auth_error=token_storage_failed');
+      console.error('Update error details:', {
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint,
+        code: updateError.code
+      });
+      return res.redirect(createRedirectUrl(returnPath, false, 'token_storage_failed'));
     }
 
     // Update the user's profile to indicate email scanning permission

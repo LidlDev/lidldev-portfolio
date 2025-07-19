@@ -25,9 +25,23 @@ const Agent = () => {
   // Use the auth redirect hook to handle OAuth redirects
   useAuthRedirect();
 
-  // Set document title when component mounts
+  // Set document title when component mounts and handle URL parameters
   useEffect(() => {
     document.title = 'Agent | LidlDev Portfolio';
+
+    // Check for URL parameters to navigate to specific page/tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageParam = urlParams.get('page');
+    const authRedirect = urlParams.get('auth_redirect');
+
+    if (pageParam && authRedirect === 'true') {
+      // Navigate to the specified page after auth redirect
+      setActivePage(pageParam);
+
+      // Clean up the URL parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
 
     // Restore original title when component unmounts
     return () => {

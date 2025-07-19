@@ -159,7 +159,35 @@ export default async function handler(req, res) {
         
       } catch (refreshError) {
         console.error('Error refreshing token:', refreshError);
-        return res.status(200).json({ connected: false, reason: 'Token refresh failed' });
+
+        // If it's an invalid_grant error, the refresh token is invalid
+        // We need to clear the old auth data so user can re-authenticate
+        if (refreshError.message && refreshError.message.includes('invalid_grant')) {
+          console.log('Refresh token is invalid, clearing auth data for re-authentication');
+          try {
+            await supabaseService
+              .from('email_auth')
+              .delete()
+              .eq('user_id', userId)
+              .eq('provider', 'google');
+
+            // Also clear the profile permission so they get prompted to re-auth
+            await supabaseService
+              .from('profiles')
+              .update({ email_scan_permission: false })
+              .eq('id', userId);
+
+            console.log('Cleared invalid auth data');
+          } catch (clearError) {
+            console.error('Error clearing invalid auth data:', clearError);
+          }
+        }
+
+        return res.status(200).json({
+          connected: false,
+          reason: 'Token refresh failed',
+          requiresReauth: refreshError.message && refreshError.message.includes('invalid_grant')
+        });
       }
     }
 

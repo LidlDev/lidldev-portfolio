@@ -51,6 +51,13 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       });
 
       const result = await response.json();
+
+      // If the API indicates we need to re-authenticate, clear the permission
+      if (result.requiresReauth) {
+        setPermissionGranted(false);
+        setTokenExpired(true);
+      }
+
       return response.ok && result.connected;
     } catch (error) {
       console.error('Error checking Gmail connection:', error);
@@ -68,12 +75,15 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       // Clear the expired token state
       setTokenExpired(false);
 
-      // Store the current location to return to after auth
-      const currentPath = window.location.pathname + window.location.search + window.location.hash;
-      localStorage.setItem('email_auth_return_path', currentPath);
+      // Create a specific return path that will navigate to the payments tab
+      // Since we're in the EmailScanner component, we know we're in the payments section
+      const returnPath = '/agent?page=payments&tab=payments&auth_redirect=true';
 
-      // Redirect to Gmail auth
-      window.location.href = `/api/email-auth?userId=${user.id}&returnPath=${encodeURIComponent(currentPath)}`;
+      // Store the return path for additional safety
+      localStorage.setItem('email_auth_return_path', returnPath);
+
+      // Redirect to Gmail auth with the specific return path
+      window.location.href = `/api/email-auth?userId=${user.id}&returnPath=${encodeURIComponent(returnPath)}`;
     } catch (error) {
       console.error('Error reconnecting Gmail:', error);
       toast.error('Failed to reconnect Gmail. Please try again.');
