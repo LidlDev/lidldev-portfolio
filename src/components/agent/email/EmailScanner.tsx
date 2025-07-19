@@ -27,6 +27,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [tokenExpired, setTokenExpired] = useState(false);
   const [checkingConnection, setCheckingConnection] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Function to check if Gmail connection is still valid
   const checkGmailConnection = async () => {
@@ -54,14 +55,61 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
 
       // If the API indicates we need to re-authenticate, clear the permission
       if (result.requiresReauth) {
+        console.log('API indicates re-authentication required, updating UI state');
         setPermissionGranted(false);
         setTokenExpired(true);
+        toast.error('Gmail connection expired. Please reconnect your account.');
+        // Trigger a refresh to re-check the permission state
+        setRefreshTrigger(prev => prev + 1);
       }
 
       return response.ok && result.connected;
     } catch (error) {
       console.error('Error checking Gmail connection:', error);
       return false;
+    } finally {
+      setCheckingConnection(false);
+    }
+  };
+
+  // Function to manually refresh connection status
+  const refreshConnectionStatus = async () => {
+    if (!user) return;
+
+    console.log('Manually refreshing connection status...');
+    setCheckingConnection(true);
+
+    try {
+      // Re-check the connection status
+      const isConnected = await checkGmailConnection();
+
+      // Also check if auth data exists in database
+      const { data: authData, error: authError } = await supabase
+        .from('email_auth')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('provider', 'google')
+        .single();
+
+      if (authError || !authData) {
+        console.log('No auth data found, user needs to reconnect');
+        setPermissionGranted(false);
+        setTokenExpired(true);
+        toast.info('Please connect your Gmail account to scan emails.');
+      } else if (isConnected) {
+        console.log('Connection is valid');
+        setPermissionGranted(true);
+        setTokenExpired(false);
+        toast.success('Gmail connection is active!');
+      } else {
+        console.log('Connection is invalid');
+        setPermissionGranted(false);
+        setTokenExpired(true);
+        toast.error('Gmail connection has expired. Please reconnect.');
+      }
+    } catch (error) {
+      console.error('Error refreshing connection status:', error);
+      toast.error('Failed to check connection status.');
     } finally {
       setCheckingConnection(false);
     }
@@ -349,9 +397,29 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
             setTokenExpired(false);
             console.log('Gmail connection is valid');
           } else {
-            setPermissionGranted(false);
-            setTokenExpired(true);
-            console.log('Gmail tokens have expired');
+            // The checkGmailConnection function will have already updated the UI state
+            // if requiresReauth was true, so we don't need to set it again here
+            console.log('Gmail tokens have expired or were cleared');
+
+            // Double-check if the auth data was cleared from the database
+            try {
+              const { data: recheckAuthData, error: recheckError } = await supabase
+                .from('email_auth')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('provider', 'google')
+                .single();
+
+              if (recheckError || !recheckAuthData) {
+                console.log('Auth data was cleared from database, resetting UI state');
+                setPermissionGranted(false);
+                setTokenExpired(true);
+              }
+            } catch (recheckErr) {
+              console.log('Error rechecking auth data:', recheckErr);
+              setPermissionGranted(false);
+              setTokenExpired(true);
+            }
           }
           return;
         }
@@ -373,7 +441,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
     };
 
     checkPermission();
-  }, [user]);
+  }, [user, refreshTrigger]);
 
   return (
     <div className="mb-6">
@@ -400,6 +468,20 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           ) : null}
         </div>
         <div className="flex items-center space-x-2">
+          {!permissionGranted && !tokenExpired && (
+            <button
+              onClick={refreshConnectionStatus}
+              disabled={checkingConnection}
+              className="flex items-center px-3 py-1.5 rounded-lg transition-colors bg-blue-600 text-white hover:bg-blue-700 text-sm disabled:opacity-50"
+            >
+              {checkingConnection ? (
+                <div className="w-4 h-4 mr-1 border-2 border-white rounded-full border-t-transparent animate-spin" />
+              ) : (
+                <div className="w-4 h-4 mr-1 border-2 border-white rounded-full border-t-transparent" />
+              )}
+              Check Connection
+            </button>
+          )}
           {tokenExpired && (
             <button
               onClick={reconnectGmail}
