@@ -14,6 +14,7 @@ const Hero: React.FC = () => {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [phraseIndex, setPhraseIndex] = React.useState(0);
   const [delta, setDelta] = React.useState(200 - Math.random() * 100);
+  const [cursorVisible, setCursorVisible] = React.useState(true);
   
   React.useEffect(() => {
     const ticker = setInterval(() => {
@@ -22,6 +23,15 @@ const Hero: React.FC = () => {
 
     return () => clearInterval(ticker);
   }, [text, isDeleting, phraseIndex, delta]);
+
+  // Cursor blinking effect
+  React.useEffect(() => {
+    const cursorInterval = setInterval(() => {
+      setCursorVisible(prev => !prev);
+    }, 530); // 530ms for a more realistic typewriter cursor feel
+
+    return () => clearInterval(cursorInterval);
+  }, []);
 
   const tick = () => {
     const currentPhrase = phrases[phraseIndex];
@@ -71,9 +81,14 @@ const Hero: React.FC = () => {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-balance">
               <span className="magic-text">Harry</span>
               <br />
-              <span className="relative inline-block min-h-[1.2em]">
-                <span className="inline-block">{text}</span>
-                <span className="inline-block animate-pulse ml-1">|</span>
+              <span className="relative inline-block min-h-[1.2em] leading-tight">
+                <span className="whitespace-pre-wrap">{text}</span>
+                <span 
+                  className="inline-block"
+                  style={{ opacity: cursorVisible ? 1 : 0 }}
+                >
+                  |
+                </span>
               </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl">
