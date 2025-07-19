@@ -207,19 +207,18 @@ const GitHub: React.FC = () => {
               <Github className="w-5 h-5" />
               Contribution Activity
             </h3>
-            <div className="bg-background/50 rounded-lg p-4 overflow-hidden border border-border/50 contribution-graph-container relative">
+            <div className="bg-background/50 rounded-lg p-4 overflow-hidden border border-border/50 contribution-graph-container">
               <img
                 src={getContributionGraphUrl()}
                 alt="GitHub Contribution Graph"
                 className="w-full h-auto rounded contribution-graph"
+                style={{ 
+                  filter: isDarkMode 
+                    ? 'brightness(0.9) contrast(1.2) hue-rotate(0deg)' 
+                    : 'brightness(1.1) contrast(1.1)',
+                  mixBlendMode: isDarkMode ? 'screen' : 'normal'
+                }}
               />
-              {isDarkMode && (
-                <div className="absolute inset-0 pointer-events-none rounded-lg"
-                     style={{
-                       background: 'linear-gradient(135deg, rgba(55, 65, 81, 0.2), rgba(31, 41, 55, 0.1))',
-                       mixBlendMode: 'overlay'
-                     }} />
-              )}
             </div>
             <div className="mt-4 text-center">
               <p className="text-sm text-muted-foreground">
@@ -313,33 +312,19 @@ const GitHub: React.FC = () => {
         .contribution-graph {
           border-radius: 8px;
           transition: all 0.3s ease;
-          ${isDarkMode ? `
-            filter: brightness(0.8) contrast(1.3) invert(0.1) sepia(0.2) hue-rotate(200deg);
-            background-color: #374151;
-            mix-blend-mode: multiply;
-          ` : `
-            filter: brightness(1.1) contrast(1.1);
-          `}
         }
         
         .contribution-graph:hover {
           transform: scale(1.02);
-          box-shadow: 0 8px 25px ${isDarkMode ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.15)'};
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
         
-        ${isDarkMode ? `
-          .contribution-graph::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(55, 65, 81, 0.3), rgba(31, 41, 55, 0.2));
-            border-radius: 8px;
-            pointer-events: none;
+        @media (prefers-color-scheme: dark) {
+          .contribution-graph {
+            filter: brightness(0.9) contrast(1.2);
+            mix-blend-mode: screen;
           }
-        ` : ''}
+        }
       `}</style>
     </section>
   );
