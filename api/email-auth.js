@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const { userId, callbackUrl } = req.query;
+    const { userId, callbackUrl, returnPath } = req.query;
 
     if (!userId) {
       return res.status(400).json({ error: 'Missing required parameters' });
@@ -50,8 +50,12 @@ export default async function handler(req, res) {
     // We'll use the state parameter to pass additional data
     const redirectUri = REDIRECT_URI;
 
-    // Create a state parameter to pass the user ID
-    const state = Buffer.from(JSON.stringify({ userId })).toString('base64');
+    // Create a state parameter to pass the user ID and return path
+    const stateData = { userId };
+    if (returnPath) {
+      stateData.returnPath = returnPath;
+    }
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
 
     console.log('Using redirect URI:', redirectUri);
     console.log('Using state parameter with userId:', userId);
@@ -66,16 +70,10 @@ export default async function handler(req, res) {
       SUPABASE_SERVICE_KEY: supabaseServiceKey ? 'Set' : 'Not set'
     });
 
-    // Store the user ID in the session for later use
-    // In a real implementation, you would use a secure session store
-    // For simplicity, we'll use a cookie
-    // Make sure the cookie is accessible across the domain
-    const domain = process.env.NEXT_PUBLIC_URL ? new URL(process.env.NEXT_PUBLIC_URL).hostname : '';
-
-    console.log('Setting cookie with domain:', domain);
-
-    // Set the cookie with more permissive settings for cross-domain access
-    res.setHeader('Set-Cookie', `email_auth_user_id=${userId}; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=3600${domain ? `; Domain=${domain}` : ''}`);
+    console.log('Initiating OAuth flow for user:', userId);
+    if (returnPath) {
+      console.log('Will return to:', returnPath);
+    }
 
     // Check if Google OAuth credentials are set
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {

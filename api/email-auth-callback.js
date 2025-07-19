@@ -1,5 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Helper function to create redirect URLs with return path
+function createRedirectUrl(returnPath, isSuccess = false, errorType = null) {
+  const baseUrl = returnPath || '/agent';
+  const separator = baseUrl.includes('?') ? '&' : '?';
+
+  if (isSuccess) {
+    return `${baseUrl}${separator}auth_success=true`;
+  } else if (errorType) {
+    return `${baseUrl}${separator}auth_error=${encodeURIComponent(errorType)}`;
+  }
+
+  return baseUrl;
+}
+
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
@@ -57,13 +71,15 @@ export default async function handler(req, res) {
       return res.redirect('/agent?auth_error=missing_state_parameter');
     }
 
-    let userId;
+    let userId, returnPath;
     try {
-      // Decode the state parameter to get the user ID
+      // Decode the state parameter to get the user ID and return path
       const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
       userId = stateData.userId;
+      returnPath = stateData.returnPath;
 
       console.log('Extracted user ID from state parameter:', userId);
+      console.log('Extracted return path from state parameter:', returnPath);
 
       if (!userId) {
         throw new Error('User ID not found in state parameter');
@@ -74,7 +90,7 @@ export default async function handler(req, res) {
     }
 
     // Continue with the user ID from the state parameter
-    return handleOAuthWithUserId(userId, code, res);
+    return handleOAuthWithUserId(userId, code, res, returnPath);
   } catch (error) {
     console.error('Error handling OAuth callback:', error);
     return res.redirect('/agent?auth_error=server_error');
@@ -82,7 +98,7 @@ export default async function handler(req, res) {
 }
 
 // Helper function to handle the OAuth callback with a specific user ID
-async function handleOAuthWithUserId(userId, code, res) {
+async function handleOAuthWithUserId(userId, code, res, returnPath = null) {
   try {
     // Check if Supabase client is initialized
     if (!supabaseService) {
@@ -178,14 +194,12 @@ async function handleOAuthWithUserId(userId, code, res) {
       // Continue anyway, as the tokens were stored successfully
     }
 
-    // Clear the cookie
-    const domain = process.env.NEXT_PUBLIC_URL ? new URL(process.env.NEXT_PUBLIC_URL).hostname : '';
-    res.setHeader('Set-Cookie', `email_auth_user_id=; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=0${domain ? `; Domain=${domain}` : ''}`);
+    console.log('OAuth flow completed successfully for user:', userId);
 
-    // Redirect back to the agent page with success
-    return res.redirect('/agent?auth_success=true');
+    // Redirect back to the return path or agent page with success
+    return res.redirect(createRedirectUrl(returnPath, true));
   } catch (error) {
     console.error('Error in handleOAuthWithUserId:', error);
-    return res.redirect('/agent?auth_error=server_error');
+    return res.redirect(createRedirectUrl(returnPath, false, 'server_error'));
   }
 }

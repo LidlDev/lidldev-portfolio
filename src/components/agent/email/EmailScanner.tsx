@@ -68,8 +68,12 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
       // Clear the expired token state
       setTokenExpired(false);
 
+      // Store the current location to return to after auth
+      const currentPath = window.location.pathname + window.location.search + window.location.hash;
+      localStorage.setItem('email_auth_return_path', currentPath);
+
       // Redirect to Gmail auth
-      window.location.href = `/api/email-auth?userId=${user.id}`;
+      window.location.href = `/api/email-auth?userId=${user.id}&returnPath=${encodeURIComponent(currentPath)}`;
     } catch (error) {
       console.error('Error reconnecting Gmail:', error);
       toast.error('Failed to reconnect Gmail. Please try again.');
@@ -282,7 +286,8 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
 
     if (authSuccess === 'true' && user) {
       setPermissionGranted(true);
-      toast.success('Email access granted successfully');
+      setTokenExpired(false);
+      toast.success('Gmail reconnected successfully!');
 
       // Remove the query parameters
       const newUrl = window.location.pathname;
@@ -390,7 +395,7 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
               onClick={reconnectGmail}
               className="flex items-center px-3 py-1.5 rounded-lg transition-colors bg-orange-600 text-white hover:bg-orange-700 text-sm"
             >
-              <div className="w-4 h-4 mr-1 border-2 border-white rounded-full border-t-transparent animate-spin" />
+              <div className="w-4 h-4 mr-1 border-2 border-white rounded-full border-t-transparent" />
               Reconnect
             </button>
           )}
