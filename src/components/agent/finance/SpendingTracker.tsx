@@ -120,8 +120,10 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
   // Get payments data
   const {
     data: paymentsData = [],
+    addItem: addPaymentItem,
     updateItem: updatePaymentItem,
-    deleteItem: deletePaymentItem
+    deleteItem: deletePaymentItem,
+    fetchData: fetchPaymentsData
   } = useSupabaseData<DatabasePayment>({
     table: 'payments',
     initialData: initialPayments.map(payment => ({
@@ -245,24 +247,37 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
 
   // Handle approving a detected bill
   const handleApproveBill = async (bill: DetectedBill) => {
+    console.log('🔥 Approving bill:', bill);
     try {
       if (user) {
-        // Add to payments
-        await addItem({
+        const paymentData = {
           title: bill.title,
           amount: bill.amount,
           due_date: bill.dueDate.toISOString(),
           category: bill.category,
           recurring: false,
           paid: false
-        });
+        };
+
+        console.log('💾 Adding payment to Supabase:', paymentData);
+
+        // Add to payments
+        const result = await addPaymentItem(paymentData);
+        console.log('✅ Payment added successfully:', result);
+
+        // Refresh payments data to ensure UI updates
+        await fetchPaymentsData();
+        console.log('🔄 Payments data refreshed');
 
         // Remove from detected bills
         setDetectedBills(prev => prev.filter(b => b.id !== bill.id));
         toast.success(`Added "${bill.title}" to upcoming payments`);
+      } else {
+        console.error('❌ No user found when trying to approve bill');
+        toast.error('User not authenticated');
       }
     } catch (error) {
-      console.error('Error adding detected bill as payment:', error);
+      console.error('❌ Error adding detected bill as payment:', error);
       toast.error('Failed to add payment');
     }
   };
