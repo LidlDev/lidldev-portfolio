@@ -64,6 +64,16 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
   // Detected bills state
   const [detectedBills, setDetectedBills] = useState<DetectedBill[]>([]);
 
+  // Edit payment state
+  const [editingPayment, setEditingPayment] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    amount: 0,
+    due_date: '',
+    category: 'Housing',
+    recurring: false
+  });
+
   // Handle URL parameters for tab navigation after auth redirect
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -286,6 +296,53 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
   const handleRejectBill = (billId: string) => {
     setDetectedBills(prev => prev.filter(b => b.id !== billId));
     toast.info('Bill rejected');
+  };
+
+  // Handle editing a payment
+  const handleEditPayment = (payment: DatabasePayment) => {
+    setEditingPayment(payment.id);
+    setEditFormData({
+      title: payment.title,
+      amount: payment.amount,
+      due_date: payment.due_date.split('T')[0], // Convert to YYYY-MM-DD format
+      category: payment.category,
+      recurring: payment.recurring
+    });
+  };
+
+  // Handle saving edited payment
+  const handleSaveEditPayment = async () => {
+    if (!editingPayment) return;
+
+    try {
+      console.log('💾 Updating payment:', editingPayment, editFormData);
+
+      await updatePaymentItem(editingPayment, {
+        title: editFormData.title,
+        amount: editFormData.amount,
+        due_date: new Date(editFormData.due_date).toISOString(),
+        category: editFormData.category,
+        recurring: editFormData.recurring
+      });
+
+      setEditingPayment(null);
+      toast.success('Payment updated successfully');
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      toast.error('Failed to update payment');
+    }
+  };
+
+  // Handle canceling edit
+  const handleCancelEdit = () => {
+    setEditingPayment(null);
+    setEditFormData({
+      title: '',
+      amount: 0,
+      due_date: '',
+      category: 'Housing',
+      recurring: false
+    });
   };
 
   // Handle toggling payment status (paid/unpaid)
@@ -1167,6 +1224,14 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
 
                         <div className="flex space-x-2">
                           <button
+                            onClick={() => handleEditPayment(payment)}
+                            className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            title="Edit payment"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+
+                          <button
                             onClick={() => handleRemovePayment(payment.id)}
                             className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             title="Remove payment"
@@ -1226,6 +1291,93 @@ const SpendingTracker: React.FC<SpendingTrackerProps> = ({ initialTab = 'expense
                       </div>
                     </div>
                   ))}
+              </div>
+            </div>
+          )}
+
+          {/* Edit Payment Modal */}
+          {editingPayment && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md mx-4">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Edit Payment</h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={editFormData.title}
+                      onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="Payment title"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Amount</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editFormData.amount}
+                      onChange={(e) => setEditFormData({...editFormData, amount: parseFloat(e.target.value) || 0})}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Due Date</label>
+                    <input
+                      type="date"
+                      value={editFormData.due_date}
+                      onChange={(e) => setEditFormData({...editFormData, due_date: e.target.value})}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Category</label>
+                    <select
+                      value={editFormData.category}
+                      onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    >
+                      {expenseCategories.map(category => (
+                        <option key={category.name} value={category.name}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="edit-recurring"
+                      checked={editFormData.recurring}
+                      onChange={(e) => setEditFormData({...editFormData, recurring: e.target.checked})}
+                      className="rounded border-border text-primary focus:ring-primary"
+                    />
+                    <label htmlFor="edit-recurring" className="text-sm text-foreground">
+                      Recurring monthly
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3 mt-6">
+                  <button
+                    onClick={handleCancelEdit}
+                    className="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveEditPayment}
+                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
               </div>
             </div>
           )}
