@@ -74,14 +74,19 @@ const Agent = () => {
         <Header />
       </div>
 
-      <div className="flex flex-1 pt-16 w-full">
+      <div className="flex flex-1 w-full">
         {/* Sidebar - hidden on mobile */}
         <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
-        {/* Main content area */}
-        <main className="flex-1 p-2 md:p-6 overflow-auto pb-24 md:pb-6 w-full">
-          <div className="bg-card text-card-foreground p-3 md:p-6 h-full rounded-xl shadow-lg border border-border">
-            {renderActivePage()}
+        {/* Main content area with proper mobile spacing */}
+        <main className="flex-1 w-full overflow-hidden">
+          {/* Content wrapper with proper mobile constraints */}
+          <div className="h-screen pt-[60px] sm:pt-[68px] md:pt-16 pb-[80px] md:pb-6 px-2 sm:px-4 md:px-6 overflow-auto">
+            <div className="bg-card text-card-foreground p-3 sm:p-4 md:p-6 h-full rounded-lg md:rounded-xl shadow-lg border border-border overflow-hidden">
+              <div className="h-full overflow-auto">
+                {renderActivePage()}
+              </div>
+            </div>
           </div>
         </main>
       </div>

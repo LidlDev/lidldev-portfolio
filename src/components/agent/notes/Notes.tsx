@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
   Plus,
   Search,
@@ -14,23 +14,18 @@ import {
   MoreHorizontal,
   FolderOpen,
   Hash,
-  X
+  X,
+  WifiOff,
+  Loader2
 } from 'lucide-react';
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  tags: string[];
-  isPinned: boolean;
-  isArchived: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  wordCount: number;
-}
+import { useNotes } from '@/hooks/useAgentData';
+import { Note } from '@/services/agentDataService';
+import { toast } from 'sonner';
 
 const Notes: React.FC = () => {
+  // Use Supabase integration
+  const { notes, loading, error, createNote, updateNote, deleteNote, isUsingLocalFallback } = useNotes();
+
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,140 +41,26 @@ const Notes: React.FC = () => {
     tags: [] as string[]
   });
 
-  // Mock notes data
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: '1',
-      title: 'Project Ideas',
-      content: `# Project Ideas for 2024
+  // Debounced save for editing
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-## Web Development
-- Personal portfolio redesign
-- Task management app with AI features
-- Real-time collaboration tool
-
-## Mobile Apps
-- Habit tracker with gamification
-- Expense tracker with receipt scanning
-- Meditation app with custom sounds
-
-## Learning Goals
-- Master TypeScript advanced features
-- Learn React Native
-- Explore machine learning basics
-
-## Notes
-Remember to focus on user experience and accessibility in all projects.`,
-      category: 'Ideas',
-      tags: ['projects', 'planning', '2024'],
-      isPinned: true,
-      isArchived: false,
-      createdAt: new Date(2024, 10, 1),
-      updatedAt: new Date(2024, 11, 15),
-      wordCount: 85
-    },
-    {
-      id: '2',
-      title: 'Meeting Notes - Team Sync',
-      content: `# Team Sync Meeting - Dec 18, 2024
-
-## Attendees
-- Alice (PM)
-- Bob (Dev)
-- Charlie (Designer)
-- Me
-
-## Agenda
-1. Sprint review
-2. Upcoming deadlines
-3. Resource allocation
-
-## Key Points
-- Sprint 12 completed successfully
-- New feature requests from client
-- Need to prioritize bug fixes
-- Design system updates required
-
-## Action Items
-- [ ] Bob: Fix authentication bug by Friday
-- [ ] Charlie: Update design tokens
-- [ ] Alice: Schedule client review meeting
-- [ ] Me: Update project documentation
-
-## Next Meeting
-December 25, 2024 at 10:00 AM`,
-      category: 'Work',
-      tags: ['meetings', 'team', 'action-items'],
-      isPinned: false,
-      isArchived: false,
-      createdAt: new Date(2024, 11, 18),
-      updatedAt: new Date(2024, 11, 18),
-      wordCount: 142
-    },
-    {
-      id: '3',
-      title: 'Book Recommendations',
-      content: `# Books to Read
-
-## Technical Books
-- "Clean Code" by Robert Martin
-- "System Design Interview" by Alex Xu
-- "Designing Data-Intensive Applications" by Martin Kleppmann
-
-## Personal Development
-- "Atomic Habits" by James Clear
-- "Deep Work" by Cal Newport
-- "The Pragmatic Programmer" by Andy Hunt
-
-## Fiction
-- "The Midnight Library" by Matt Haig
-- "Project Hail Mary" by Andy Weir
-- "Klara and the Sun" by Kazuo Ishiguro
-
-## Currently Reading
-"Atomic Habits" - Great insights on habit formation and breaking bad habits.`,
-      category: 'Personal',
-      tags: ['books', 'reading', 'recommendations'],
-      isPinned: false,
-      isArchived: false,
-      createdAt: new Date(2024, 10, 20),
-      updatedAt: new Date(2024, 11, 10),
-      wordCount: 98
-    },
-    {
-      id: '4',
-      title: 'Recipe Collection',
-      content: `# Favorite Recipes
-
-## Breakfast
-### Overnight Oats
-- 1/2 cup rolled oats
-- 1/2 cup milk
-- 1 tbsp chia seeds
-- 1 tbsp honey
-- Fresh berries
-
-Mix all ingredients, refrigerate overnight.
-
-## Dinner
-### Pasta Aglio e Olio
-- 400g spaghetti
-- 6 cloves garlic, sliced
-- 1/4 cup olive oil
-- Red pepper flakes
-- Fresh parsley
-- Parmesan cheese
-
-Simple but delicious!`,
-      category: 'Personal',
-      tags: ['recipes', 'cooking', 'food'],
-      isPinned: false,
-      isArchived: true,
-      createdAt: new Date(2024, 9, 15),
-      updatedAt: new Date(2024, 10, 5),
-      wordCount: 76
+  const debouncedSave = useCallback(async (noteId: string, content: string) => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
-  ]);
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const wordCount = content.trim().split(/\s+/).length;
+        await updateNote(noteId, { content, wordCount });
+      } catch (error) {
+        console.error('Error saving note:', error);
+        toast.error('Failed to save note');
+      }
+    }, 1000); // Save after 1 second of no typing
+  }, [updateNote]);
+
+  // Data now comes from Supabase via useNotes hook
 
   const categories = ['Ideas', 'Work', 'Personal', 'Learning', 'Travel'];
   const allTags = useMemo(() => {
@@ -263,42 +144,82 @@ Simple but delicious!`,
   };
 
   // Note creation handler
-  const handleCreateNote = () => {
-    if (!newNote.title.trim() || !newNote.content.trim()) return;
+  const handleCreateNote = async () => {
+    if (!newNote.title.trim() || !newNote.content.trim()) {
+      toast.error('Please fill in both title and content');
+      return;
+    }
 
-    const note: Note = {
-      id: `note_${Date.now()}`,
-      title: newNote.title,
-      content: newNote.content,
-      category: newNote.category,
-      tags: newNote.tags,
-      isPinned: false,
-      isArchived: false,
-      wordCount: newNote.content.trim().split(/\s+/).length,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    try {
+      const noteData = {
+        title: newNote.title,
+        content: newNote.content,
+        category: newNote.category,
+        tags: newNote.tags,
+        isPinned: false,
+        isArchived: false
+      };
 
-    setNotes(prev => [note, ...prev]);
-    setNewNote({
-      title: '',
-      content: '',
-      category: 'General',
-      tags: []
-    });
-    setShowNewNote(false);
+      const createdNote = await createNote(noteData);
+      if (createdNote) {
+        setNewNote({
+          title: '',
+          content: '',
+          category: 'General',
+          tags: []
+        });
+        setShowNewNote(false);
+        toast.success('Note created successfully');
+      }
+    } catch (error) {
+      console.error('Error creating note:', error);
+      toast.error('Failed to create note');
+    }
   };
 
-  const togglePin = (noteId: string) => {
-    setNotes(notes.map(note => 
-      note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
-    ));
+  const togglePin = async (noteId: string) => {
+    try {
+      const note = notes.find(n => n.id === noteId);
+      if (note) {
+        await updateNote(noteId, { isPinned: !note.isPinned });
+        toast.success(note.isPinned ? 'Note unpinned' : 'Note pinned');
+      }
+    } catch (error) {
+      console.error('Error toggling pin:', error);
+      toast.error('Failed to update note');
+    }
   };
 
-  const toggleArchive = (noteId: string) => {
-    setNotes(notes.map(note => 
-      note.id === noteId ? { ...note, isArchived: !note.isArchived } : note
-    ));
+  const toggleArchive = async (noteId: string) => {
+    try {
+      const note = notes.find(n => n.id === noteId);
+      if (note) {
+        await updateNote(noteId, { isArchived: !note.isArchived });
+        toast.success(note.isArchived ? 'Note unarchived' : 'Note archived');
+      }
+    } catch (error) {
+      console.error('Error toggling archive:', error);
+      toast.error('Failed to update note');
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const success = await deleteNote(noteId);
+      if (success) {
+        toast.success('Note deleted successfully');
+        if (selectedNote === noteId) {
+          setSelectedNote(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      toast.error('Failed to delete note');
+    }
   };
 
   const selectedNoteData = selectedNote ? notes.find(n => n.id === selectedNote) : null;
@@ -381,12 +302,13 @@ Simple but delicious!`,
             <textarea
               value={selectedNoteData.content}
               onChange={(e) => {
-                const wordCount = e.target.value.trim().split(/\s+/).length;
-                setNotes(notes.map(note => 
-                  note.id === selectedNote 
-                    ? { ...note, content: e.target.value, wordCount, updatedAt: new Date() }
-                    : note
-                ));
+                // Optimistically update the local state for immediate UI feedback
+                const newContent = e.target.value;
+
+                // Trigger debounced save to Supabase
+                if (selectedNote) {
+                  debouncedSave(selectedNote, newContent);
+                }
               }}
               className="w-full h-96 bg-transparent text-foreground resize-none focus:outline-none font-mono text-sm leading-relaxed"
               placeholder="Start writing..."
@@ -402,8 +324,30 @@ Simple but delicious!`,
     );
   }
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading notes...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full overflow-y-auto pb-4">
+      {/* Connection Status */}
+      {isUsingLocalFallback && (
+        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <div className="flex items-center space-x-2 text-yellow-800 dark:text-yellow-200">
+            <WifiOff className="w-4 h-4" />
+            <span className="text-sm">Using local storage - notes won't sync across devices</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">

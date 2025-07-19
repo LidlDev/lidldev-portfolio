@@ -592,69 +592,85 @@ const BudgetTracker: React.FC = () => {
             const percentage = category.budgeted > 0 ? (category.spent / category.budgeted) * 100 : 0;
             
             return (
-              <div key={category.id} className="flex items-center justify-between p-4 bg-background border border-border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: category.color + '20' }}>
-                    {(() => {
-                      const IconComponent = {
-                        'Home': Home,
-                        'Utensils': Utensils,
-                        'Car': Car,
-                        'Zap': Zap,
-                        'Film': Film,
-                        'ShoppingBag': ShoppingBag,
-                        'Dumbbell': Dumbbell,
-                        'PiggyBank': PiggyBank
-                      }[category.icon] || DollarSign;
-                      return <IconComponent className="w-5 h-5" style={{ color: category.color }} />;
-                    })()}
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-foreground">{category.name}</h4>
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <span>{formatCurrency(category.spent)} of {formatCurrency(category.budgeted)}</span>
-                      {category.isEssential && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 rounded-full text-xs">
-                          Essential
-                        </span>
-                      )}
+              <div key={category.id} className="p-3 sm:p-4 bg-background border border-border rounded-lg">
+                {/* Mobile-first responsive layout */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                  {/* Category info */}
+                  <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: category.color + '20' }}>
+                      {(() => {
+                        const IconComponent = {
+                          'Home': Home,
+                          'Utensils': Utensils,
+                          'Car': Car,
+                          'Zap': Zap,
+                          'Film': Film,
+                          'ShoppingBag': ShoppingBag,
+                          'Dumbbell': Dumbbell,
+                          'PiggyBank': PiggyBank
+                        }[category.icon] || DollarSign;
+                        return <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: category.color }} />;
+                      })()}
                     </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-medium text-foreground text-sm sm:text-base truncate">{category.name}</h4>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 text-xs sm:text-sm text-muted-foreground">
+                        <span className="truncate">{formatCurrency(category.spent)} of {formatCurrency(category.budgeted)}</span>
+                        {category.isEssential && (
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 rounded-full text-xs mt-1 sm:mt-0 self-start">
+                            Essential
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress and actions */}
+                  <div className="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4">
+                    {/* Status and percentage */}
+                    <div className="flex items-center space-x-2 sm:text-right">
+                      <div className={`flex items-center space-x-1 ${status.color}`}>
+                        {getStatusIcon(status.status)}
+                        <span className="font-medium text-sm">{percentage.toFixed(0)}%</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground hidden sm:block">
+                        {category.spent > category.budgeted
+                          ? `${formatCurrency(category.spent - category.budgeted)} over`
+                          : `${formatCurrency(category.budgeted - category.spent)} left`
+                        }
+                      </div>
+                    </div>
+
+                    {/* Progress bar - responsive width */}
+                    <div className="w-20 sm:w-24 md:w-32">
+                      <div className="w-full bg-secondary rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            percentage > 100 ? 'bg-red-500' :
+                            percentage > 80 ? 'bg-yellow-500' : 'bg-green-500'
+                          }`}
+                          style={{ width: `${Math.min(percentage, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Edit button */}
+                    <button
+                      onClick={() => handleEditBudgetCategory(category.id, category.budgeted)}
+                      className="p-1.5 sm:p-2 hover:bg-accent rounded-lg transition-colors flex-shrink-0"
+                      title="Edit budget amount"
+                    >
+                      <Edit3 className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </button>
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <div className={`flex items-center space-x-1 ${status.color}`}>
-                      {getStatusIcon(status.status)}
-                      <span className="font-medium">{percentage.toFixed(0)}%</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {category.spent > category.budgeted 
-                        ? `${formatCurrency(category.spent - category.budgeted)} over`
-                        : `${formatCurrency(category.budgeted - category.spent)} left`
-                      }
-                    </div>
-                  </div>
-                  
-                  <div className="w-32">
-                    <div className="w-full bg-secondary rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          percentage > 100 ? 'bg-red-500' : 
-                          percentage > 80 ? 'bg-yellow-500' : 'bg-green-500'
-                        }`}
-                        style={{ width: `${Math.min(percentage, 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={() => handleEditBudgetCategory(category.id, category.budgeted)}
-                    className="p-2 hover:bg-accent rounded-lg transition-colors"
-                    title="Edit budget amount"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
+
+                {/* Mobile-only additional info */}
+                <div className="sm:hidden mt-2 pt-2 border-t border-border text-xs text-muted-foreground">
+                  {category.spent > category.budgeted
+                    ? `${formatCurrency(category.spent - category.budgeted)} over budget`
+                    : `${formatCurrency(category.budgeted - category.spent)} remaining`
+                  }
                 </div>
               </div>
             );

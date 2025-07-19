@@ -17,29 +17,18 @@ import {
   X,
   Edit3,
   Trash2,
-  MoreHorizontal
+  MoreHorizontal,
+  Loader2,
+  WifiOff
 } from 'lucide-react';
-
-interface HabitEntry {
-  date: string; // YYYY-MM-DD format
-  completed: boolean;
-  notes?: string;
-}
-
-interface Habit {
-  id: string;
-  name: string;
-  description?: string;
-  category: string;
-  frequency: 'daily' | 'weekly' | 'monthly';
-  target: number; // target per frequency period
-  color: string;
-  icon: string;
-  entries: HabitEntry[];
-  createdAt: Date;
-}
+import { useHabits } from '@/hooks/useAgentData';
+import { Habit, HabitEntry } from '@/services/agentDataService';
+import { toast } from 'sonner';
 
 const Habits: React.FC = () => {
+  // Use Supabase integration
+  const { habits, habitEntries, loading, error, createHabit, updateHabit, deleteHabit, toggleHabitEntry, isUsingLocalFallback } = useHabits();
+
   const [selectedHabit, setSelectedHabit] = useState<string | null>(null);
   const [showNewHabit, setShowNewHabit] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
@@ -54,89 +43,15 @@ const Habits: React.FC = () => {
     icon: 'Target'
   });
 
-  // Mock habits data
-  const [habits, setHabits] = useState<Habit[]>([
-    {
-      id: '1',
-      name: 'Morning Exercise',
-      description: '30 minutes of physical activity',
-      category: 'Health',
-      frequency: 'daily',
-      target: 1,
-      color: 'bg-green-500',
-      icon: 'Dumbbell',
-      createdAt: new Date(2024, 10, 1),
-      entries: [
-        { date: '2024-12-18', completed: true },
-        { date: '2024-12-17', completed: true },
-        { date: '2024-12-16', completed: false },
-        { date: '2024-12-15', completed: true },
-        { date: '2024-12-14', completed: true },
-        { date: '2024-12-13', completed: true },
-        { date: '2024-12-12', completed: false }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Read Books',
-      description: 'Read for at least 30 minutes',
-      category: 'Learning',
-      frequency: 'daily',
-      target: 1,
-      color: 'bg-blue-500',
-      icon: 'BookOpen',
-      createdAt: new Date(2024, 10, 5),
-      entries: [
-        { date: '2024-12-18', completed: true },
-        { date: '2024-12-17', completed: true },
-        { date: '2024-12-16', completed: true },
-        { date: '2024-12-15', completed: false },
-        { date: '2024-12-14', completed: true },
-        { date: '2024-12-13', completed: true },
-        { date: '2024-12-12', completed: true }
-      ]
-    },
-    {
-      id: '3',
-      name: 'Meditation',
-      description: '10 minutes of mindfulness',
-      category: 'Wellness',
-      frequency: 'daily',
-      target: 1,
-      color: 'bg-purple-500',
-      icon: 'Brain',
-      createdAt: new Date(2024, 10, 10),
-      entries: [
-        { date: '2024-12-18', completed: false },
-        { date: '2024-12-17', completed: true },
-        { date: '2024-12-16', completed: true },
-        { date: '2024-12-15', completed: true },
-        { date: '2024-12-14', completed: false },
-        { date: '2024-12-13', completed: true },
-        { date: '2024-12-12', completed: true }
-      ]
-    },
-    {
-      id: '4',
-      name: 'Drink Water',
-      description: '8 glasses of water daily',
-      category: 'Health',
-      frequency: 'daily',
-      target: 8,
-      color: 'bg-cyan-500',
-      icon: 'Droplets',
-      createdAt: new Date(2024, 10, 15),
-      entries: [
-        { date: '2024-12-18', completed: true },
-        { date: '2024-12-17', completed: true },
-        { date: '2024-12-16', completed: false },
-        { date: '2024-12-15', completed: true },
-        { date: '2024-12-14', completed: true },
-        { date: '2024-12-13', completed: false },
-        { date: '2024-12-12', completed: true }
-      ]
-    }
-  ]);
+  // Data now comes from Supabase via useHabits hook
+
+  // Helper function to get habit entry for a specific date
+  const getHabitEntry = (habitId: string, date: string) => {
+    return habitEntries.find(entry =>
+      entry.habitId === habitId &&
+      entry.entryDate.toISOString().split('T')[0] === date
+    );
+  };
 
   // Get dates for the current view period
   const getDatesForPeriod = () => {
@@ -166,32 +81,37 @@ const Habits: React.FC = () => {
 
   // Calculate habit statistics
   const calculateHabitStats = (habit: Habit) => {
-    const recentEntries = habit.entries.filter(entry => 
-      dates.includes(entry.date)
+    const habitEntriesForHabit = habitEntries.filter(entry => entry.habitId === habit.id);
+    const recentEntries = habitEntriesForHabit.filter(entry =>
+      dates.includes(entry.entryDate.toISOString().split('T')[0])
     );
-    
+
     const completed = recentEntries.filter(entry => entry.completed).length;
     const total = dates.length;
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-    
+
     // Calculate current streak
     let currentStreak = 0;
     const sortedDates = [...dates].reverse();
-    
+
     for (const date of sortedDates) {
-      const entry = habit.entries.find(e => e.date === date);
+      const entry = habitEntriesForHabit.find(e => e.entryDate.toISOString().split('T')[0] === date);
       if (entry && entry.completed) {
         currentStreak++;
       } else {
         break;
       }
     }
-    
+
     // Calculate best streak
     let bestStreak = 0;
     let tempStreak = 0;
-    
-    for (const entry of habit.entries.sort((a, b) => a.date.localeCompare(b.date))) {
+
+    const sortedEntries = habitEntriesForHabit.sort((a, b) =>
+      a.entryDate.getTime() - b.entryDate.getTime()
+    );
+
+    for (const entry of sortedEntries) {
       if (entry.completed) {
         tempStreak++;
         bestStreak = Math.max(bestStreak, tempStreak);
@@ -199,37 +119,46 @@ const Habits: React.FC = () => {
         tempStreak = 0;
       }
     }
-    
+
     return { completed, total, completionRate, currentStreak, bestStreak };
   };
 
   // Habit creation handler
-  const handleCreateHabit = () => {
-    if (!newHabit.name.trim()) return;
+  const handleCreateHabit = async () => {
+    if (!newHabit.name.trim()) {
+      toast.error('Please enter a habit name');
+      return;
+    }
 
-    const habit: Habit = {
-      id: `habit_${Date.now()}`,
-      name: newHabit.name,
-      description: newHabit.description,
-      category: newHabit.category,
-      frequency: newHabit.frequency,
-      target: newHabit.target,
-      color: newHabit.color,
-      icon: newHabit.icon,
-      entries: []
-    };
+    try {
+      const habitData = {
+        name: newHabit.name,
+        description: newHabit.description,
+        category: newHabit.category,
+        frequency: newHabit.frequency,
+        target: newHabit.target,
+        color: newHabit.color,
+        icon: newHabit.icon
+      };
 
-    setHabits(prev => [...prev, habit]);
-    setNewHabit({
-      name: '',
-      description: '',
-      category: 'Health',
-      frequency: 'daily',
-      target: 1,
-      color: 'bg-green-500',
-      icon: 'Target'
-    });
-    setShowNewHabit(false);
+      const createdHabit = await createHabit(habitData);
+      if (createdHabit) {
+        setNewHabit({
+          name: '',
+          description: '',
+          category: 'Health',
+          frequency: 'daily',
+          target: 1,
+          color: 'bg-green-500',
+          icon: 'Target'
+        });
+        setShowNewHabit(false);
+        toast.success('Habit created successfully');
+      }
+    } catch (error) {
+      console.error('Error creating habit:', error);
+      toast.error('Failed to create habit');
+    }
   };
 
   // Habit editing handler
@@ -282,46 +211,47 @@ const Habits: React.FC = () => {
   };
 
   // Toggle habit completion for a specific date
-  const toggleHabitCompletion = (habitId: string, date: string) => {
-    setHabits(habits.map(habit => {
-      if (habit.id !== habitId) return habit;
-      
-      const existingEntry = habit.entries.find(e => e.date === date);
-      
+  const handleToggleHabitCompletion = async (habitId: string, date: string) => {
+    try {
+      const existingEntry = habitEntries.find(e => e.habitId === habitId && e.entryDate.toISOString().split('T')[0] === date);
+
       if (existingEntry) {
-        return {
-          ...habit,
-          entries: habit.entries.map(entry =>
-            entry.date === date ? { ...entry, completed: !entry.completed } : entry
-          )
-        };
+        // Toggle existing entry
+        await toggleHabitEntry(existingEntry.id, !existingEntry.completed);
       } else {
-        return {
-          ...habit,
-          entries: [...habit.entries, { date, completed: true }]
-        };
+        // Create new entry
+        await toggleHabitEntry(habitId, true, date);
       }
-    }));
+
+      toast.success('Habit updated');
+    } catch (error) {
+      console.error('Error toggling habit completion:', error);
+      toast.error('Failed to update habit');
+    }
   };
 
   // Get overall statistics
   const overallStats = useMemo(() => {
     const totalHabits = habits.length;
     const todayDate = new Date().toISOString().split('T')[0];
-    const completedToday = habits.filter(habit => 
-      habit.entries.some(entry => entry.date === todayDate && entry.completed)
+    const completedToday = habits.filter(habit =>
+      habitEntries.some(entry =>
+        entry.habitId === habit.id &&
+        entry.entryDate.toISOString().split('T')[0] === todayDate &&
+        entry.completed
+      )
     ).length;
-    
-    const avgCompletionRate = habits.length > 0 
-      ? Math.round(habits.reduce((sum, habit) => 
+
+    const avgCompletionRate = habits.length > 0
+      ? Math.round(habits.reduce((sum, habit) =>
           sum + calculateHabitStats(habit).completionRate, 0) / habits.length)
       : 0;
-    
-    const totalStreaks = habits.reduce((sum, habit) => 
+
+    const totalStreaks = habits.reduce((sum, habit) =>
       sum + calculateHabitStats(habit).currentStreak, 0);
-    
+
     return { totalHabits, completedToday, avgCompletionRate, totalStreaks };
-  }, [habits, dates]);
+  }, [habits, habitEntries, dates]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -333,8 +263,30 @@ const Habits: React.FC = () => {
     return date.toLocaleDateString('en-US', { weekday: 'short' });
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading habits...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full overflow-y-auto pb-4">
+      {/* Connection Status */}
+      {isUsingLocalFallback && (
+        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <div className="flex items-center space-x-2 text-yellow-800 dark:text-yellow-200">
+            <WifiOff className="w-4 h-4" />
+            <span className="text-sm">Using local storage - habits won't sync across devices</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -472,14 +424,14 @@ const Habits: React.FC = () => {
                 {/* Completion Grid */}
                 <div className="grid grid-cols-7 gap-2">
                   {dates.slice(-7).map((date) => {
-                    const entry = habit.entries.find(e => e.date === date);
+                    const entry = getHabitEntry(habit.id, date);
                     const isCompleted = entry?.completed || false;
                     const isToday = date === new Date().toISOString().split('T')[0];
-                    
+
                     return (
                       <button
                         key={date}
-                        onClick={() => toggleHabitCompletion(habit.id, date)}
+                        onClick={() => handleToggleHabitCompletion(habit.id, date)}
                         className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${
                           isCompleted
                             ? `${habit.color} border-transparent text-white`
@@ -503,13 +455,13 @@ const Habits: React.FC = () => {
                   <div className="mt-4">
                     <div className="grid grid-cols-10 gap-1">
                       {dates.slice(0, -7).map((date) => {
-                        const entry = habit.entries.find(e => e.date === date);
+                        const entry = getHabitEntry(habit.id, date);
                         const isCompleted = entry?.completed || false;
                         
                         return (
                           <button
                             key={date}
-                            onClick={() => toggleHabitCompletion(habit.id, date)}
+                            onClick={() => handleToggleHabitCompletion(habit.id, date)}
                             className={`aspect-square rounded border transition-all hover:scale-105 ${
                               isCompleted
                                 ? `${habit.color} border-transparent`

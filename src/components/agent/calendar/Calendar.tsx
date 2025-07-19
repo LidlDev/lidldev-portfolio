@@ -11,24 +11,18 @@ import {
   CheckCircle2,
   X,
   Edit3,
-  Trash2
+  Trash2,
+  Loader2,
+  WifiOff
 } from 'lucide-react';
-
-interface CalendarEvent {
-  id: string;
-  title: string;
-  date: Date;
-  startTime?: string;
-  endTime?: string;
-  type: 'task' | 'event' | 'meeting' | 'reminder';
-  priority?: 'low' | 'medium' | 'high';
-  location?: string;
-  attendees?: string[];
-  description?: string;
-  completed?: boolean;
-}
+import { useCalendar } from '@/hooks/useAgentData';
+import { CalendarEvent } from '@/services/agentDataService';
+import { toast } from 'sonner';
 
 const Calendar: React.FC = () => {
+  // Use Supabase integration
+  const { events, loading, error, createEvent, updateEvent, deleteEvent, isUsingLocalFallback } = useCalendar();
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
@@ -44,43 +38,7 @@ const Calendar: React.FC = () => {
     priority: 'medium' as 'low' | 'medium' | 'high'
   });
 
-  // Mock events data - in real app this would come from your data sources
-  const [events, setEvents] = useState<CalendarEvent[]>([
-    {
-      id: '1',
-      title: 'Team Standup',
-      date: new Date(2024, 11, 20),
-      startTime: '09:00',
-      endTime: '09:30',
-      type: 'meeting',
-      priority: 'high',
-      attendees: ['John', 'Sarah', 'Mike']
-    },
-    {
-      id: '2',
-      title: 'Review quarterly reports',
-      date: new Date(2024, 11, 20),
-      type: 'task',
-      priority: 'medium',
-      completed: false
-    },
-    {
-      id: '3',
-      title: 'Doctor Appointment',
-      date: new Date(2024, 11, 22),
-      startTime: '14:00',
-      endTime: '15:00',
-      type: 'event',
-      location: 'Medical Center'
-    },
-    {
-      id: '4',
-      title: 'Project Deadline',
-      date: new Date(2024, 11, 25),
-      type: 'reminder',
-      priority: 'high'
-    }
-  ]);
+  // Data now comes from Supabase via useCalendar hook
 
   // Calendar navigation
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -190,34 +148,44 @@ const Calendar: React.FC = () => {
   };
 
   // Event creation handler
-  const handleCreateEvent = () => {
-    if (!newEvent.title.trim()) return;
+  const handleCreateEvent = async () => {
+    if (!newEvent.title.trim()) {
+      toast.error('Please enter an event title');
+      return;
+    }
 
-    const eventDate = selectedDate || currentDate;
-    const event: CalendarEvent = {
-      id: `event_${Date.now()}`,
-      title: newEvent.title,
-      description: newEvent.description,
-      date: eventDate,
-      startTime: newEvent.startTime,
-      endTime: newEvent.endTime,
-      type: newEvent.eventType,
-      priority: newEvent.priority,
-      location: newEvent.location,
-      attendees: []
-    };
+    try {
+      const eventDate = selectedDate || currentDate;
+      const eventData = {
+        title: newEvent.title,
+        description: newEvent.description,
+        date: eventDate,
+        startTime: newEvent.startTime,
+        endTime: newEvent.endTime,
+        type: newEvent.eventType,
+        priority: newEvent.priority,
+        location: newEvent.location,
+        attendees: []
+      };
 
-    setEvents(prev => [...prev, event]);
-    setNewEvent({
-      title: '',
-      description: '',
-      eventType: 'event',
-      startTime: '',
-      endTime: '',
-      location: '',
-      priority: 'medium'
-    });
-    setShowEventForm(false);
+      const createdEvent = await createEvent(eventData);
+      if (createdEvent) {
+        setNewEvent({
+          title: '',
+          description: '',
+          eventType: 'event',
+          startTime: '',
+          endTime: '',
+          location: '',
+          priority: 'medium'
+        });
+        setShowEventForm(false);
+        toast.success('Event created successfully');
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+      toast.error('Failed to create event');
+    }
   };
 
   // Event editing handler
@@ -236,37 +204,59 @@ const Calendar: React.FC = () => {
   };
 
   // Event update handler
-  const handleUpdateEvent = () => {
-    if (!editingEvent || !newEvent.title.trim()) return;
+  const handleUpdateEvent = async () => {
+    if (!editingEvent || !newEvent.title.trim()) {
+      toast.error('Please enter an event title');
+      return;
+    }
 
-    const updatedEvent: CalendarEvent = {
-      ...editingEvent,
-      title: newEvent.title,
-      description: newEvent.description,
-      type: newEvent.eventType,
-      startTime: newEvent.startTime,
-      endTime: newEvent.endTime,
-      location: newEvent.location,
-      priority: newEvent.priority
-    };
+    try {
+      const updates = {
+        title: newEvent.title,
+        description: newEvent.description,
+        type: newEvent.eventType,
+        startTime: newEvent.startTime,
+        endTime: newEvent.endTime,
+        location: newEvent.location,
+        priority: newEvent.priority
+      };
 
-    setEvents(prev => prev.map(e => e.id === editingEvent.id ? updatedEvent : e));
-    setEditingEvent(null);
-    setNewEvent({
-      title: '',
-      description: '',
-      eventType: 'event',
-      startTime: '',
-      endTime: '',
-      location: '',
-      priority: 'medium'
-    });
-    setShowEventForm(false);
+      const success = await updateEvent(editingEvent.id, updates);
+      if (success) {
+        setEditingEvent(null);
+        setNewEvent({
+          title: '',
+          description: '',
+          eventType: 'event',
+          startTime: '',
+          endTime: '',
+          location: '',
+          priority: 'medium'
+        });
+        setShowEventForm(false);
+        toast.success('Event updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating event:', error);
+      toast.error('Failed to update event');
+    }
   };
 
   // Event deletion handler
-  const handleDeleteEvent = (eventId: string) => {
-    setEvents(prev => prev.filter(e => e.id !== eventId));
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!confirm('Are you sure you want to delete this event?')) {
+      return;
+    }
+
+    try {
+      const success = await deleteEvent(eventId);
+      if (success) {
+        toast.success('Event deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Failed to delete event');
+    }
   };
 
   // Get calendar days for current month
@@ -335,8 +325,30 @@ const Calendar: React.FC = () => {
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading calendar...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full overflow-y-auto pb-4">
+      {/* Connection Status */}
+      {isUsingLocalFallback && (
+        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <div className="flex items-center space-x-2 text-yellow-800 dark:text-yellow-200">
+            <WifiOff className="w-4 h-4" />
+            <span className="text-sm">Using local storage - events won't sync across devices</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">

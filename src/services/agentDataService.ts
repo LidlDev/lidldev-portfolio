@@ -121,6 +121,52 @@ export interface Expense {
   createdAt: Date;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'planning' | 'active' | 'on-hold' | 'completed' | 'cancelled';
+  progress: number;
+  startDate?: Date;
+  endDate?: Date;
+  team: string[];
+  color: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProjectTask {
+  id: string;
+  projectId: string;
+  title: string;
+  description?: string;
+  status: 'todo' | 'in-progress' | 'review' | 'done';
+  priority: 'low' | 'medium' | 'high';
+  assignee?: string;
+  dueDate?: Date;
+  tags: string[];
+  estimatedHours?: number;
+  actualHours?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: Date;
+  startTime?: string;
+  endTime?: string;
+  type: 'event' | 'meeting' | 'task' | 'reminder';
+  priority?: 'low' | 'medium' | 'high';
+  location?: string;
+  attendees?: string[];
+  completed?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // =============================================
 // TASKS SERVICE
 // =============================================
@@ -595,6 +641,356 @@ export class FinancialGoalsService {
       category: dbGoal.category,
       createdAt: new Date(dbGoal.created_at),
       updatedAt: new Date(dbGoal.updated_at)
+    };
+  }
+}
+
+// =============================================
+// PROJECTS SERVICE
+// =============================================
+
+export class ProjectsService {
+  static async getProjects(user: User): Promise<Project[]> {
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching projects:', error);
+      return [];
+    }
+
+    return data.map(this.mapDatabaseProjectToProject);
+  }
+
+  static async createProject(user: User, project: Partial<Project>): Promise<Project | null> {
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({
+        user_id: user.id,
+        name: project.name,
+        description: project.description,
+        status: project.status || 'planning',
+        progress: project.progress || 0,
+        start_date: project.startDate?.toISOString().split('T')[0],
+        end_date: project.endDate?.toISOString().split('T')[0],
+        team_members: project.team || [],
+        color: project.color || '#3B82F6'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating project:', error);
+      return null;
+    }
+
+    return this.mapDatabaseProjectToProject(data);
+  }
+
+  static async updateProject(user: User, projectId: string, updates: Partial<Project>): Promise<Project | null> {
+    if (!user) return null;
+
+    const updateData: any = {};
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.progress !== undefined) updateData.progress = updates.progress;
+    if (updates.startDate !== undefined) updateData.start_date = updates.startDate?.toISOString().split('T')[0];
+    if (updates.endDate !== undefined) updateData.end_date = updates.endDate?.toISOString().split('T')[0];
+    if (updates.team !== undefined) updateData.team_members = updates.team;
+    if (updates.color !== undefined) updateData.color = updates.color;
+
+    const { data, error } = await supabase
+      .from('projects')
+      .update(updateData)
+      .eq('id', projectId)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating project:', error);
+      return null;
+    }
+
+    return this.mapDatabaseProjectToProject(data);
+  }
+
+  static async deleteProject(user: User, projectId: string): Promise<boolean> {
+    if (!user) return false;
+
+    // First delete all project tasks
+    await supabase
+      .from('project_tasks')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('user_id', user.id);
+
+    // Then delete the project
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deleting project:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  static async getProjectTasks(user: User, projectId: string): Promise<ProjectTask[]> {
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('project_tasks')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching project tasks:', error);
+      return [];
+    }
+
+    return data.map(this.mapDatabaseTaskToProjectTask);
+  }
+
+  static async createProjectTask(user: User, task: Partial<ProjectTask>): Promise<ProjectTask | null> {
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from('project_tasks')
+      .insert({
+        user_id: user.id,
+        project_id: task.projectId,
+        title: task.title,
+        description: task.description,
+        status: task.status || 'todo',
+        priority: task.priority || 'medium',
+        assignee: task.assignee,
+        due_date: task.dueDate?.toISOString(),
+        tags: task.tags || [],
+        estimated_hours: task.estimatedHours,
+        actual_hours: task.actualHours
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating project task:', error);
+      return null;
+    }
+
+    return this.mapDatabaseTaskToProjectTask(data);
+  }
+
+  static async updateProjectTask(user: User, taskId: string, updates: Partial<ProjectTask>): Promise<ProjectTask | null> {
+    if (!user) return null;
+
+    const updateData: any = {};
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.priority !== undefined) updateData.priority = updates.priority;
+    if (updates.assignee !== undefined) updateData.assignee = updates.assignee;
+    if (updates.dueDate !== undefined) updateData.due_date = updates.dueDate?.toISOString();
+    if (updates.tags !== undefined) updateData.tags = updates.tags;
+    if (updates.estimatedHours !== undefined) updateData.estimated_hours = updates.estimatedHours;
+    if (updates.actualHours !== undefined) updateData.actual_hours = updates.actualHours;
+
+    const { data, error } = await supabase
+      .from('project_tasks')
+      .update(updateData)
+      .eq('id', taskId)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating project task:', error);
+      return null;
+    }
+
+    return this.mapDatabaseTaskToProjectTask(data);
+  }
+
+  static async deleteProjectTask(user: User, taskId: string): Promise<boolean> {
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from('project_tasks')
+      .delete()
+      .eq('id', taskId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deleting project task:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  private static mapDatabaseProjectToProject(dbProject: any): Project {
+    return {
+      id: dbProject.id,
+      name: dbProject.name,
+      description: dbProject.description,
+      status: dbProject.status,
+      progress: dbProject.progress || 0,
+      startDate: dbProject.start_date ? new Date(dbProject.start_date) : undefined,
+      endDate: dbProject.end_date ? new Date(dbProject.end_date) : undefined,
+      team: dbProject.team_members || [],
+      color: dbProject.color,
+      createdAt: new Date(dbProject.created_at),
+      updatedAt: new Date(dbProject.updated_at)
+    };
+  }
+
+  private static mapDatabaseTaskToProjectTask(dbTask: any): ProjectTask {
+    return {
+      id: dbTask.id,
+      projectId: dbTask.project_id,
+      title: dbTask.title,
+      description: dbTask.description,
+      status: dbTask.status,
+      priority: dbTask.priority,
+      assignee: dbTask.assignee,
+      dueDate: dbTask.due_date ? new Date(dbTask.due_date) : undefined,
+      tags: dbTask.tags || [],
+      estimatedHours: dbTask.estimated_hours,
+      actualHours: dbTask.actual_hours,
+      createdAt: new Date(dbTask.created_at),
+      updatedAt: new Date(dbTask.updated_at)
+    };
+  }
+}
+
+// =============================================
+// CALENDAR SERVICE
+// =============================================
+
+export class CalendarService {
+  static async getEvents(user: User): Promise<CalendarEvent[]> {
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('calendar_events')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('event_date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching calendar events:', error);
+      return [];
+    }
+
+    return data.map(this.mapDatabaseEventToEvent);
+  }
+
+  static async createEvent(user: User, event: Partial<CalendarEvent>): Promise<CalendarEvent | null> {
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from('calendar_events')
+      .insert({
+        user_id: user.id,
+        title: event.title,
+        description: event.description,
+        event_date: event.date?.toISOString().split('T')[0],
+        start_time: event.startTime,
+        end_time: event.endTime,
+        event_type: event.type || 'event',
+        priority: event.priority || 'medium',
+        location: event.location,
+        attendees: event.attendees || [],
+        completed: event.completed || false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating calendar event:', error);
+      return null;
+    }
+
+    return this.mapDatabaseEventToEvent(data);
+  }
+
+  static async updateEvent(user: User, eventId: string, updates: Partial<CalendarEvent>): Promise<CalendarEvent | null> {
+    if (!user) return null;
+
+    const updateData: any = {};
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.date !== undefined) updateData.event_date = updates.date?.toISOString().split('T')[0];
+    if (updates.startTime !== undefined) updateData.start_time = updates.startTime;
+    if (updates.endTime !== undefined) updateData.end_time = updates.endTime;
+    if (updates.type !== undefined) updateData.event_type = updates.type;
+    if (updates.priority !== undefined) updateData.priority = updates.priority;
+    if (updates.location !== undefined) updateData.location = updates.location;
+    if (updates.attendees !== undefined) updateData.attendees = updates.attendees;
+    if (updates.completed !== undefined) updateData.completed = updates.completed;
+
+    const { data, error } = await supabase
+      .from('calendar_events')
+      .update(updateData)
+      .eq('id', eventId)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating calendar event:', error);
+      return null;
+    }
+
+    return this.mapDatabaseEventToEvent(data);
+  }
+
+  static async deleteEvent(user: User, eventId: string): Promise<boolean> {
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from('calendar_events')
+      .delete()
+      .eq('id', eventId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deleting calendar event:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  private static mapDatabaseEventToEvent(dbEvent: any): CalendarEvent {
+    return {
+      id: dbEvent.id,
+      title: dbEvent.title,
+      description: dbEvent.description,
+      date: new Date(dbEvent.event_date),
+      startTime: dbEvent.start_time,
+      endTime: dbEvent.end_time,
+      type: dbEvent.event_type,
+      priority: dbEvent.priority,
+      location: dbEvent.location,
+      attendees: dbEvent.attendees || [],
+      completed: dbEvent.completed || false,
+      createdAt: new Date(dbEvent.created_at),
+      updatedAt: new Date(dbEvent.updated_at)
     };
   }
 }

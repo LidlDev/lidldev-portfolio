@@ -12,36 +12,30 @@ import {
   FolderOpen,
   X,
   Edit3,
-  Trash2
+  Trash2,
+  Loader2,
+  WifiOff
 } from 'lucide-react';
-
-interface ProjectTask {
-  id: string;
-  title: string;
-  description?: string;
-  status: 'todo' | 'in-progress' | 'review' | 'done';
-  priority: 'low' | 'medium' | 'high';
-  assignee?: string;
-  dueDate?: Date;
-  tags?: string[];
-  estimatedHours?: number;
-  actualHours?: number;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  status: 'planning' | 'active' | 'on-hold' | 'completed';
-  progress: number;
-  startDate: Date;
-  endDate?: Date;
-  team: string[];
-  tasks: ProjectTask[];
-  color: string;
-}
+import { useProjects } from '@/hooks/useAgentData';
+import { Project, ProjectTask } from '@/services/agentDataService';
+import { toast } from 'sonner';
 
 const Projects: React.FC = () => {
+  // Use Supabase integration
+  const {
+    projects,
+    projectTasks,
+    loading,
+    error,
+    createProject,
+    updateProject,
+    deleteProject,
+    createProjectTask,
+    updateProjectTask,
+    deleteProjectTask,
+    isUsingLocalFallback
+  } = useProjects();
+
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'kanban' | 'timeline'>('grid');
@@ -86,100 +80,12 @@ const Projects: React.FC = () => {
     estimatedHours: 0
   });
 
-  // Mock projects data
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: '1',
-      name: 'Website Redesign',
-      description: 'Complete overhaul of company website with modern design and improved UX',
-      status: 'active',
-      progress: 65,
-      startDate: new Date(2024, 10, 1),
-      endDate: new Date(2024, 11, 31),
-      team: ['Alice', 'Bob', 'Charlie'],
-      color: 'bg-blue-500',
-      tasks: [
-        {
-          id: '1-1',
-          title: 'Design mockups',
-          status: 'done',
-          priority: 'high',
-          assignee: 'Alice',
-          dueDate: new Date(2024, 10, 15)
-        },
-        {
-          id: '1-2',
-          title: 'Frontend development',
-          status: 'in-progress',
-          priority: 'high',
-          assignee: 'Bob',
-          dueDate: new Date(2024, 11, 20)
-        },
-        {
-          id: '1-3',
-          title: 'Content migration',
-          status: 'todo',
-          priority: 'medium',
-          assignee: 'Charlie',
-          dueDate: new Date(2024, 11, 25)
-        }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Mobile App Development',
-      description: 'Native mobile app for iOS and Android platforms',
-      status: 'planning',
-      progress: 15,
-      startDate: new Date(2024, 11, 15),
-      endDate: new Date(2025, 2, 28),
-      team: ['David', 'Eve'],
-      color: 'bg-green-500',
-      tasks: [
-        {
-          id: '2-1',
-          title: 'Requirements gathering',
-          status: 'in-progress',
-          priority: 'high',
-          assignee: 'David'
-        },
-        {
-          id: '2-2',
-          title: 'UI/UX Design',
-          status: 'todo',
-          priority: 'high',
-          assignee: 'Eve'
-        }
-      ]
-    },
-    {
-      id: '3',
-      name: 'Data Migration',
-      description: 'Migrate legacy data to new system',
-      status: 'completed',
-      progress: 100,
-      startDate: new Date(2024, 9, 1),
-      endDate: new Date(2024, 10, 30),
-      team: ['Frank', 'Grace'],
-      color: 'bg-purple-500',
-      tasks: [
-        {
-          id: '3-1',
-          title: 'Data analysis',
-          status: 'done',
-          priority: 'high',
-          assignee: 'Frank'
-        },
-        {
-          id: '3-2',
-          title: 'Migration scripts',
-          status: 'done',
-          priority: 'high',
-          assignee: 'Grace'
-        }
-      ]
-    }
-  ]);
+  // Data now comes from Supabase via useProjects hook
+
+  // Helper function to get tasks for a specific project
+  const getProjectTasks = (projectId: string) => {
+    return projectTasks.filter(task => task.projectId === projectId);
+  };
 
   const getStatusColor = (status: Project['status']) => {
     switch (status) {
@@ -227,66 +133,82 @@ const Projects: React.FC = () => {
   const stats = calculateProjectStats();
 
   // Project creation handler
-  const handleCreateProject = () => {
-    if (!newProject.name.trim()) return;
+  const handleCreateProject = async () => {
+    if (!newProject.name.trim()) {
+      toast.error('Please enter a project name');
+      return;
+    }
 
-    const project: Project = {
-      id: `project_${Date.now()}`,
-      name: newProject.name,
-      description: newProject.description,
-      status: 'planning',
-      progress: 0,
-      startDate: new Date(newProject.startDate),
-      endDate: newProject.endDate ? new Date(newProject.endDate) : undefined,
-      team: newProject.team,
-      color: newProject.color,
-      tasks: []
-    };
+    try {
+      const projectData = {
+        name: newProject.name,
+        description: newProject.description,
+        status: 'planning' as const,
+        progress: 0,
+        startDate: new Date(newProject.startDate),
+        endDate: newProject.endDate ? new Date(newProject.endDate) : undefined,
+        team: newProject.team,
+        color: newProject.color
+      };
 
-    setProjects(prev => [...prev, project]);
-    setNewProject({
-      name: '',
-      description: '',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: '',
-      team: [],
-      color: '#3B82F6'
-    });
-    setShowNewProject(false);
+      const createdProject = await createProject(projectData);
+      if (createdProject) {
+        setNewProject({
+          name: '',
+          description: '',
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: '',
+          team: [],
+          color: '#3B82F6'
+        });
+        setShowNewProject(false);
+        toast.success('Project created successfully');
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast.error('Failed to create project');
+    }
   };
 
   // Task creation handler
-  const handleCreateTask = () => {
-    if (!newTask.title.trim() || !selectedProjectForTask) return;
+  const handleCreateTask = async () => {
+    if (!newTask.title.trim() || !selectedProjectForTask) {
+      toast.error('Please enter a task title and select a project');
+      return;
+    }
 
-    const task: ProjectTask = {
-      id: `task_${Date.now()}`,
-      title: newTask.title,
-      description: newTask.description,
-      status: newTask.status,
-      priority: newTask.priority,
-      assignee: newTask.assignee,
-      dueDate: newTask.dueDate ? new Date(newTask.dueDate) : undefined,
-      estimatedHours: newTask.estimatedHours
-    };
+    try {
+      const taskData = {
+        projectId: selectedProjectForTask,
+        title: newTask.title,
+        description: newTask.description,
+        status: newTask.status,
+        priority: newTask.priority,
+        assignee: newTask.assignee,
+        dueDate: newTask.dueDate ? new Date(newTask.dueDate) : undefined,
+        tags: [],
+        estimatedHours: newTask.estimatedHours
+      };
 
-    setProjects(prev => prev.map(project =>
-      project.id === selectedProjectForTask
-        ? { ...project, tasks: [...project.tasks, task] }
-        : project
-    ));
-
-    setNewTask({
-      title: '',
-      description: '',
-      status: 'todo',
-      priority: 'medium',
-      assignee: '',
-      dueDate: '',
-      estimatedHours: 0
-    });
-    setShowNewTask(false);
-    setSelectedProjectForTask(null);
+      const createdTask = await createProjectTask(taskData);
+      if (createdTask) {
+        setNewTask({
+          title: '',
+          description: '',
+          status: 'todo',
+          priority: 'medium',
+          assignee: '',
+          dueDate: '',
+          estimatedHours: 0
+        });
+        setShowNewTask(false);
+        setSelectedProjectForTask(null);
+        toast.success('Task created successfully');
+      }
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast.error('Failed to create task');
+    }
   };
 
   // Task editing handlers
@@ -344,23 +266,33 @@ const Projects: React.FC = () => {
     setEditingTask(null);
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    if (!selectedProject) return;
-
-    setProjects(prev => prev.map(project =>
-      project.id === selectedProject
-        ? { ...project, tasks: project.tasks.filter(task => task.id !== taskId) }
-        : project
-    ));
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      const success = await deleteProjectTask(taskId);
+      if (success) {
+        toast.success('Task deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast.error('Failed to delete task');
+    }
   };
 
-  const handleDeleteProject = () => {
+  const handleDeleteProject = async () => {
     if (!selectedProject) return;
 
-    setProjects(prev => prev.filter(project => project.id !== selectedProject));
-    setSelectedProject(null);
-    setShowDeleteConfirm(false);
-    setShowProjectMenu(false);
+    try {
+      const success = await deleteProject(selectedProject);
+      if (success) {
+        setSelectedProject(null);
+        setShowDeleteConfirm(false);
+        setShowProjectMenu(false);
+        toast.success('Project deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast.error('Failed to delete project');
+    }
   };
 
   // Render modals function to be used in both views
@@ -508,17 +440,16 @@ const Projects: React.FC = () => {
   );
 
   // Task status update handler
-  const handleUpdateTaskStatus = (projectId: string, taskId: string, newStatus: ProjectTask['status']) => {
-    setProjects(prev => prev.map(project =>
-      project.id === projectId
-        ? {
-            ...project,
-            tasks: project.tasks.map(task =>
-              task.id === taskId ? { ...task, status: newStatus } : task
-            )
-          }
-        : project
-    ));
+  const handleUpdateTaskStatus = async (projectId: string, taskId: string, newStatus: ProjectTask['status']) => {
+    try {
+      const success = await updateProjectTask(taskId, { status: newStatus });
+      if (success) {
+        toast.success('Task status updated');
+      }
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      toast.error('Failed to update task status');
+    }
   };
 
   // Drag and drop handlers
@@ -538,19 +469,41 @@ const Projects: React.FC = () => {
     }
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading projects...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Main render function
   const selectedProjectData = selectedProject ? projects.find(p => p.id === selectedProject) : null;
 
   return (
     <div className="h-full overflow-y-auto pb-4">
+      {/* Connection Status */}
+      {isUsingLocalFallback && (
+        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <div className="flex items-center space-x-2 text-yellow-800 dark:text-yellow-200">
+            <WifiOff className="w-4 h-4" />
+            <span className="text-sm">Using local storage - projects won't sync across devices</span>
+          </div>
+        </div>
+      )}
       {selectedProject && selectedProjectData ? (
         // Kanban Board View
         (() => {
+          const projectTasksData = getProjectTasks(selectedProjectData.id);
           const kanbanColumns = [
-            { id: 'todo', title: 'To Do', tasks: selectedProjectData.tasks.filter(t => t.status === 'todo') },
-            { id: 'in-progress', title: 'In Progress', tasks: selectedProjectData.tasks.filter(t => t.status === 'in-progress') },
-            { id: 'review', title: 'Review', tasks: selectedProjectData.tasks.filter(t => t.status === 'review') },
-            { id: 'done', title: 'Done', tasks: selectedProjectData.tasks.filter(t => t.status === 'done') }
+            { id: 'todo', title: 'To Do', tasks: projectTasksData.filter(t => t.status === 'todo') },
+            { id: 'in-progress', title: 'In Progress', tasks: projectTasksData.filter(t => t.status === 'in-progress') },
+            { id: 'review', title: 'Review', tasks: projectTasksData.filter(t => t.status === 'review') },
+            { id: 'done', title: 'Done', tasks: projectTasksData.filter(t => t.status === 'done') }
           ];
 
           return (
@@ -623,7 +576,10 @@ const Projects: React.FC = () => {
                 <span className="text-sm text-muted-foreground">Tasks</span>
               </div>
               <p className="text-lg font-semibold text-foreground">
-                {selectedProjectData.tasks.filter(t => t.status === 'done').length}/{selectedProjectData.tasks.length}
+                {(() => {
+                  const projectTasksData = getProjectTasks(selectedProjectData.id);
+                  return `${projectTasksData.filter(t => t.status === 'done').length}/${projectTasksData.length}`;
+                })()}
               </p>
             </div>
             
@@ -647,15 +603,16 @@ const Projects: React.FC = () => {
           </div>
         </div>
 
-        {/* Kanban Board */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {kanbanColumns.map((column) => (
-            <div
-              key={column.id}
-              className="bg-card border border-border rounded-lg p-4"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, column.id as ProjectTask['status'])}
-            >
+        {/* Kanban Board - Mobile Optimized */}
+        <div className="overflow-x-auto pb-4">
+          <div className="flex md:grid md:grid-cols-4 gap-4 md:gap-6 min-w-max md:min-w-0">
+            {kanbanColumns.map((column) => (
+              <div
+                key={column.id}
+                className="bg-card border border-border rounded-lg p-3 md:p-4 flex-shrink-0 w-72 md:w-auto"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, column.id as ProjectTask['status'])}
+              >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-foreground">{column.title}</h3>
                 <span className="bg-secondary text-secondary-foreground px-2 py-1 rounded-full text-xs">
@@ -742,10 +699,11 @@ const Projects: React.FC = () => {
               </div>
             </div>
           ))}
+          </div>
         </div>
-            </div>
-          );
-        })()
+        </div>
+      );
+    })()
       ) : (
         // Projects Grid View
         <div className="h-full overflow-y-auto pb-4">
@@ -846,7 +804,10 @@ const Projects: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
                   <span className="text-muted-foreground">
-                    {project.tasks.filter(t => t.status === 'done').length}/{project.tasks.length} tasks
+                    {(() => {
+                      const projectTasksData = getProjectTasks(project.id);
+                      return `${projectTasksData.filter(t => t.status === 'done').length}/${projectTasksData.length} tasks`;
+                    })()}
                   </span>
                 </div>
               </div>

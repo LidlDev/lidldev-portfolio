@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  TasksService, 
-  HabitsService, 
-  NotesService, 
+import {
+  TasksService,
+  HabitsService,
+  NotesService,
   FinancialGoalsService,
+  ProjectsService,
+  CalendarService,
   EnhancedTask,
   Habit,
   HabitEntry,
   Note,
-  FinancialGoal
+  FinancialGoal,
+  Project,
+  ProjectTask,
+  CalendarEvent
 } from '@/services/agentDataService';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 
@@ -690,5 +695,680 @@ export const useDashboardData = () => {
     goals,
     stats,
     loading
+  };
+};
+
+// =============================================
+// PROJECTS HOOK
+// =============================================
+
+export const useProjects = () => {
+  const { user } = useAuth();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectTasks, setProjectTasks] = useState<ProjectTask[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [useLocalFallback, setUseLocalFallback] = useState(false);
+
+  const loadProjects = async () => {
+    if (!user) {
+      // Load from localStorage for anonymous users
+      console.log('No user signed in, loading from localStorage');
+      const localProjects = localStorage.getItem('anonymous_projects');
+      const localTasks = localStorage.getItem('anonymous_project_tasks');
+
+      if (localProjects) {
+        try {
+          const parsed = JSON.parse(localProjects);
+          setProjects(parsed.map((project: any) => ({
+            ...project,
+            startDate: project.startDate ? new Date(project.startDate) : undefined,
+            endDate: project.endDate ? new Date(project.endDate) : undefined,
+            createdAt: new Date(project.createdAt),
+            updatedAt: new Date(project.updatedAt)
+          })));
+        } catch (parseErr) {
+          console.error('Error parsing anonymous projects:', parseErr);
+          setProjects([]);
+        }
+      } else {
+        setProjects([]);
+      }
+
+      if (localTasks) {
+        try {
+          const parsed = JSON.parse(localTasks);
+          setProjectTasks(parsed.map((task: any) => ({
+            ...task,
+            dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+            createdAt: new Date(task.createdAt),
+            updatedAt: new Date(task.updatedAt)
+          })));
+        } catch (parseErr) {
+          console.error('Error parsing anonymous project tasks:', parseErr);
+          setProjectTasks([]);
+        }
+      } else {
+        setProjectTasks([]);
+      }
+
+      setUseLocalFallback(true);
+      setError('Demo mode - projects will not persist after refresh');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Load projects
+      const projectsData = await ProjectsService.getProjects(user);
+      console.log('Loaded projects from Supabase:', projectsData);
+      setProjects(projectsData);
+
+      // Load all project tasks
+      const allTasks: ProjectTask[] = [];
+      for (const project of projectsData) {
+        const tasks = await ProjectsService.getProjectTasks(user, project.id);
+        allTasks.push(...tasks);
+      }
+      console.log('Loaded project tasks from Supabase:', allTasks);
+      setProjectTasks(allTasks);
+
+      setUseLocalFallback(false);
+    } catch (err) {
+      console.error('Error loading projects:', err);
+      setError('Failed to load projects from server');
+      setUseLocalFallback(true);
+
+      // Fall back to localStorage
+      const localProjects = localStorage.getItem(`projects_${user.id}`);
+      const localTasks = localStorage.getItem(`project_tasks_${user.id}`);
+
+      if (localProjects) {
+        try {
+          const parsed = JSON.parse(localProjects);
+          setProjects(parsed);
+        } catch (parseErr) {
+          setProjects([]);
+        }
+      }
+
+      if (localTasks) {
+        try {
+          const parsed = JSON.parse(localTasks);
+          setProjectTasks(parsed);
+        } catch (parseErr) {
+          setProjectTasks([]);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createProject = async (project: Partial<Project>): Promise<Project | null> => {
+    if (!user && !useLocalFallback) {
+      setUseLocalFallback(true);
+      setError('Demo mode - projects will not persist after refresh');
+    }
+
+    try {
+      let newProject: Project;
+
+      if (useLocalFallback) {
+        // Create project locally
+        newProject = {
+          id: `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: project.name || '',
+          description: project.description,
+          status: project.status || 'planning',
+          progress: project.progress || 0,
+          startDate: project.startDate,
+          endDate: project.endDate,
+          team: project.team || [],
+          color: project.color || '#3B82F6',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        console.log('Created local project:', newProject);
+      } else {
+        // Try to create via Supabase
+        const supabaseProject = await ProjectsService.createProject(user, project);
+        if (!supabaseProject) {
+          throw new Error('Failed to create project via Supabase');
+        }
+        newProject = supabaseProject;
+        console.log('Project created via Supabase:', newProject);
+      }
+
+      setProjects(prev => {
+        const updated = [newProject, ...prev];
+
+        // Save to localStorage as backup
+        if (user) {
+          localStorage.setItem(`projects_${user.id}`, JSON.stringify(updated));
+        } else {
+          localStorage.setItem('anonymous_projects', JSON.stringify(updated));
+        }
+
+        return updated;
+      });
+
+      return newProject;
+    } catch (err) {
+      console.error('Error creating project:', err);
+
+      // Fallback to local creation
+      if (!useLocalFallback) {
+        console.log('Falling back to local project creation');
+        setUseLocalFallback(true);
+        setError('Using local storage (Supabase unavailable)');
+        return await createProject(project); // Retry with local fallback
+      }
+
+      setError('Failed to create project');
+      return null;
+    }
+  };
+
+  const updateProject = async (projectId: string, updates: Partial<Project>): Promise<boolean> => {
+    if (!user && !useLocalFallback) {
+      setUseLocalFallback(true);
+      setError('Demo mode - changes will not persist after refresh');
+    }
+
+    try {
+      let success = false;
+
+      if (useLocalFallback) {
+        // Update locally
+        success = true;
+      } else {
+        // Try to update via Supabase
+        const updatedProject = await ProjectsService.updateProject(user, projectId, updates);
+        success = !!updatedProject;
+      }
+
+      if (success) {
+        setProjects(prev => {
+          const updated = prev.map(project =>
+            project.id === projectId
+              ? { ...project, ...updates, updatedAt: new Date() }
+              : project
+          );
+
+          // Save to localStorage as backup
+          if (user) {
+            localStorage.setItem(`projects_${user.id}`, JSON.stringify(updated));
+          } else {
+            localStorage.setItem('anonymous_projects', JSON.stringify(updated));
+          }
+
+          return updated;
+        });
+      }
+      return success;
+    } catch (err) {
+      setError('Failed to update project');
+      console.error('Error updating project:', err);
+      return false;
+    }
+  };
+
+  const deleteProject = async (projectId: string): Promise<boolean> => {
+    if (!user && !useLocalFallback) {
+      setUseLocalFallback(true);
+    }
+
+    try {
+      let success = false;
+
+      if (useLocalFallback) {
+        // Delete locally
+        success = true;
+      } else {
+        // Try to delete via Supabase
+        success = await ProjectsService.deleteProject(user, projectId);
+      }
+
+      if (success) {
+        setProjects(prev => {
+          const updated = prev.filter(project => project.id !== projectId);
+
+          // Save to localStorage as backup
+          if (user) {
+            localStorage.setItem(`projects_${user.id}`, JSON.stringify(updated));
+          } else {
+            localStorage.setItem('anonymous_projects', JSON.stringify(updated));
+          }
+
+          return updated;
+        });
+
+        // Also remove associated tasks
+        setProjectTasks(prev => {
+          const updated = prev.filter(task => task.projectId !== projectId);
+
+          // Save to localStorage as backup
+          if (user) {
+            localStorage.setItem(`project_tasks_${user.id}`, JSON.stringify(updated));
+          } else {
+            localStorage.setItem('anonymous_project_tasks', JSON.stringify(updated));
+          }
+
+          return updated;
+        });
+      }
+      return success;
+    } catch (err) {
+      setError('Failed to delete project');
+      console.error('Error deleting project:', err);
+      return false;
+    }
+  };
+
+  const createProjectTask = async (task: Partial<ProjectTask>): Promise<ProjectTask | null> => {
+    if (!user && !useLocalFallback) {
+      setUseLocalFallback(true);
+      setError('Demo mode - tasks will not persist after refresh');
+    }
+
+    try {
+      let newTask: ProjectTask;
+
+      if (useLocalFallback) {
+        // Create task locally
+        newTask = {
+          id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          projectId: task.projectId || '',
+          title: task.title || '',
+          description: task.description,
+          status: task.status || 'todo',
+          priority: task.priority || 'medium',
+          assignee: task.assignee,
+          dueDate: task.dueDate,
+          tags: task.tags || [],
+          estimatedHours: task.estimatedHours,
+          actualHours: task.actualHours,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        console.log('Created local project task:', newTask);
+      } else {
+        // Try to create via Supabase
+        const supabaseTask = await ProjectsService.createProjectTask(user, task);
+        if (!supabaseTask) {
+          throw new Error('Failed to create project task via Supabase');
+        }
+        newTask = supabaseTask;
+        console.log('Project task created via Supabase:', newTask);
+      }
+
+      setProjectTasks(prev => {
+        const updated = [newTask, ...prev];
+
+        // Save to localStorage as backup
+        if (user) {
+          localStorage.setItem(`project_tasks_${user.id}`, JSON.stringify(updated));
+        } else {
+          localStorage.setItem('anonymous_project_tasks', JSON.stringify(updated));
+        }
+
+        return updated;
+      });
+
+      return newTask;
+    } catch (err) {
+      console.error('Error creating project task:', err);
+
+      // Fallback to local creation
+      if (!useLocalFallback) {
+        console.log('Falling back to local project task creation');
+        setUseLocalFallback(true);
+        setError('Using local storage (Supabase unavailable)');
+        return await createProjectTask(task); // Retry with local fallback
+      }
+
+      setError('Failed to create project task');
+      return null;
+    }
+  };
+
+  const updateProjectTask = async (taskId: string, updates: Partial<ProjectTask>): Promise<boolean> => {
+    if (!user && !useLocalFallback) {
+      setUseLocalFallback(true);
+      setError('Demo mode - changes will not persist after refresh');
+    }
+
+    try {
+      let success = false;
+
+      if (useLocalFallback) {
+        // Update locally
+        success = true;
+      } else {
+        // Try to update via Supabase
+        const updatedTask = await ProjectsService.updateProjectTask(user, taskId, updates);
+        success = !!updatedTask;
+      }
+
+      if (success) {
+        setProjectTasks(prev => {
+          const updated = prev.map(task =>
+            task.id === taskId
+              ? { ...task, ...updates, updatedAt: new Date() }
+              : task
+          );
+
+          // Save to localStorage as backup
+          if (user) {
+            localStorage.setItem(`project_tasks_${user.id}`, JSON.stringify(updated));
+          } else {
+            localStorage.setItem('anonymous_project_tasks', JSON.stringify(updated));
+          }
+
+          return updated;
+        });
+      }
+      return success;
+    } catch (err) {
+      setError('Failed to update project task');
+      console.error('Error updating project task:', err);
+      return false;
+    }
+  };
+
+  const deleteProjectTask = async (taskId: string): Promise<boolean> => {
+    if (!user && !useLocalFallback) {
+      setUseLocalFallback(true);
+    }
+
+    try {
+      let success = false;
+
+      if (useLocalFallback) {
+        // Delete locally
+        success = true;
+      } else {
+        // Try to delete via Supabase
+        success = await ProjectsService.deleteProjectTask(user, taskId);
+      }
+
+      if (success) {
+        setProjectTasks(prev => {
+          const updated = prev.filter(task => task.id !== taskId);
+
+          // Save to localStorage as backup
+          if (user) {
+            localStorage.setItem(`project_tasks_${user.id}`, JSON.stringify(updated));
+          } else {
+            localStorage.setItem('anonymous_project_tasks', JSON.stringify(updated));
+          }
+
+          return updated;
+        });
+      }
+      return success;
+    } catch (err) {
+      setError('Failed to delete project task');
+      console.error('Error deleting project task:', err);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    loadProjects();
+  }, [user]);
+
+  return {
+    projects,
+    projectTasks,
+    loading,
+    error,
+    createProject,
+    updateProject,
+    deleteProject,
+    createProjectTask,
+    updateProjectTask,
+    deleteProjectTask,
+    refetch: loadProjects,
+    isUsingLocalFallback: useLocalFallback
+  };
+};
+
+// =============================================
+// CALENDAR HOOK
+// =============================================
+
+export const useCalendar = () => {
+  const { user } = useAuth();
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [useLocalFallback, setUseLocalFallback] = useState(false);
+
+  const loadEvents = async () => {
+    if (!user) {
+      // Load from localStorage for anonymous users
+      console.log('No user signed in, loading from localStorage');
+      const localEvents = localStorage.getItem('anonymous_calendar_events');
+
+      if (localEvents) {
+        try {
+          const parsed = JSON.parse(localEvents);
+          setEvents(parsed.map((event: any) => ({
+            ...event,
+            date: new Date(event.date),
+            createdAt: new Date(event.createdAt),
+            updatedAt: new Date(event.updatedAt)
+          })));
+        } catch (parseErr) {
+          console.error('Error parsing anonymous calendar events:', parseErr);
+          setEvents([]);
+        }
+      } else {
+        setEvents([]);
+      }
+
+      setUseLocalFallback(true);
+      setError('Demo mode - events will not persist after refresh');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const eventsData = await CalendarService.getEvents(user);
+      console.log('Loaded calendar events from Supabase:', eventsData);
+      setEvents(eventsData);
+
+      setUseLocalFallback(false);
+    } catch (err) {
+      console.error('Error loading calendar events:', err);
+      setError('Failed to load events from server');
+      setUseLocalFallback(true);
+
+      // Fall back to localStorage
+      const localEvents = localStorage.getItem(`calendar_events_${user.id}`);
+
+      if (localEvents) {
+        try {
+          const parsed = JSON.parse(localEvents);
+          setEvents(parsed);
+        } catch (parseErr) {
+          setEvents([]);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createEvent = async (event: Partial<CalendarEvent>): Promise<CalendarEvent | null> => {
+    if (!user && !useLocalFallback) {
+      setUseLocalFallback(true);
+      setError('Demo mode - events will not persist after refresh');
+    }
+
+    try {
+      let newEvent: CalendarEvent;
+
+      if (useLocalFallback) {
+        // Create event locally
+        newEvent = {
+          id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          title: event.title || '',
+          description: event.description,
+          date: event.date || new Date(),
+          startTime: event.startTime,
+          endTime: event.endTime,
+          type: event.type || 'event',
+          priority: event.priority || 'medium',
+          location: event.location,
+          attendees: event.attendees || [],
+          completed: event.completed || false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        console.log('Created local calendar event:', newEvent);
+      } else {
+        // Try to create via Supabase
+        const supabaseEvent = await CalendarService.createEvent(user, event);
+        if (!supabaseEvent) {
+          throw new Error('Failed to create calendar event via Supabase');
+        }
+        newEvent = supabaseEvent;
+        console.log('Calendar event created via Supabase:', newEvent);
+      }
+
+      setEvents(prev => {
+        const updated = [newEvent, ...prev].sort((a, b) => a.date.getTime() - b.date.getTime());
+
+        // Save to localStorage as backup
+        if (user) {
+          localStorage.setItem(`calendar_events_${user.id}`, JSON.stringify(updated));
+        } else {
+          localStorage.setItem('anonymous_calendar_events', JSON.stringify(updated));
+        }
+
+        return updated;
+      });
+
+      return newEvent;
+    } catch (err) {
+      console.error('Error creating calendar event:', err);
+
+      // Fallback to local creation
+      if (!useLocalFallback) {
+        console.log('Falling back to local calendar event creation');
+        setUseLocalFallback(true);
+        setError('Using local storage (Supabase unavailable)');
+        return await createEvent(event); // Retry with local fallback
+      }
+
+      setError('Failed to create calendar event');
+      return null;
+    }
+  };
+
+  const updateEvent = async (eventId: string, updates: Partial<CalendarEvent>): Promise<boolean> => {
+    if (!user && !useLocalFallback) {
+      setUseLocalFallback(true);
+      setError('Demo mode - changes will not persist after refresh');
+    }
+
+    try {
+      let success = false;
+
+      if (useLocalFallback) {
+        // Update locally
+        success = true;
+      } else {
+        // Try to update via Supabase
+        const updatedEvent = await CalendarService.updateEvent(user, eventId, updates);
+        success = !!updatedEvent;
+      }
+
+      if (success) {
+        setEvents(prev => {
+          const updated = prev.map(event =>
+            event.id === eventId
+              ? { ...event, ...updates, updatedAt: new Date() }
+              : event
+          ).sort((a, b) => a.date.getTime() - b.date.getTime());
+
+          // Save to localStorage as backup
+          if (user) {
+            localStorage.setItem(`calendar_events_${user.id}`, JSON.stringify(updated));
+          } else {
+            localStorage.setItem('anonymous_calendar_events', JSON.stringify(updated));
+          }
+
+          return updated;
+        });
+      }
+      return success;
+    } catch (err) {
+      setError('Failed to update calendar event');
+      console.error('Error updating calendar event:', err);
+      return false;
+    }
+  };
+
+  const deleteEvent = async (eventId: string): Promise<boolean> => {
+    if (!user && !useLocalFallback) {
+      setUseLocalFallback(true);
+    }
+
+    try {
+      let success = false;
+
+      if (useLocalFallback) {
+        // Delete locally
+        success = true;
+      } else {
+        // Try to delete via Supabase
+        success = await CalendarService.deleteEvent(user, eventId);
+      }
+
+      if (success) {
+        setEvents(prev => {
+          const updated = prev.filter(event => event.id !== eventId);
+
+          // Save to localStorage as backup
+          if (user) {
+            localStorage.setItem(`calendar_events_${user.id}`, JSON.stringify(updated));
+          } else {
+            localStorage.setItem('anonymous_calendar_events', JSON.stringify(updated));
+          }
+
+          return updated;
+        });
+      }
+      return success;
+    } catch (err) {
+      setError('Failed to delete calendar event');
+      console.error('Error deleting calendar event:', err);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    loadEvents();
+  }, [user]);
+
+  return {
+    events,
+    loading,
+    error,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    refetch: loadEvents,
+    isUsingLocalFallback: useLocalFallback
   };
 };

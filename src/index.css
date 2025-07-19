@@ -7,6 +7,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom responsive utilities */
+@layer utilities {
+  /* Extra small screens (320px and up) */
+  @media (min-width: 320px) {
+    .xs\:inline { display: inline; }
+    .xs\:hidden { display: none; }
+    .xs\:block { display: block; }
+    .xs\:flex { display: flex; }
+  }
+}
+
 @layer base {
   :root {
     --background: 240 10% 97%;

@@ -142,26 +142,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   return (
     <div className="h-full overflow-y-auto pb-4">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-foreground mb-2">Dashboard</h2>
-        <p className="text-muted-foreground">Welcome back! Here's your productivity overview.</p>
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-1 sm:mb-2">Dashboard</h2>
+        <p className="text-sm sm:text-base text-muted-foreground">Welcome back! Here's your productivity overview.</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Stats Grid - Mobile optimized */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {/* Tasks Progress */}
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-              <span className="text-sm font-medium text-foreground">Tasks</span>
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              <span className="text-xs sm:text-sm font-medium text-foreground">Tasks</span>
             </div>
             <span className="text-xs text-muted-foreground">Today</span>
           </div>
           <div className="space-y-2">
             <div className="flex items-baseline space-x-2">
-              <span className="text-2xl font-bold text-foreground">{stats.tasks.completed}</span>
-              <span className="text-sm text-muted-foreground">/ {stats.tasks.total}</span>
+              <span className="text-xl sm:text-2xl font-bold text-foreground">{stats.tasks.completed}</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">/ {stats.tasks.total}</span>
             </div>
             <div className="w-full bg-secondary rounded-full h-2">
               <div
@@ -173,31 +173,31 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
 
         {/* Upcoming Deadlines */}
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-orange-500" />
-              <span className="text-sm font-medium text-foreground">Deadlines</span>
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+              <span className="text-xs sm:text-sm font-medium text-foreground">Deadlines</span>
             </div>
             <span className="text-xs text-muted-foreground">This week</span>
           </div>
           <div className="space-y-2">
-            <span className="text-2xl font-bold text-foreground">{stats.tasks.dueSoon}</span>
+            <span className="text-xl sm:text-2xl font-bold text-foreground">{stats.tasks.dueSoon}</span>
             <p className="text-xs text-muted-foreground">Tasks due soon</p>
           </div>
         </div>
 
         {/* Financial Goals */}
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium text-foreground">Goals</span>
+              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+              <span className="text-xs sm:text-sm font-medium text-foreground">Goals</span>
             </div>
             <span className="text-xs text-muted-foreground">Progress</span>
           </div>
           <div className="space-y-2">
-            <span className="text-2xl font-bold text-foreground">{stats.goals.avgProgress}%</span>
+            <span className="text-xl sm:text-2xl font-bold text-foreground">{stats.goals.avgProgress}%</span>
             <div className="w-full bg-secondary rounded-full h-2">
               <div
                 className="bg-green-500 h-2 rounded-full transition-all duration-300"
@@ -208,16 +208,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
 
         {/* Monthly Spending */}
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <DollarSign className="w-5 h-5 text-blue-500" />
-              <span className="text-sm font-medium text-foreground">Spending</span>
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+              <span className="text-xs sm:text-sm font-medium text-foreground">Spending</span>
             </div>
             <span className="text-xs text-muted-foreground">This month</span>
           </div>
           <div className="space-y-2">
-            <span className="text-2xl font-bold text-foreground">{formatCurrency(stats.monthlySpending)}</span>
+            <span className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(stats.monthlySpending)}</span>
             <div className="w-full bg-secondary rounded-full h-2">
               <div
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
@@ -229,30 +229,30 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Recent Activity - Mobile optimized */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Tasks */}
-        <div className="bg-card border border-border rounded-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Recent Tasks</h3>
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground">Recent Tasks</h3>
             <button
               onClick={() => onNavigate?.('tasks')}
-              className="flex items-center space-x-1 text-sm text-primary hover:text-primary/80 transition-colors"
+              className="flex items-center space-x-1 text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors"
             >
               <span>View all</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {recentTasks.map((task) => (
-              <div key={task.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+              <div key={task.id} className="flex items-center space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                   task.completed ? 'bg-primary border-primary' : 'border-muted-foreground'
                 }`}>
-                  {task.completed && <CheckCircle className="w-3 h-3 text-primary-foreground" />}
+                  {task.completed && <CheckCircle className="w-2 h-2 sm:w-3 sm:h-3 text-primary-foreground" />}
                 </div>
-                <div className="flex-1">
-                  <p className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs sm:text-sm truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                     {task.title}
                   </p>
                   <p className="text-xs text-muted-foreground">{task.dueDate}</p>
@@ -263,15 +263,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
 
         {/* Upcoming Payments */}
-        <div className="bg-card border border-border rounded-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Upcoming Payments</h3>
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground">Upcoming Payments</h3>
             <button
               onClick={() => onNavigate?.('payments')}
-              className="flex items-center space-x-1 text-sm text-primary hover:text-primary/80 transition-colors"
+              className="flex items-center space-x-1 text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors"
             >
               <span>View all</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
           <div className="space-y-3">
@@ -304,10 +304,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Quick Actions - Mobile optimized */}
+      <div className="mt-6 sm:mt-8">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {quickActions.map((action) => {
             const IconComponent = {
               CheckCircle: CheckCircle2,
@@ -322,31 +322,31 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               <button
                 key={action.id}
                 onClick={action.action}
-                className="bg-card border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors text-center group"
+                className="bg-card border border-border rounded-lg p-3 sm:p-4 hover:bg-accent/50 transition-colors text-center group"
               >
-                <IconComponent className={`w-6 h-6 ${action.color} mx-auto mb-2 group-hover:scale-110 transition-transform`} />
-                <span className="text-sm font-medium text-foreground">{action.label}</span>
+                <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 ${action.color} mx-auto mb-2 group-hover:scale-110 transition-transform`} />
+                <span className="text-xs sm:text-sm font-medium text-foreground">{action.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Recent Activity Summary */}
-      <div className="mt-8 bg-card border border-border rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Today's Summary</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Recent Activity Summary - Mobile optimized */}
+      <div className="mt-6 sm:mt-8 bg-card border border-border rounded-lg p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">Today's Summary</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary mb-1">{stats.tasks.completed}</div>
-            <div className="text-sm text-muted-foreground">Tasks Completed</div>
+            <div className="text-xl sm:text-2xl font-bold text-primary mb-1">{stats.tasks.completed}</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Tasks Completed</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-500 mb-1">{stats.notes.total}</div>
-            <div className="text-sm text-muted-foreground">Notes Created</div>
+            <div className="text-xl sm:text-2xl font-bold text-green-500 mb-1">{stats.notes.total}</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Notes Created</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-500 mb-1">{stats.habits.completedToday}</div>
-            <div className="text-sm text-muted-foreground">Habits Tracked</div>
+            <div className="text-xl sm:text-2xl font-bold text-blue-500 mb-1">{stats.habits.completedToday}</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Habits Tracked</div>
           </div>
         </div>
       </div>
