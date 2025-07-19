@@ -242,14 +242,18 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
           }
         }
 
-        // Check if this is a token expiration error
+        // Check if this is a token expiration or missing auth data error
         if (response.status === 403 && (
           errorMessage.includes('refresh authentication') ||
           errorMessage.includes('reconnect') ||
+          errorMessage.includes('authentication not found') ||
+          errorMessage.includes('authentication data') ||
           errorDetails.includes('refresh_token')
         )) {
+          console.log('Detected missing or expired auth tokens, updating UI state');
           setTokenExpired(true);
           setPermissionGranted(false);
+          toast.error('Gmail authentication missing. Please reconnect your account.');
         }
 
         // Include details in the error message if available
@@ -397,29 +401,9 @@ const EmailScanner: React.FC<EmailScannerProps> = ({ onBillsDetected }) => {
             setTokenExpired(false);
             console.log('Gmail connection is valid');
           } else {
-            // The checkGmailConnection function will have already updated the UI state
-            // if requiresReauth was true, so we don't need to set it again here
-            console.log('Gmail tokens have expired or were cleared');
-
-            // Double-check if the auth data was cleared from the database
-            try {
-              const { data: recheckAuthData, error: recheckError } = await supabase
-                .from('email_auth')
-                .select('*')
-                .eq('user_id', user.id)
-                .eq('provider', 'google')
-                .single();
-
-              if (recheckError || !recheckAuthData) {
-                console.log('Auth data was cleared from database, resetting UI state');
-                setPermissionGranted(false);
-                setTokenExpired(true);
-              }
-            } catch (recheckErr) {
-              console.log('Error rechecking auth data:', recheckErr);
-              setPermissionGranted(false);
-              setTokenExpired(true);
-            }
+            console.log('Gmail connection check failed, updating UI state');
+            setPermissionGranted(false);
+            setTokenExpired(true);
           }
           return;
         }

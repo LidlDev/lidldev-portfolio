@@ -252,6 +252,32 @@ async function handleOAuthWithUserId(userId, code, res, returnPath = null) {
 
     console.log('OAuth flow completed successfully for user:', userId);
 
+    // Verify that the tokens were actually saved
+    try {
+      const { data: verifyData, error: verifyError } = await supabaseService
+        .from('email_auth')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('provider', 'google')
+        .single();
+
+      if (verifyError || !verifyData) {
+        console.error('CRITICAL: Tokens were not saved properly!', verifyError);
+        return res.redirect(createRedirectUrl(returnPath, false, 'token_verification_failed'));
+      } else {
+        console.log('✅ Tokens verified in database:', {
+          userId: verifyData.user_id,
+          provider: verifyData.provider,
+          expiresAt: verifyData.expires_at,
+          hasAccessToken: !!verifyData.access_token,
+          hasRefreshToken: !!verifyData.refresh_token
+        });
+      }
+    } catch (verifyErr) {
+      console.error('Error verifying saved tokens:', verifyErr);
+      return res.redirect(createRedirectUrl(returnPath, false, 'token_verification_error'));
+    }
+
     // Redirect back to the return path or agent page with success
     return res.redirect(createRedirectUrl(returnPath, true));
   } catch (error) {
