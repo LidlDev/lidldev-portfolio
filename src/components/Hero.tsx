@@ -71,9 +71,9 @@ const Hero: React.FC = () => {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-balance">
               <span className="magic-text">Harry</span>
               <br />
-              <span className="relative">
-                {text}
-                <span className="absolute -right-2 animate-pulse">|</span>
+              <span className="relative inline-block min-h-[1.2em]">
+                <span className="inline-block">{text}</span>
+                <span className="inline-block animate-pulse ml-1">|</span>
               </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl">
