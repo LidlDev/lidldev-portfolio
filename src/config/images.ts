@@ -12,6 +12,7 @@ export const IMAGE_PATHS = {
     SPIKE_VOLLEYBALL: '/images/projects/spike-volleyball/app_logo.png',
     CHESS_APP: '/images/projects/chess-app/logo.png',
     UNCHARTED: '/images/projects/uncharted/logo.png',
+    AGENT_APP: '/images/projects/agent-app/logo.svg',
   },
   
   // Project hero images
@@ -19,6 +20,7 @@ export const IMAGE_PATHS = {
     SPIKE_VOLLEYBALL: '/images/projects/spike-volleyball/hero.jpg',
     CHESS_APP: '/images/projects/chess-app/hero.jpg',
     UNCHARTED: '/images/projects/uncharted/hero.png',
+    AGENT_APP: '/images/projects/agent-app/hero.jpg',
   },
   
   // Project screenshots
@@ -43,6 +45,15 @@ export const IMAGE_PATHS = {
       '/images/projects/uncharted/screenshot-1.jpg',
       '/images/projects/uncharted/screenshot-2.jpg',
     ],
+    AGENT_APP: [
+      '/images/projects/agent-app/dashboard.jpg',
+      '/images/projects/agent-app/tasks.jpg',
+      '/images/projects/agent-app/notes.jpg',
+      '/images/projects/agent-app/budget-goals.jpg',
+      '/images/projects/agent-app/projects.jpg',
+      '/images/projects/agent-app/spending-payments.jpg',
+      '/images/projects/agent-app/calendar.jpg',
+    ],
   },
   
   // Fallback images (using Unsplash for now, replace with your actual images)
@@ -50,6 +61,7 @@ export const IMAGE_PATHS = {
     SPIKE_VOLLEYBALL_HERO: 'https://images.unsplash.com/photo-1592656094267-764a45160876?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200&h=600',
     CHESS_HERO: 'https://images.unsplash.com/photo-1586165368502-1bad197a6461?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200&h=600',
     UNCHARTED_HERO: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200&h=600',
+    AGENT_APP_HERO: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200&h=600',
     
     // Volleyball-themed screenshots
     VOLLEYBALL_SCREENSHOTS: [
@@ -69,6 +81,14 @@ export const IMAGE_PATHS = {
     TRAVEL_SCREENSHOTS: [
       'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=800&h=600',
       'https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=800&h=600',
+    ],
+
+    // Agent app screenshots
+    AGENT_APP_SCREENSHOTS: [
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=800&h=600',
+      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=800&h=600',
+      'https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=800&h=600',
+      'https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=800&h=600',
     ],
   }
 };

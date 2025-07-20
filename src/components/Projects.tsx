@@ -2,6 +2,8 @@ import React from "react";
 import { ExternalLink, Github, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { projectsData, ProjectData } from "../data/projects";
+import { motion } from "framer-motion";
+import { StaggerContainer, StaggerItem, HoverScale } from "./animations";
 
 const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
   const {
@@ -113,7 +115,26 @@ const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
         </div>
         <div className="p-6 flex flex-col flex-grow">
           <h3 className="text-xl font-display font-bold">{title}</h3>
-          <p className="text-muted-foreground mt-2 mb-4 flex-grow">{description}</p>
+          <p className="text-muted-foreground mt-2 mb-4">{description}</p>
+
+          {/* Key Features for regular cards */}
+          {features && features.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold mb-2 text-foreground">Key Features:</h4>
+              <div className="grid grid-cols-1 gap-2">
+                {features.slice(0, 2).map((feature, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <span className="text-sm font-medium text-foreground">{feature.title}</span>
+                      <p className="text-xs text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2 mb-4">
             {tags.map((tag) => (
               <span
@@ -153,7 +174,13 @@ const Projects: React.FC = () => {
   return (
     <section id="projects" className="py-20 md:py-32 bg-gradient-to-b from-background to-secondary/20">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
           <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">
             My <span className="magic-text">Projects</span>
           </h2>
@@ -161,13 +188,27 @@ const Projects: React.FC = () => {
             Explore my recent work and personal projects. Each one represents a
             unique challenge and learning opportunity.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {projectsData.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
+        <StaggerContainer className={`grid gap-4 md:gap-6 auto-rows-fr ${
+          projectsData.length === 1
+            ? "grid-cols-1 max-w-2xl mx-auto"
+            : projectsData.length === 2
+            ? "grid-cols-1 md:grid-cols-2"
+            : projectsData.length === 3
+            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            : "grid-cols-1 md:grid-cols-2"
+        }`}>
+          {projectsData.map((project, index) => {
+            return (
+              <StaggerItem key={project.id}>
+                <HoverScale>
+                  <ProjectCard project={project} />
+                </HoverScale>
+              </StaggerItem>
+            );
+          })}
+        </StaggerContainer>
       </div>
     </section>
   );

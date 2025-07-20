@@ -15,6 +15,8 @@ import { useDashboardData } from '@/hooks/useAgentData';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency, initialPayments } from '@/utils/agentData';
+import { motion } from 'framer-motion';
+import { CardSkeleton, ListSkeleton, LoadingOverlay, Spinner } from '@/components/animations';
 
 interface DashboardProps {
   onNavigate?: (tab: string) => void;
@@ -131,10 +133,34 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
+      <div className="h-full overflow-y-auto pb-4">
+        {/* Header skeleton */}
+        <div className="mb-4 sm:mb-6 space-y-2">
+          <div className="h-6 sm:h-8 bg-muted animate-pulse rounded w-48"></div>
+          <div className="h-4 sm:h-5 bg-muted animate-pulse rounded w-80"></div>
+        </div>
+
+        {/* Stats grid skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <CardSkeleton key={index} className="h-24 sm:h-28" />
+          ))}
+        </div>
+
+        {/* Recent activity skeleton */}
+        <div className="mb-6 sm:mb-8">
+          <div className="h-6 bg-muted animate-pulse rounded w-32 mb-4"></div>
+          <ListSkeleton items={3} />
+        </div>
+
+        {/* Quick actions skeleton */}
+        <div>
+          <div className="h-6 bg-muted animate-pulse rounded w-32 mb-4"></div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="h-16 bg-muted animate-pulse rounded-lg"></div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -142,15 +168,49 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   return (
     <div className="h-full overflow-y-auto pb-4">
-      <div className="mb-4 sm:mb-6">
+      <motion.div
+        className="mb-4 sm:mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-1 sm:mb-2">Dashboard</h2>
         <p className="text-sm sm:text-base text-muted-foreground">Welcome back! Here's your productivity overview.</p>
-      </div>
+      </motion.div>
 
       {/* Stats Grid - Mobile optimized */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1,
+              delayChildren: 0.2
+            }
+          }
+        }}
+      >
         {/* Tasks Progress */}
-        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+          }}
+        >
+          <motion.div
+            className="bg-card border border-border rounded-lg p-3 sm:p-4"
+            whileHover={{
+              scale: 1.02,
+              y: -4,
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+          >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -170,10 +230,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               ></div>
             </div>
           </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Upcoming Deadlines */}
-        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+          }}
+        >
+          <motion.div
+            className="bg-card border border-border rounded-lg p-3 sm:p-4"
+            whileHover={{
+              scale: 1.02,
+              y: -4,
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+          >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
@@ -185,10 +261,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <span className="text-xl sm:text-2xl font-bold text-foreground">{stats.tasks.dueSoon}</span>
             <p className="text-xs text-muted-foreground">Tasks due soon</p>
           </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Financial Goals */}
-        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+          }}
+        >
+          <motion.div
+            className="bg-card border border-border rounded-lg p-3 sm:p-4"
+            whileHover={{
+              scale: 1.02,
+              y: -4,
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+          >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
@@ -205,10 +297,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               ></div>
             </div>
           </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Monthly Spending */}
-        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+          }}
+        >
+          <motion.div
+            className="bg-card border border-border rounded-lg p-3 sm:p-4"
+            whileHover={{
+              scale: 1.02,
+              y: -4,
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+          >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
@@ -226,8 +334,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
             <p className="text-xs text-muted-foreground">{formatCurrency(stats.monthlyBudget - stats.monthlySpending)} remaining</p>
           </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Recent Activity - Mobile optimized */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -249,7 +358,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                   task.completed ? 'bg-primary border-primary' : 'border-muted-foreground'
                 }`}>
-                  {task.completed && <CheckCircle className="w-2 h-2 sm:w-3 sm:h-3 text-primary-foreground" />}
+                  {task.completed && <CheckCircle2 className="w-2 h-2 sm:w-3 sm:h-3 text-primary-foreground" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-xs sm:text-sm truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>

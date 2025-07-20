@@ -362,19 +362,81 @@ export class HabitsService {
     return this.mapDatabaseHabitToHabit(data);
   }
 
+  static async updateHabit(user: User, habitId: string, updates: Partial<Habit>): Promise<boolean> {
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from('habits')
+      .update({
+        name: updates.name,
+        description: updates.description,
+        category: updates.category,
+        frequency: updates.frequency,
+        target: updates.target,
+        color: updates.color,
+        icon: updates.icon,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', habitId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error updating habit:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  static async deleteHabit(user: User, habitId: string): Promise<boolean> {
+    if (!user) return false;
+
+    // First delete all habit entries
+    const { error: entriesError } = await supabase
+      .from('habit_entries')
+      .delete()
+      .eq('habit_id', habitId)
+      .eq('user_id', user.id);
+
+    if (entriesError) {
+      console.error('Error deleting habit entries:', entriesError);
+      return false;
+    }
+
+    // Then delete the habit
+    const { error } = await supabase
+      .from('habits')
+      .delete()
+      .eq('id', habitId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deleting habit:', error);
+      return false;
+    }
+
+    return true;
+  }
+
   static async toggleHabitEntry(user: User, habitId: string, date: Date): Promise<boolean> {
     if (!user) return false;
 
     const dateStr = date.toISOString().split('T')[0];
-    
-    // Check if entry exists
-    const { data: existingEntry } = await supabase
+
+    // Check if entry exists (don't use .single() to avoid errors when no entry exists)
+    const { data: existingEntries, error: selectError } = await supabase
       .from('habit_entries')
       .select('*')
       .eq('user_id', user.id)
       .eq('habit_id', habitId)
-      .eq('entry_date', dateStr)
-      .single();
+      .eq('entry_date', dateStr);
+
+    if (selectError) {
+      console.error('Error checking existing habit entry:', selectError);
+      return false;
+    }
+
+    const existingEntry = existingEntries && existingEntries.length > 0 ? existingEntries[0] : null;
 
     if (existingEntry) {
       // Update existing entry

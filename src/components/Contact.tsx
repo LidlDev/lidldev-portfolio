@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { StaggerContainer, StaggerItem, HoverScale, Pulse } from "./animations";
 
 // Validation schema
 const contactSchema = z.object({
@@ -80,7 +82,13 @@ const Contact: React.FC = () => {
   return (
     <section id="contact" className="py-20 md:py-32 bg-gradient-to-b from-background to-secondary/30">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
           <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">
             Get In <span className="magic-text">Touch</span>
           </h2>
@@ -88,10 +96,16 @@ const Contact: React.FC = () => {
             Have a project in mind or want to chat? I'm always open to new
             opportunities and collaborations.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-5 gap-10 max-w-6xl mx-auto">
-          <div className="md:col-span-2 space-y-8">
+          <motion.div
+            className="md:col-span-2 space-y-8"
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             <div>
               <h3 className="text-xl font-display font-semibold mb-4">Contact Information</h3>
               <p className="text-muted-foreground mb-6">
@@ -100,32 +114,50 @@ const Contact: React.FC = () => {
               </p>
             </div>
 
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 text-primary rounded-full">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-medium">Email</h4>
-                  <a
-                    href="mailto:harry@lidldev.com"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    harry@lidldev.com
-                  </a>
-                </div>
-              </div>
+            <StaggerContainer className="space-y-6">
+              <StaggerItem>
+                <HoverScale>
+                  <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
+                    <motion.div
+                      className="p-3 bg-primary/10 text-primary rounded-full"
+                      whileHover={{ rotate: 15, scale: 1.1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
+                      <Mail className="w-5 h-5" />
+                    </motion.div>
+                    <div>
+                      <h4 className="font-medium">Email</h4>
+                      <motion.a
+                        href="mailto:harry@lidldev.com"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        whileHover={{ x: 5 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      >
+                        harry@lidldev.com
+                      </motion.a>
+                    </div>
+                  </div>
+                </HoverScale>
+              </StaggerItem>
 
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 text-primary rounded-full">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-medium">Location</h4>
-                  <p className="text-muted-foreground">Sydney, Australia</p>
-                </div>
-              </div>
-            </div>
+              <StaggerItem>
+                <HoverScale>
+                  <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
+                    <motion.div
+                      className="p-3 bg-primary/10 text-primary rounded-full"
+                      whileHover={{ rotate: 15, scale: 1.1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
+                      <MapPin className="w-5 h-5" />
+                    </motion.div>
+                    <div>
+                      <h4 className="font-medium">Location</h4>
+                      <p className="text-muted-foreground">Sydney, Australia</p>
+                    </div>
+                  </div>
+                </HoverScale>
+              </StaggerItem>
+            </StaggerContainer>
 
             <div className="pt-6">
               <h3 className="text-xl font-display font-semibold mb-4">Follow Me</h3>
@@ -211,50 +243,94 @@ const Contact: React.FC = () => {
                 </a>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="md:col-span-3 glass-card p-6 rounded-2xl">
-            <h3 className="text-xl font-display font-semibold mb-6">Send Me a Message</h3>
+          <motion.div
+            className="md:col-span-3 glass-card p-6 rounded-2xl"
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <motion.h3
+              className="text-xl font-display font-semibold mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              Send Me a Message
+            </motion.h3>
 
             <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">
-                    Your Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    {...register("name")}
-                    name="user_name" // EmailJS template parameter
-                    className={`w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
-                      errors.name ? 'border-red-500' : 'border-border'
-                    }`}
-                    placeholder="John Doe"
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">
-                    Your Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    {...register("email")}
-                    name="user_email" // EmailJS template parameter
-                    className={`w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
-                      errors.email ? 'border-red-500' : 'border-border'
-                    }`}
-                    placeholder="john@example.com"
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
-                  )}
-                </div>
-              </div>
+              <StaggerContainer className="grid sm:grid-cols-2 gap-4">
+                <StaggerItem>
+                  <motion.div
+                    className="space-y-2"
+                    whileHover={{ y: -2 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <label htmlFor="name" className="text-sm font-medium">
+                      Your Name
+                    </label>
+                    <motion.input
+                      type="text"
+                      id="name"
+                      {...register("name")}
+                      name="user_name" // EmailJS template parameter
+                      className={`w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+                        errors.name ? 'border-red-500' : 'border-border'
+                      }`}
+                      placeholder="John Doe"
+                      whileFocus={{ scale: 1.02, borderColor: "hsl(var(--primary))" }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    />
+                    {errors.name && (
+                      <motion.p
+                        className="text-sm text-red-600 dark:text-red-400"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {errors.name.message}
+                      </motion.p>
+                    )}
+                  </motion.div>
+                </StaggerItem>
+                <StaggerItem>
+                  <motion.div
+                    className="space-y-2"
+                    whileHover={{ y: -2 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <label htmlFor="email" className="text-sm font-medium">
+                      Your Email
+                    </label>
+                    <motion.input
+                      type="email"
+                      id="email"
+                      {...register("email")}
+                      name="user_email" // EmailJS template parameter
+                      className={`w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
+                        errors.email ? 'border-red-500' : 'border-border'
+                      }`}
+                      placeholder="john@example.com"
+                      whileFocus={{ scale: 1.02, borderColor: "hsl(var(--primary))" }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    />
+                    {errors.email && (
+                      <motion.p
+                        className="text-sm text-red-600 dark:text-red-400"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {errors.email.message}
+                      </motion.p>
+                    )}
+                  </motion.div>
+                </StaggerItem>
+              </StaggerContainer>
 
               <div className="space-y-2">
                 <label htmlFor="subject" className="text-sm font-medium">
@@ -298,7 +374,7 @@ const Contact: React.FC = () => {
               {/* Hidden field for recipient email */}
               <input type="hidden" name="to_email" value="harry@lidldev.com" />
 
-              <button
+              <motion.button
                 type="submit"
                 disabled={isSubmitting}
                 className={`inline-flex items-center justify-center rounded-lg bg-primary text-white px-6 py-3 font-medium transition-colors ${
@@ -306,18 +382,31 @@ const Contact: React.FC = () => {
                     ? 'opacity-70 cursor-not-allowed'
                     : 'hover:bg-primary/90 focus:ring-2 focus:ring-primary/50 focus:outline-none'
                 }`}
+                whileHover={!isSubmitting ? {
+                  scale: 1.05,
+                  boxShadow: "0 10px 25px -5px rgba(var(--primary), 0.3)"
+                } : {}}
+                whileTap={!isSubmitting ? { scale: 0.95 } : {}}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
               >
                 {isSubmitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <motion.div
+                      className="rounded-full h-4 w-4 border-b-2 border-white mr-2"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
                     Sending...
                   </>
                 ) : (
                   <>Send Message <Send className="ml-2 h-4 w-4" /></>
                 )}
-              </button>
+              </motion.button>
             </form>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

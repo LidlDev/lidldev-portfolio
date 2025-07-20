@@ -19,15 +19,88 @@ import {
   Trash2,
   MoreHorizontal,
   Loader2,
-  WifiOff
+  WifiOff,
+  Heart,
+  Utensils,
+  Moon,
+  Briefcase,
+  Users,
+  Palette,
+  Music,
+  Coffee,
+  Smartphone,
+  Home,
+  Car,
+  Gamepad2,
+  Camera,
+  Headphones,
+  Zap
 } from 'lucide-react';
 import { useHabits } from '@/hooks/useAgentData';
 import { Habit, HabitEntry } from '@/services/agentDataService';
 import { toast } from 'sonner';
 
+// Category options with Lucide icons
+const HABIT_CATEGORIES = [
+  { value: 'Health', label: 'Health', icon: Heart },
+  { value: 'Fitness', label: 'Fitness', icon: Dumbbell },
+  { value: 'Nutrition', label: 'Nutrition', icon: Utensils },
+  { value: 'Sleep', label: 'Sleep', icon: Moon },
+  { value: 'Learning', label: 'Learning', icon: BookOpen },
+  { value: 'Mindfulness', label: 'Mindfulness', icon: Brain },
+  { value: 'Work', label: 'Work', icon: Briefcase },
+  { value: 'Social', label: 'Social', icon: Users },
+  { value: 'Creative', label: 'Creative', icon: Palette },
+  { value: 'Music', label: 'Music', icon: Music },
+  { value: 'Hydration', label: 'Hydration', icon: Droplets },
+  { value: 'Technology', label: 'Technology', icon: Smartphone },
+  { value: 'Home', label: 'Home', icon: Home },
+  { value: 'Transportation', label: 'Transportation', icon: Car },
+  { value: 'Entertainment', label: 'Entertainment', icon: Gamepad2 },
+  { value: 'Photography', label: 'Photography', icon: Camera },
+  { value: 'Audio', label: 'Audio', icon: Headphones },
+  { value: 'Energy', label: 'Energy', icon: Zap },
+  { value: 'Other', label: 'Other', icon: Target }
+];
+
+// Icon mapping for habit icons
+const HABIT_ICONS = {
+  Target,
+  Heart,
+  Dumbbell,
+  BookOpen,
+  Brain,
+  Droplets,
+  Clock,
+  Flame,
+  Award,
+  TrendingUp,
+  Calendar,
+  Utensils,
+  Moon,
+  Briefcase,
+  Users,
+  Palette,
+  Music,
+  Coffee,
+  Smartphone,
+  Home,
+  Car,
+  Gamepad2,
+  Camera,
+  Headphones,
+  Zap
+};
+
 const Habits: React.FC = () => {
   // Use Supabase integration
   const { habits, habitEntries, loading, error, createHabit, updateHabit, deleteHabit, toggleHabitEntry, isUsingLocalFallback } = useHabits();
+
+  // Helper function to render habit icons
+  const renderHabitIcon = (iconName: string, className: string = "w-5 h-5") => {
+    const IconComponent = HABIT_ICONS[iconName as keyof typeof HABIT_ICONS] || Target;
+    return <IconComponent className={className} />;
+  };
 
   const [selectedHabit, setSelectedHabit] = useState<string | null>(null);
   const [showNewHabit, setShowNewHabit] = useState(false);
@@ -40,7 +113,7 @@ const Habits: React.FC = () => {
     frequency: 'daily' as 'daily' | 'weekly' | 'monthly',
     target: 1,
     color: 'bg-green-500',
-    icon: 'Target'
+    icon: 'Heart'
   });
 
   // Data now comes from Supabase via useHabits hook
@@ -53,46 +126,62 @@ const Habits: React.FC = () => {
     );
   };
 
-  // Get dates for the current view period
-  const getDatesForPeriod = () => {
+
+
+  // Get dates for a specific habit based on its frequency
+  const getDatesForHabit = (habit: Habit) => {
     const today = new Date();
     const dates = [];
-    
-    if (viewPeriod === 'week') {
-      // Get last 7 days
-      for (let i = 6; i >= 0; i--) {
+
+    if (habit.frequency === 'daily') {
+      // Show daily tracking
+      const numDays = viewPeriod === 'week' ? 7 : 30;
+      for (let i = numDays - 1; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
         dates.push(date.toISOString().split('T')[0]);
       }
-    } else {
-      // Get last 30 days
-      for (let i = 29; i >= 0; i--) {
+    } else if (habit.frequency === 'weekly') {
+      // Show weekly tracking (last 8 weeks)
+      for (let i = 7; i >= 0; i--) {
         const date = new Date(today);
-        date.setDate(today.getDate() - i);
+        date.setDate(today.getDate() - (i * 7));
+        // Get the start of the week (Monday)
+        const dayOfWeek = date.getDay();
+        const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        date.setDate(diff);
+        dates.push(date.toISOString().split('T')[0]);
+      }
+    } else if (habit.frequency === 'monthly') {
+      // Show monthly tracking (last 6 months)
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(today);
+        date.setMonth(today.getMonth() - i);
+        date.setDate(1); // First day of the month
         dates.push(date.toISOString().split('T')[0]);
       }
     }
-    
+
     return dates;
   };
 
-  const dates = getDatesForPeriod();
+
 
   // Calculate habit statistics
   const calculateHabitStats = (habit: Habit) => {
+    const habitDates = getDatesForHabit(habit);
     const habitEntriesForHabit = habitEntries.filter(entry => entry.habitId === habit.id);
     const recentEntries = habitEntriesForHabit.filter(entry =>
-      dates.includes(entry.entryDate.toISOString().split('T')[0])
+      habitDates.includes(entry.entryDate.toISOString().split('T')[0])
     );
 
     const completed = recentEntries.filter(entry => entry.completed).length;
-    const total = dates.length;
+    const total = habitDates.length;
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     // Calculate current streak
     let currentStreak = 0;
-    const sortedDates = [...dates].reverse();
+    const sortedDates = [...habitDates].reverse();
 
     for (const date of sortedDates) {
       const entry = habitEntriesForHabit.find(e => e.entryDate.toISOString().split('T')[0] === date);
@@ -150,7 +239,7 @@ const Habits: React.FC = () => {
           frequency: 'daily',
           target: 1,
           color: 'bg-green-500',
-          icon: 'Target'
+          icon: 'Heart'
         });
         setShowNewHabit(false);
         toast.success('Habit created successfully');
@@ -177,53 +266,64 @@ const Habits: React.FC = () => {
   };
 
   // Habit update handler
-  const handleUpdateHabit = () => {
+  const handleUpdateHabit = async () => {
     if (!editingHabit || !newHabit.name.trim()) return;
 
-    const updatedHabit: Habit = {
-      ...editingHabit,
-      name: newHabit.name,
-      description: newHabit.description,
-      category: newHabit.category,
-      frequency: newHabit.frequency,
-      target: newHabit.target,
-      color: newHabit.color,
-      icon: newHabit.icon
-    };
+    try {
+      const updates = {
+        name: newHabit.name,
+        description: newHabit.description,
+        category: newHabit.category,
+        frequency: newHabit.frequency,
+        target: newHabit.target,
+        color: newHabit.color,
+        icon: newHabit.icon
+      };
 
-    setHabits(prev => prev.map(h => h.id === editingHabit.id ? updatedHabit : h));
-    setEditingHabit(null);
-    setNewHabit({
-      name: '',
-      description: '',
-      category: 'Health',
-      frequency: 'daily',
-      target: 1,
-      color: 'bg-green-500',
-      icon: 'Target'
-    });
-    setShowNewHabit(false);
+      const success = await updateHabit(editingHabit.id, updates);
+      if (success) {
+        setEditingHabit(null);
+        setNewHabit({
+          name: '',
+          description: '',
+          category: 'Health',
+          frequency: 'daily',
+          target: 1,
+          color: 'bg-green-500',
+          icon: 'Heart'
+        });
+        setShowNewHabit(false);
+        toast.success('Habit updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating habit:', error);
+      toast.error('Failed to update habit');
+    }
   };
 
   // Habit deletion handler
-  const handleDeleteHabit = (habitId: string) => {
-    setHabits(prev => prev.filter(h => h.id !== habitId));
+  const handleDeleteHabit = async (habitId: string) => {
+    try {
+      const success = await deleteHabit(habitId);
+      if (success) {
+        toast.success('Habit deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting habit:', error);
+      toast.error('Failed to delete habit');
+    }
   };
 
   // Toggle habit completion for a specific date
   const handleToggleHabitCompletion = async (habitId: string, date: string) => {
     try {
-      const existingEntry = habitEntries.find(e => e.habitId === habitId && e.entryDate.toISOString().split('T')[0] === date);
+      // Convert string date to Date object
+      const dateObj = new Date(date + 'T00:00:00.000Z');
 
-      if (existingEntry) {
-        // Toggle existing entry
-        await toggleHabitEntry(existingEntry.id, !existingEntry.completed);
-      } else {
-        // Create new entry
-        await toggleHabitEntry(habitId, true, date);
+      const success = await toggleHabitEntry(habitId, dateObj);
+      if (success) {
+        toast.success('Habit updated');
       }
-
-      toast.success('Habit updated');
     } catch (error) {
       console.error('Error toggling habit completion:', error);
       toast.error('Failed to update habit');
@@ -251,7 +351,7 @@ const Habits: React.FC = () => {
       sum + calculateHabitStats(habit).currentStreak, 0);
 
     return { totalHabits, completedToday, avgCompletionRate, totalStreaks };
-  }, [habits, habitEntries, dates]);
+  }, [habits, habitEntries]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -261,6 +361,26 @@ const Habits: React.FC = () => {
   const getDayOfWeek = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { weekday: 'short' });
+  };
+
+  const isDateInCurrentWeek = (date: Date) => {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    const dayOfWeek = today.getDay();
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    startOfWeek.setDate(diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return date >= startOfWeek && date <= endOfWeek;
+  };
+
+  const isDateInCurrentMonth = (date: Date) => {
+    const today = new Date();
+    return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
   };
 
   // Loading state
@@ -367,15 +487,7 @@ const Habits: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 ${habit.color} rounded-lg flex items-center justify-center text-white text-lg`}>
-                    {(() => {
-                      const IconComponent = {
-                        'Dumbbell': Dumbbell,
-                        'BookOpen': BookOpen,
-                        'Brain': Brain,
-                        'Droplets': Droplets
-                      }[habit.icon] || Target;
-                      return <IconComponent className="w-5 h-5" />;
-                    })()}
+                    {renderHabitIcon(habit.icon, "w-5 h-5")}
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">{habit.name}</h3>
@@ -411,71 +523,124 @@ const Habits: React.FC = () => {
 
               {/* Habit Calendar */}
               <div className="space-y-2">
-                {/* Date Headers */}
-                <div className="grid grid-cols-7 gap-2 mb-2">
-                  {dates.slice(-7).map((date) => (
-                    <div key={date} className="text-center">
-                      <div className="text-xs text-muted-foreground">{getDayOfWeek(date)}</div>
-                      <div className="text-sm font-medium text-foreground">{formatDate(date).split(' ')[1]}</div>
-                    </div>
-                  ))}
-                </div>
+                {(() => {
+                  const habitDates = getDatesForHabit(habit);
 
-                {/* Completion Grid */}
-                <div className="grid grid-cols-7 gap-2">
-                  {dates.slice(-7).map((date) => {
-                    const entry = getHabitEntry(habit.id, date);
-                    const isCompleted = entry?.completed || false;
-                    const isToday = date === new Date().toISOString().split('T')[0];
-
+                  if (habit.frequency === 'daily') {
                     return (
-                      <button
-                        key={date}
-                        onClick={() => handleToggleHabitCompletion(habit.id, date)}
-                        className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${
-                          isCompleted
-                            ? `${habit.color} border-transparent text-white`
-                            : isToday
-                              ? 'border-primary bg-primary/10'
-                              : 'border-border hover:border-primary/50'
-                        }`}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle2 className="w-5 h-5 mx-auto" />
-                        ) : (
-                          <Circle className="w-5 h-5 mx-auto text-muted-foreground" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                      <>
+                        {/* Date Headers for Daily */}
+                        <div className="grid grid-cols-7 gap-2 mb-2">
+                          {habitDates.slice(-7).map((date) => (
+                            <div key={date} className="text-center">
+                              <div className="text-xs text-muted-foreground">{getDayOfWeek(date)}</div>
+                              <div className="text-sm font-medium text-foreground">{formatDate(date).split(' ')[1]}</div>
+                            </div>
+                          ))}
+                        </div>
 
-                {/* Extended view for month */}
-                {viewPeriod === 'month' && (
-                  <div className="mt-4">
-                    <div className="grid grid-cols-10 gap-1">
-                      {dates.slice(0, -7).map((date) => {
-                        const entry = getHabitEntry(habit.id, date);
-                        const isCompleted = entry?.completed || false;
-                        
-                        return (
-                          <button
-                            key={date}
-                            onClick={() => handleToggleHabitCompletion(habit.id, date)}
-                            className={`aspect-square rounded border transition-all hover:scale-105 ${
-                              isCompleted
-                                ? `${habit.color} border-transparent`
-                                : 'border-border hover:border-primary/50'
-                            }`}
-                            title={formatDate(date)}
-                          >
-                            {isCompleted && <div className="w-1 h-1 bg-white rounded-full mx-auto"></div>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                        {/* Completion Grid for Daily */}
+                        <div className="grid grid-cols-7 gap-2">
+                          {habitDates.slice(-7).map((date) => {
+                            const entry = getHabitEntry(habit.id, date);
+                            const isCompleted = entry?.completed || false;
+                            const isToday = date === new Date().toISOString().split('T')[0];
+
+                            return (
+                              <button
+                                key={date}
+                                onClick={() => handleToggleHabitCompletion(habit.id, date)}
+                                className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${
+                                  isCompleted
+                                    ? `${habit.color} border-transparent text-white`
+                                    : isToday
+                                      ? 'border-primary bg-primary/10'
+                                      : 'border-border hover:border-primary/50'
+                                }`}
+                              >
+                                {isCompleted ? (
+                                  <CheckCircle2 className="w-5 h-5 mx-auto" />
+                                ) : (
+                                  <Circle className="w-5 h-5 mx-auto text-muted-foreground" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    );
+                  } else if (habit.frequency === 'weekly') {
+                    return (
+                      <>
+                        <div className="text-sm text-muted-foreground mb-2">Weekly tracking (each cell = 1 week)</div>
+                        <div className="grid grid-cols-8 gap-2">
+                          {habitDates.map((date) => {
+                            const entry = getHabitEntry(habit.id, date);
+                            const isCompleted = entry?.completed || false;
+                            const weekStart = new Date(date);
+                            const isCurrentWeek = isDateInCurrentWeek(weekStart);
+
+                            return (
+                              <button
+                                key={date}
+                                onClick={() => handleToggleHabitCompletion(habit.id, date)}
+                                className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${
+                                  isCompleted
+                                    ? `${habit.color} border-transparent text-white`
+                                    : isCurrentWeek
+                                      ? 'border-primary bg-primary/10'
+                                      : 'border-border hover:border-primary/50'
+                                }`}
+                                title={`Week of ${formatDate(date)}`}
+                              >
+                                {isCompleted ? (
+                                  <CheckCircle2 className="w-4 h-4 mx-auto" />
+                                ) : (
+                                  <Circle className="w-4 h-4 mx-auto text-muted-foreground" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    );
+                  } else {
+                    return (
+                      <>
+                        <div className="text-sm text-muted-foreground mb-2">Monthly tracking (each cell = 1 month)</div>
+                        <div className="grid grid-cols-6 gap-2">
+                          {habitDates.map((date) => {
+                            const entry = getHabitEntry(habit.id, date);
+                            const isCompleted = entry?.completed || false;
+                            const monthDate = new Date(date);
+                            const isCurrentMonth = isDateInCurrentMonth(monthDate);
+
+                            return (
+                              <button
+                                key={date}
+                                onClick={() => handleToggleHabitCompletion(habit.id, date)}
+                                className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${
+                                  isCompleted
+                                    ? `${habit.color} border-transparent text-white`
+                                    : isCurrentMonth
+                                      ? 'border-primary bg-primary/10'
+                                      : 'border-border hover:border-primary/50'
+                                }`}
+                                title={monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                              >
+                                {isCompleted ? (
+                                  <CheckCircle2 className="w-4 h-4 mx-auto" />
+                                ) : (
+                                  <Circle className="w-4 h-4 mx-auto text-muted-foreground" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    );
+                  }
+                })()}
               </div>
 
               {/* Habit Stats */}
@@ -494,8 +659,12 @@ const Habits: React.FC = () => {
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                   habit.category === 'Health' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                  habit.category === 'Fitness' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400' :
                   habit.category === 'Learning' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
-                  habit.category === 'Wellness' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400' :
+                  habit.category === 'Mindfulness' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400' :
+                  habit.category === 'Work' ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400' :
+                  habit.category === 'Social' ? 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400' :
+                  habit.category === 'Creative' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400' :
                   'bg-secondary text-secondary-foreground'
                 }`}>
                   {habit.category}
@@ -540,7 +709,7 @@ const Habits: React.FC = () => {
                     frequency: 'daily',
                     target: 1,
                     color: 'bg-green-500',
-                    icon: 'Target'
+                    icon: 'Heart'
                   });
                 }}
                 className="text-muted-foreground hover:text-foreground"
@@ -568,10 +737,11 @@ const Habits: React.FC = () => {
                   onChange={(e) => setNewHabit({...newHabit, category: e.target.value})}
                   className="w-full px-3 py-2 bg-input text-foreground rounded-lg border border-border focus:ring-1 focus:ring-ring focus:outline-none"
                 >
-                  <option value="Health">Health</option>
-                  <option value="Learning">Learning</option>
-                  <option value="Wellness">Wellness</option>
-                  <option value="Productivity">Productivity</option>
+                  {HABIT_CATEGORIES.map(category => (
+                    <option key={category.value} value={category.value}>
+                      {category.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -579,7 +749,7 @@ const Habits: React.FC = () => {
                 <label className="block text-sm font-medium text-foreground mb-1">Frequency</label>
                 <select
                   value={newHabit.frequency}
-                  onChange={(e) => setNewHabit({...newHabit, frequency: e.target.value as any})}
+                  onChange={(e) => setNewHabit({...newHabit, frequency: e.target.value as 'daily' | 'weekly' | 'monthly'})}
                   className="w-full px-3 py-2 bg-input text-foreground rounded-lg border border-border focus:ring-1 focus:ring-ring focus:outline-none"
                 >
                   <option value="daily">Daily</option>
@@ -590,17 +760,23 @@ const Habits: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Icon</label>
-                <select
-                  value={newHabit.icon}
-                  onChange={(e) => setNewHabit({...newHabit, icon: e.target.value})}
-                  className="w-full px-3 py-2 bg-input text-foreground rounded-lg border border-border focus:ring-1 focus:ring-ring focus:outline-none"
-                >
-                  <option value="Dumbbell">💪 Exercise</option>
-                  <option value="BookOpen">📚 Reading</option>
-                  <option value="Brain">🧘 Meditation</option>
-                  <option value="Droplets">💧 Hydration</option>
-                  <option value="Target">🎯 Goal</option>
-                </select>
+                <div className="grid grid-cols-6 gap-2 p-3 bg-input rounded-lg border border-border">
+                  {Object.entries(HABIT_ICONS).map(([iconName, IconComponent]) => (
+                    <button
+                      key={iconName}
+                      type="button"
+                      onClick={() => setNewHabit({...newHabit, icon: iconName})}
+                      className={`p-2 rounded-lg border-2 transition-all hover:scale-105 ${
+                        newHabit.icon === iconName
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      title={iconName}
+                    >
+                      <IconComponent className="w-5 h-5 mx-auto" />
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="flex space-x-3 pt-4">

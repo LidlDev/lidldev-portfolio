@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Github, Star, GitFork, Calendar, TrendingUp, Code, Users } from "lucide-react";
+import { useTheme } from "@/components/theme-provider";
 
 interface GitHubStats {
   public_repos: number;
@@ -23,31 +24,11 @@ const GitHub: React.FC = () => {
   const [repos, setRepos] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { theme } = useTheme();
   const username = "LidlDev";
 
-  useEffect(() => {
-    // Check for dark mode
-    const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains('dark') || 
-                    window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(isDark);
-    };
-
-    checkDarkMode();
-    
-    // Listen for theme changes
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addListener(checkDarkMode);
-
-    return () => {
-      observer.disconnect();
-      mediaQuery.removeListener(checkDarkMode);
-    };
-  }, []);
+  // Determine if we're in dark mode
+  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   useEffect(() => {
     const fetchGitHubData = async () => {
@@ -97,11 +78,42 @@ const GitHub: React.FC = () => {
 
   // Generate contribution graph URL with proper theming
   const getContributionGraphUrl = () => {
-    // Use your primary color (hsl(207 100% 35%)) converted to hex
-    const primaryColor = isDarkMode ? '1976d2' : '0c4a6e'; // Darker blue for light mode, lighter for dark mode
-    const backgroundColor = isDarkMode ? '1f2937' : 'ffffff'; // Dark background for dark mode
-    
-    return `https://ghchart.rshah.org/${primaryColor}/${username}`;
+    const timestamp = Date.now();
+    const themeParam = isDarkMode ? 'dark' : 'light';
+
+    console.log(`GitHub Stats - Theme: ${themeParam}, isDarkMode: ${isDarkMode}, globalTheme: ${theme}`);
+
+    if (isDarkMode) {
+      // Dark mode - use dark theme with light text
+      const url = `https://github-readme-stats.vercel.app/api?username=${username}&show_icons=true&theme=dark&hide_border=true&bg_color=1f2937&title_color=60a5fa&icon_color=60a5fa&text_color=e5e7eb&border_color=374151&cache_bust=${timestamp}`;
+      console.log('Dark mode URL:', url);
+      return url;
+    } else {
+      // Light mode - use light theme with dark text and proper contrast
+      const url = `https://github-readme-stats.vercel.app/api?username=${username}&show_icons=true&theme=default&hide_border=true&bg_color=ffffff&title_color=1e40af&icon_color=1e40af&text_color=1f2937&border_color=e5e7eb&cache_bust=${timestamp}`;
+      console.log('Light mode URL:', url);
+      return url;
+    }
+  };
+
+  // Alternative contribution calendar
+  const getContributionCalendarUrl = () => {
+    const timestamp = Date.now();
+    const themeParam = isDarkMode ? 'dark' : 'light';
+
+    console.log(`GitHub Streak - Theme: ${themeParam}, isDarkMode: ${isDarkMode}, globalTheme: ${theme}`);
+
+    if (isDarkMode) {
+      // Dark mode - dark background with light text
+      const url = `https://github-readme-streak-stats.herokuapp.com/?user=${username}&theme=dark&hide_border=true&background=1f2937&stroke=374151&ring=60a5fa&fire=60a5fa&currStreakLabel=e5e7eb&sideLabels=e5e7eb&dates=9ca3af&currStreakNum=60a5fa&sideNums=60a5fa&cache_bust=${timestamp}`;
+      console.log('Dark mode streak URL:', url);
+      return url;
+    } else {
+      // Light mode - light background with dark text for better readability
+      const url = `https://github-readme-streak-stats.herokuapp.com/?user=${username}&theme=default&hide_border=true&background=ffffff&stroke=e5e7eb&ring=1e40af&fire=1e40af&currStreakLabel=1f2937&sideLabels=1f2937&dates=6b7280&currStreakNum=1e40af&sideNums=1e40af&cache_bust=${timestamp}`;
+      console.log('Light mode streak URL:', url);
+      return url;
+    }
   };
 
   if (loading) {
@@ -200,30 +212,47 @@ const GitHub: React.FC = () => {
           </div>
         )}
 
-        {/* Contribution Graph */}
+        {/* GitHub Stats & Activity */}
         <div className="mb-12 max-w-5xl mx-auto">
-          <div className="glass-card p-6 rounded-2xl">
-            <h3 className="text-xl font-display font-semibold mb-4 flex items-center gap-2">
-              <Github className="w-5 h-5" />
-              Contribution Activity
-            </h3>
-            <div className="bg-background/50 rounded-lg p-4 overflow-hidden border border-border/50 contribution-graph-container">
-              <img
-                src={getContributionGraphUrl()}
-                alt="GitHub Contribution Graph"
-                className="w-full h-auto rounded contribution-graph"
-                style={{ 
-                  filter: isDarkMode 
-                    ? 'brightness(0.9) contrast(1.2) hue-rotate(0deg)' 
-                    : 'brightness(1.1) contrast(1.1)',
-                  mixBlendMode: isDarkMode ? 'screen' : 'normal'
-                }}
-              />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* GitHub Stats Card */}
+            <div className="glass-card p-6 rounded-2xl">
+              <h3 className="text-xl font-display font-semibold mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                GitHub Stats
+              </h3>
+              <div className="bg-background/50 rounded-lg overflow-hidden border border-border/50">
+                <img
+                  key={`github-stats-${isDarkMode ? 'dark' : 'light'}`}
+                  src={getContributionGraphUrl()}
+                  alt="GitHub Stats"
+                  className="w-full h-auto"
+                  onError={(e) => {
+                    console.error('Failed to load GitHub stats');
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
             </div>
-            <div className="mt-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                Contributions in the last year • Updated daily
-              </p>
+
+            {/* Contribution Streak */}
+            <div className="glass-card p-6 rounded-2xl">
+              <h3 className="text-xl font-display font-semibold mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Contribution Streak
+              </h3>
+              <div className="bg-background/50 rounded-lg overflow-hidden border border-border/50">
+                <img
+                  key={`github-streak-${isDarkMode ? 'dark' : 'light'}`}
+                  src={getContributionCalendarUrl()}
+                  alt="GitHub Contribution Streak"
+                  className="w-full h-auto"
+                  onError={(e) => {
+                    console.error('Failed to load contribution streak');
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -301,31 +330,7 @@ const GitHub: React.FC = () => {
         </div>
       </div>
 
-      <style jsx>{`
-        .contribution-graph-container {
-          background: ${isDarkMode 
-            ? 'linear-gradient(135deg, rgba(31, 41, 55, 0.8), rgba(17, 24, 39, 0.9))' 
-            : 'linear-gradient(135deg, rgba(248, 250, 252, 0.8), rgba(241, 245, 249, 0.9))'
-          };
-        }
-        
-        .contribution-graph {
-          border-radius: 8px;
-          transition: all 0.3s ease;
-        }
-        
-        .contribution-graph:hover {
-          transform: scale(1.02);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-        
-        @media (prefers-color-scheme: dark) {
-          .contribution-graph {
-            filter: brightness(0.9) contrast(1.2);
-            mix-blend-mode: screen;
-          }
-        }
-      `}</style>
+
     </section>
   );
 };

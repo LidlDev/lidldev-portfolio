@@ -3,13 +3,22 @@ import React from "react";
 import { User, Star, Award, Calendar } from "lucide-react";
 import { IMAGE_PATHS } from "../config/images";
 import LazyImage from "./LazyImage";
+import { motion } from "framer-motion";
+import { StaggerContainer, StaggerItem, Parallax } from "./animations";
+import { StatsCard, FeatureCard } from "./ui/ModernCards";
 
 const About: React.FC = () => {
   return (
     <section id="about" className="py-20 md:py-32 bg-gradient-to-b from-secondary/20 to-background">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col md:flex-row gap-12 items-center">
-          <div className="md:w-1/2 space-y-6">
+          <motion.div
+            className="md:w-1/2 space-y-6"
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+          >
             <div className="inline-block">
               <h2 className="text-3xl md:text-4xl font-display font-bold relative">
                 About Me
@@ -29,50 +38,50 @@ const About: React.FC = () => {
               ideas into reality through programming.
             </p>
             
-            <div className="grid grid-cols-2 gap-6 pt-6">
-              <div className="flex items-start gap-3">
-                <div className="p-3 bg-primary/10 text-primary rounded-full">
-                  <User className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Experience</h3>
-                  <p className="text-muted-foreground">5+ Years</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-3 bg-accent/10 text-accent rounded-full">
-                  <Star className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Projects</h3>
-                  <p className="text-muted-foreground">20+ Completed</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-3 bg-primary/10 text-primary rounded-full">
-                  <Award className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Education</h3>
-                  <p className="text-muted-foreground">CS Degree</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-3 bg-accent/10 text-accent rounded-full">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Availability</h3>
-                  <p className="text-muted-foreground">Open to Work</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="md:w-1/2">
+            <StaggerContainer className="grid grid-cols-2 gap-4 pt-6">
+              <StaggerItem>
+                <StatsCard
+                  label="Experience"
+                  value="5+ Years"
+                  icon={<User className="w-5 h-5" />}
+                  change={{ value: 25, type: 'increase' }}
+                />
+              </StaggerItem>
+
+              <StaggerItem>
+                <StatsCard
+                  label="Projects"
+                  value="20+"
+                  icon={<Star className="w-5 h-5" />}
+                  change={{ value: 15, type: 'increase' }}
+                />
+              </StaggerItem>
+
+              <StaggerItem>
+                <StatsCard
+                  label="Education"
+                  value="CS Degree"
+                  icon={<Award className="w-5 h-5" />}
+                />
+              </StaggerItem>
+
+              <StaggerItem>
+                <StatsCard
+                  label="Availability"
+                  value="Open"
+                  icon={<Calendar className="w-5 h-5" />}
+                />
+              </StaggerItem>
+            </StaggerContainer>
+          </motion.div>
+
+          <motion.div
+            className="md:w-1/2"
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             <div className="relative">
               <div className="w-full h-[400px] rounded-2xl overflow-hidden shadow-xl">
                 <LazyImage
@@ -89,7 +98,7 @@ const About: React.FC = () => {
               </div>
               <div className="absolute -top-6 -left-6 w-32 h-32 bg-primary/10 rounded-full"></div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

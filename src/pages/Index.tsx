@@ -9,6 +9,7 @@ import Skills from '../components/Skills';
 import GitHub from '../components/GitHub';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
+import { ScrollReveal, ScrollProgress } from '../components/animations';
 
 const Index = () => {
   return (
@@ -54,13 +55,24 @@ const Index = () => {
           "description": "Full Stack Developer specializing in React, TypeScript, Swift, and modern web technologies. Building beautiful, scalable applications and mobile experiences."
         }}
       />
+      <ScrollProgress />
       <NavigationBar />
       <Hero />
-      <About />
-      <Projects />
-      <Skills />
-      <GitHub />
-      <Contact />
+      <ScrollReveal direction="up">
+        <About />
+      </ScrollReveal>
+      <ScrollReveal direction="up" delay={0.2}>
+        <Projects />
+      </ScrollReveal>
+      <ScrollReveal direction="up" delay={0.1}>
+        <Skills />
+      </ScrollReveal>
+      <ScrollReveal direction="up" delay={0.3}>
+        <GitHub />
+      </ScrollReveal>
+      <ScrollReveal direction="up" delay={0.2}>
+        <Contact />
+      </ScrollReveal>
       <Footer />
     </div>
   );

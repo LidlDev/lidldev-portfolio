@@ -326,4 +326,52 @@
   .animate-scale-in {
     animation: scaleIn 0.6s ease-out forwards;
   }
+
+  /* Shimmer animation for skeleton loaders */
+  @keyframes shimmer {
+    0% {
+      background-position: -200px 0;
+    }
+    100% {
+      background-position: calc(200px + 100%) 0;
+    }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200px 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  /* Gradient animations */
+  @keyframes gradient-slow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes gradient-medium {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes gradient-fast {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .animate-gradient-slow {
+    animation: gradient-slow 8s ease infinite;
+  }
+
+  .animate-gradient-medium {
+    animation: gradient-medium 4s ease infinite;
+  }
+
+  .animate-gradient-fast {
+    animation: gradient-fast 2s ease infinite;
+  }
 }

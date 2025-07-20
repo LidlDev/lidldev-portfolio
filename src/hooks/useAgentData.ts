@@ -314,14 +314,15 @@ export const useTasks = () => {
 export const useHabits = () => {
   const { user } = useAuth();
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [habitEntries, setHabitEntries] = useState<Record<string, HabitEntry[]>>({});
+  const [habitEntries, setHabitEntries] = useState<HabitEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [useLocalFallback, setUseLocalFallback] = useState(false);
 
   const loadHabits = async () => {
     if (!user) {
       setHabits([]);
-      setHabitEntries({});
+      setHabitEntries([]);
       setLoading(false);
       return;
     }
@@ -331,17 +332,19 @@ export const useHabits = () => {
       const habitsData = await HabitsService.getHabits(user);
       setHabits(habitsData);
 
-      // Load entries for each habit
-      const entriesData: Record<string, HabitEntry[]> = {};
+      // Load all entries for all habits and flatten them
+      const allEntries: HabitEntry[] = [];
       for (const habit of habitsData) {
         const entries = await HabitsService.getHabitEntries(user, habit.id);
-        entriesData[habit.id] = entries;
+        allEntries.push(...entries);
       }
-      setHabitEntries(entriesData);
+      setHabitEntries(allEntries);
       setError(null);
+      setUseLocalFallback(false);
     } catch (err) {
       setError('Failed to load habits');
       console.error('Error loading habits:', err);
+      setUseLocalFallback(true);
     } finally {
       setLoading(false);
     }
@@ -354,7 +357,7 @@ export const useHabits = () => {
       const newHabit = await HabitsService.createHabit(user, habit);
       if (newHabit) {
         setHabits(prev => [newHabit, ...prev]);
-        setHabitEntries(prev => ({ ...prev, [newHabit.id]: [] }));
+        // No need to add empty entries array since we're using a flat array
       }
       return newHabit;
     } catch (err) {
@@ -364,15 +367,49 @@ export const useHabits = () => {
     }
   };
 
+  const updateHabit = async (habitId: string, updates: Partial<Habit>) => {
+    if (!user) return false;
+
+    try {
+      const success = await HabitsService.updateHabit(user, habitId, updates);
+      if (success) {
+        setHabits(prev => prev.map(habit =>
+          habit.id === habitId ? { ...habit, ...updates } : habit
+        ));
+      }
+      return success;
+    } catch (err) {
+      setError('Failed to update habit');
+      console.error('Error updating habit:', err);
+      return false;
+    }
+  };
+
+  const deleteHabit = async (habitId: string) => {
+    if (!user) return false;
+
+    try {
+      const success = await HabitsService.deleteHabit(user, habitId);
+      if (success) {
+        setHabits(prev => prev.filter(habit => habit.id !== habitId));
+        setHabitEntries(prev => prev.filter(entry => entry.habitId !== habitId));
+      }
+      return success;
+    } catch (err) {
+      setError('Failed to delete habit');
+      console.error('Error deleting habit:', err);
+      return false;
+    }
+  };
+
   const toggleHabitEntry = async (habitId: string, date: Date) => {
     if (!user) return false;
 
     try {
       const success = await HabitsService.toggleHabitEntry(user, habitId, date);
       if (success) {
-        // Reload entries for this habit
-        const entries = await HabitsService.getHabitEntries(user, habitId);
-        setHabitEntries(prev => ({ ...prev, [habitId]: entries }));
+        // Reload all entries to get the updated state
+        await loadHabits();
       }
       return success;
     } catch (err) {
@@ -392,8 +429,11 @@ export const useHabits = () => {
     loading,
     error,
     createHabit,
+    updateHabit,
+    deleteHabit,
     toggleHabitEntry,
-    refetch: loadHabits
+    refetch: loadHabits,
+    isUsingLocalFallback: useLocalFallback
   };
 };
 

@@ -4,9 +4,10 @@
   "description": "Full Stack Developer specializing in React, TypeScript, Swift, and modern web technologies. Building beautiful, scalable applications and mobile experiences.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0066CC",
-  "theme_color": "#0066CC",
+  "background_color": "#0f172a",
+  "theme_color": "#0ea5e9",
   "orientation": "portrait-primary",
+  "scope": "/",
   "categories": ["portfolio", "developer", "technology"],
   "lang": "en-US",
   "icons": [
@@ -23,12 +24,53 @@
       "purpose": "any maskable"
     }
   ],
+  "shortcuts": [
+    {
+      "name": "View Projects",
+      "short_name": "Projects",
+      "description": "Browse my latest projects and work",
+      "url": "/#projects",
+      "icons": [
+        {
+          "src": "/harry-profile.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Contact Me",
+      "short_name": "Contact",
+      "description": "Get in touch for collaborations",
+      "url": "/#contact",
+      "icons": [
+        {
+          "src": "/harry-profile.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Agent Dashboard",
+      "short_name": "Agent",
+      "description": "Access the productivity agent",
+      "url": "/agent",
+      "icons": [
+        {
+          "src": "/harry-profile.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
   "screenshots": [
     {
       "src": "/harry-profile.png",
       "sizes": "1280x720",
       "type": "image/png",
-      "form_factor": "wide"
+      "form_factor": "wide",
+      "label": "Home page on desktop"
     }
-  ]
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }

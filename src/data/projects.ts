@@ -97,31 +97,64 @@ export const projectsData: ProjectData[] = [
     id: "Chess",
     title: "Chess App",
     description: "A classic chess game implementation with AI opponent.",
-    detailedDescription: "A sophisticated chess application featuring an intelligent AI opponent, beautiful 3D graphics, and comprehensive game analysis tools.",
+    detailedDescription: "A sophisticated chess application featuring an intelligent AI opponent with multiple difficulty levels, beautiful 3D graphics with smooth animations, and comprehensive game analysis tools. Built with modern Android development practices, this app provides an engaging chess experience for players of all skill levels, from beginners learning the game to advanced players seeking challenging opponents.",
     tags: ["Java", "Android", "Game Dev"],
     imageUrl: getImagePath(IMAGE_PATHS.HEROES.CHESS_APP, IMAGE_PATHS.FALLBACKS.CHESS_HERO),
     projectUrl: "https://example.com/chess",
     githubUrl: "https://github.com/username/chess",
+    featured: true,
     screenshots: IMAGE_PATHS.FALLBACKS.CHESS_SCREENSHOTS,
     features: [
       {
         title: "AI Opponent",
-        description: "Play against a challenging AI with multiple difficulty levels.",
+        description: "Play against a challenging AI with multiple difficulty levels and adaptive learning capabilities.",
         icon: "cpu"
       },
       {
         title: "Game Analysis",
-        description: "Analyze your games with detailed move-by-move breakdowns.",
+        description: "Analyze your games with detailed move-by-move breakdowns and strategic insights.",
         icon: "search"
+      },
+      {
+        title: "3D Graphics",
+        description: "Beautiful 3D chess board with smooth animations and realistic piece movements.",
+        icon: "box"
+      },
+      {
+        title: "Move History",
+        description: "Complete game history with notation support and ability to replay any position.",
+        icon: "history"
+      },
+      {
+        title: "Difficulty Levels",
+        description: "Multiple AI difficulty settings from beginner to grandmaster level challenges.",
+        icon: "target"
+      },
+      {
+        title: "Game Modes",
+        description: "Various game modes including timed matches, puzzles, and training scenarios.",
+        icon: "gamepad-2"
       }
     ],
     techStack: [
       {
         category: "Mobile Development",
-        technologies: ["Java", "Android SDK"]
+        technologies: ["Java", "Android SDK", "Android Studio"]
+      },
+      {
+        category: "Game Engine",
+        technologies: ["Custom 3D Engine", "OpenGL ES", "Game Logic"]
+      },
+      {
+        category: "AI & Algorithms",
+        technologies: ["Minimax Algorithm", "Alpha-Beta Pruning", "Chess Engine"]
+      },
+      {
+        category: "Development Tools",
+        technologies: ["Git", "Gradle", "Android Debug Bridge"]
       }
     ],
-    demoDescription: "Challenge yourself with this feature-rich chess application.",
+    demoDescription: "Challenge yourself with this feature-rich chess application that combines beautiful 3D graphics with intelligent AI opponents. Perfect for both learning chess fundamentals and honing advanced strategies through comprehensive game analysis and multiple difficulty levels.",
     status: "completed",
     year: "2023"
   },
@@ -129,41 +162,145 @@ export const projectsData: ProjectData[] = [
     id: "Uncharted",
     title: "Uncharted",
     description: "Explore the world around you, Be a tourist everywhere you go!",
-    detailedDescription: "Uncharted is a travel discovery platform that helps you explore hidden gems and local attractions wherever you are.",
+    detailedDescription: "Uncharted is a comprehensive travel discovery platform that helps you explore hidden gems and local attractions wherever you are. Built with React Native and powered by intelligent location services, it transforms every journey into an adventure by providing personalized recommendations, interactive maps, and social features that connect travelers with unique experiences and fellow explorers.",
     tags: ["React", "Node.js", "Web"],
     imageUrl: getImagePath(IMAGE_PATHS.HEROES.UNCHARTED, IMAGE_PATHS.FALLBACKS.UNCHARTED_HERO),
     projectUrl: "https://example.com/projectx",
     githubUrl: "https://github.com/LidlDev/Uncharted",
+    featured: true,
     screenshots: IMAGE_PATHS.FALLBACKS.TRAVEL_SCREENSHOTS,
     features: [
       {
         title: "Location Discovery",
-        description: "Find interesting places and attractions near you.",
+        description: "Find interesting places and hidden gems near you with intelligent location-based recommendations.",
         icon: "map-pin"
       },
       {
         title: "Travel Planning",
-        description: "Plan your trips with personalized recommendations.",
+        description: "Plan your trips with personalized recommendations and smart itinerary generation.",
         icon: "route"
       },
       {
-        title: "Achivements",
-        description: "Make exploring the world more fun with smart achievements to track your progress.",
+        title: "Achievements",
+        description: "Make exploring the world more fun with smart achievements to track your progress and discoveries.",
         icon: "trophy"
+      },
+      {
+        title: "Interactive Maps",
+        description: "Explore with detailed interactive maps featuring points of interest and user reviews.",
+        icon: "map"
+      },
+      {
+        title: "Social Features",
+        description: "Share your discoveries with friends and see recommendations from fellow travelers.",
+        icon: "users"
+      },
+      {
+        title: "Offline Mode",
+        description: "Access your saved places and maps even when you're offline during your adventures.",
+        icon: "wifi-off"
       }
     ],
     techStack: [
       {
         category: "Frontend",
-        technologies: ["React", "TypeScript", "Expo go"]
+        technologies: ["React Native", "TypeScript", "Expo", "React Navigation"]
       },
       {
         category: "Backend",
-        technologies: ["Node.js", "Express", "PostgressSQL"]
+        technologies: ["Node.js", "Express", "PostgreSQL", "RESTful APIs"]
+      },
+      {
+        category: "Maps & Location",
+        technologies: ["Google Maps API", "Geolocation API", "Places API"]
+      },
+      {
+        category: "Development Tools",
+        technologies: ["Git", "ESLint", "Metro Bundler", "Expo CLI"]
       }
     ],
-    demoDescription: "Discover amazing places and plan unforgettable adventures.",
+    demoDescription: "Discover amazing places and plan unforgettable adventures with Uncharted's intelligent travel companion. Explore hidden gems, connect with fellow travelers, and turn every journey into a rewarding experience with personalized recommendations and achievement tracking.",
     status: "in-progress",
     year: "2025"
+  },
+  {
+    id: "Agent",
+    title: "Agent Dashboard",
+    description: "Comprehensive personal productivity and life management platform with AI-powered insights.",
+    detailedDescription: "Agent Dashboard is a sophisticated personal productivity platform that combines task management, financial tracking, note-taking, calendar integration, and project management into a unified experience. Built with modern web technologies and powered by Supabase, it provides users with powerful tools to organize their digital life while maintaining complete privacy and security through Row Level Security (RLS).",
+    tags: ["React", "TypeScript", "Supabase"],
+    imageUrl: getImagePath(IMAGE_PATHS.HEROES.AGENT_APP, IMAGE_PATHS.FALLBACKS.AGENT_APP_HERO),
+    projectUrl: "https://www.lidldev.com/agent",
+    githubUrl: "https://github.com/LidlDev/lidldev-portfolio",
+    featured: true,
+    logo: getImagePath(IMAGE_PATHS.LOGOS.AGENT_APP, IMAGE_PATHS.FALLBACKS.AGENT_APP_HERO),
+    screenshots: IMAGE_PATHS.SCREENSHOTS.AGENT_APP,
+    features: [
+      {
+        title: "Smart Dashboard",
+        description: "Comprehensive overview with real-time analytics, progress tracking, and quick actions for all your productivity metrics.",
+        icon: "bar-chart"
+      },
+      {
+        title: "Advanced Task Management",
+        description: "Intelligent task organization with priorities, categories, due dates, time estimates, and smart filtering capabilities.",
+        icon: "check-circle"
+      },
+      {
+        title: "Financial Tracking",
+        description: "Complete budget management with expense tracking, financial goals, spending analytics, and automated payment reminders.",
+        icon: "dollar-sign"
+      },
+      {
+        title: "Rich Note-Taking",
+        description: "Markdown-powered notes with categories, tags, search functionality, and seamless organization for all your thoughts.",
+        icon: "file-text"
+      },
+      {
+        title: "Project Management",
+        description: "Kanban-style project boards with task assignments, progress tracking, and collaborative features for team productivity.",
+        icon: "folder-kanban"
+      },
+      {
+        title: "Calendar Integration",
+        description: "Unified calendar view with event management, task scheduling, and multiple view modes for optimal time management.",
+        icon: "calendar"
+      },
+      {
+        title: "Habit Tracking",
+        description: "Build and maintain positive habits with streak tracking, progress visualization, and motivational insights.",
+        icon: "target"
+      },
+      {
+        title: "Secure Authentication",
+        description: "Google OAuth integration with Supabase authentication, ensuring secure access and data privacy with RLS policies.",
+        icon: "shield"
+      }
+    ],
+    techStack: [
+      {
+        category: "Frontend",
+        technologies: ["React 18", "TypeScript", "Tailwind CSS", "Framer Motion", "Lucide Icons"]
+      },
+      {
+        category: "Backend & Database",
+        technologies: ["Supabase", "PostgreSQL", "Row Level Security (RLS)", "Real-time subscriptions"]
+      },
+      {
+        category: "Authentication",
+        technologies: ["Supabase Auth", "Google OAuth", "JWT tokens", "Session management"]
+      },
+      {
+        category: "Development Tools",
+        technologies: ["Vite", "ESLint", "Prettier", "Git", "Vercel deployment"]
+      },
+      {
+        category: "Features",
+        technologies: ["PWA support", "Responsive design", "Dark/Light themes", "Real-time updates"]
+      }
+    ],
+    demoDescription: "Experience the future of personal productivity with Agent Dashboard. This comprehensive platform showcases modern web development practices, secure authentication, real-time data synchronization, and an intuitive user interface designed for maximum efficiency and user satisfaction.",
+    status: "completed",
+    year: "2024-2025"
   }
 ];
