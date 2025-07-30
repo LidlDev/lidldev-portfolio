@@ -306,8 +306,8 @@ export const projectsData: ProjectData[] = [
   {
     id: "Pyreus",
     title: "Pyreus",
-    description: "Intelligent personal operating system combining productivity, knowledge management, and development tools with AI-powered insights.",
-    detailedDescription: "Pyreus is envisioned as an intelligent, all-encompassing hub designed to integrate and optimize both personal life management and professional development workflows. It acts as a 'personal operating system' that unifies tasks, knowledge, communication, and development tools into a cohesive, AI-powered experience. A critical distinguishing feature is its integrated, secure Code Sandboxing and Live UI Preview, elevating it beyond a traditional productivity suite to an interactive development environment.",
+    description: "Revolutionary AI-powered personal operating system that unifies productivity, knowledge management, and development workflows with secure code execution and live UI preview capabilities.",
+    detailedDescription: "Pyreus represents the next evolution of personal productivity platforms, designed as an intelligent 'personal operating system' that seamlessly integrates task management, knowledge organization, and development tools into a unified, AI-powered experience. Built with cutting-edge technologies including React, Electron, and advanced AI models, Pyreus goes far beyond traditional productivity apps by offering unique features like secure Docker-based code sandboxing, real-time UI preview, and intelligent workflow automation. The platform leverages machine learning for dynamic task prioritization, uses Neo4j for sophisticated knowledge graphs, and provides a comprehensive development environment with Git integration, IDE plugins, and AI-assisted coding. With its infinite canvas whiteboard, mind mapping capabilities, and smart notification system, Pyreus transforms how developers and knowledge workers organize their digital lives while maintaining the highest standards of security and privacy.",
     tags: ["React", "TypeScript", "Electron", "Node.js", "AI/ML", "Docker"],
     imageUrl: getImagePath(IMAGE_PATHS.HEROES.PYREUS, IMAGE_PATHS.FALLBACKS.PYREUS_HERO),
     projectUrl: "https://github.com/LidlDev/Pyreus",
@@ -317,34 +317,64 @@ export const projectsData: ProjectData[] = [
     screenshots: IMAGE_PATHS.SCREENSHOTS.PYREUS,
     features: [
       {
-        title: "Intelligent Task Management",
-        description: "AI-driven dynamic prioritization and smart scheduling with unified task & calendar interface.",
+        title: "AI-Powered Task Prioritization",
+        description: "Advanced machine learning algorithms analyze your work patterns, energy levels, and project dependencies to dynamically prioritize tasks. The system learns from your behavior and suggests the optimal next task based on context, deadlines, and personal productivity patterns.",
         icon: "brain"
       },
       {
-        title: "Knowledge Management Hub",
-        description: "Comprehensive second brain with bi-directional linking, rich text editing, and AI-powered auto-tagging.",
-        icon: "book-open"
+        title: "Intelligent Knowledge Graph",
+        description: "Neo4j-powered knowledge management with bi-directional linking, semantic search, and AI-driven content discovery. Automatically suggests connections between notes, projects, and ideas while maintaining a comprehensive personal wiki with version control.",
+        icon: "network"
       },
       {
-        title: "Code Sandboxing & Live Preview",
-        description: "Secure code execution environment with live UI preview for multiple programming languages and frameworks.",
-        icon: "code"
+        title: "Secure Code Sandboxing",
+        description: "Docker-containerized execution environment supporting Python, JavaScript, React, Vue, and more. Features resource limits, network isolation, and real-time output capture with comprehensive security hardening for safe code experimentation.",
+        icon: "shield"
       },
       {
-        title: "Mind Mapping & Whiteboard",
-        description: "Infinite canvas for visual thinking with integrated mind maps that convert directly to tasks.",
-        icon: "map"
+        title: "Live UI Preview Engine",
+        description: "Revolutionary real-time UI rendering using Puppeteer/Playwright for instant preview of HTML, CSS, JavaScript, and modern frameworks. Includes device simulation, interactive component controls, and framework-specific rendering capabilities.",
+        icon: "monitor"
       },
       {
         title: "AI Development Assistant",
-        description: "Natural language command palette for code generation, analysis, and development workflow automation.",
+        description: "Natural language command palette powered by OpenAI and Anthropic Claude APIs. Generate code, analyze repositories, create documentation, and automate development workflows through conversational AI with deep codebase understanding.",
         icon: "bot"
       },
       {
-        title: "Integrated Development Environment",
-        description: "Git integration, IDE plugins, and comprehensive development workflow management.",
+        title: "Smart Calendar Integration",
+        description: "Unified calendar interface with AI-powered time blocking, conflict detection, and automatic rescheduling. Integrates with Google Calendar, Outlook, and Apple Calendar while providing intelligent meeting preparation and follow-up suggestions.",
+        icon: "calendar"
+      },
+      {
+        title: "Infinite Canvas Whiteboard",
+        description: "Collaborative digital whiteboard with mind mapping, flowchart creation, and sketch-to-code AI conversion. Features real-time collaboration, template library, and seamless integration with tasks and projects for visual planning.",
+        icon: "pen-tool"
+      },
+      {
+        title: "Git Workflow Automation",
+        description: "Deep Git integration with automated branch creation from tasks, PR management, commit analysis, and CI/CD pipeline monitoring. Includes code review assistance and intelligent merge conflict resolution suggestions.",
         icon: "git-branch"
+      },
+      {
+        title: "Learning Path Optimization",
+        description: "AI-curated learning recommendations based on your projects, skill gaps, and career goals. Features spaced repetition flashcards, coding challenge integration, and personalized tutorial suggestions with progress tracking.",
+        icon: "graduation-cap"
+      },
+      {
+        title: "Smart Notification Hub",
+        description: "Intelligent notification filtering and prioritization across all integrated services. Uses machine learning to surface only critical information based on your current focus, reducing distractions while ensuring important updates reach you.",
+        icon: "bell"
+      },
+      {
+        title: "Meeting Intelligence",
+        description: "AI-powered meeting assistant with real-time transcription, automatic summary generation, action item extraction, and follow-up task creation. Integrates with Zoom, Google Meet, and Teams for seamless meeting management.",
+        icon: "video"
+      },
+      {
+        title: "Code Snippet Library",
+        description: "Intelligent code snippet management with syntax highlighting, execution capabilities, auto-tagging, and smart search. Features version control, sharing capabilities, and AI-powered code explanation and optimization suggestions.",
+        icon: "code"
       }
     ],
     techStack: [
@@ -369,7 +399,7 @@ export const projectsData: ProjectData[] = [
         technologies: ["Vite", "Zustand", "React Query", "Prisma", "Git", "VS Code Extensions"]
       }
     ],
-    demoDescription: "Pyreus represents the future of personal productivity and development environments. This ambitious project combines the best of task management, knowledge organization, and development tools into a single, AI-powered platform. With its unique code sandboxing capabilities and live UI preview features, Pyreus goes beyond traditional productivity apps to become a true 'personal operating system' for developers and knowledge workers.",
+    demoDescription: "Experience the future of personal productivity with Pyreus - an ambitious AI-powered platform that redefines how developers and knowledge workers organize their digital lives. This comprehensive demo showcases revolutionary features including secure code sandboxing with live UI preview, intelligent task prioritization using machine learning, sophisticated knowledge management with bi-directional linking, and seamless development workflow automation. Built with modern technologies like React, Electron, Docker, and advanced AI models, Pyreus demonstrates the potential of integrating productivity tools, development environments, and artificial intelligence into a single, cohesive platform that adapts to your unique work patterns and enhances your creative potential.",
     status: "in-progress",
     year: "2024-2025"
   }
