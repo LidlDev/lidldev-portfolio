@@ -302,5 +302,75 @@ export const projectsData: ProjectData[] = [
     demoDescription: "Experience the future of personal productivity with Agent Dashboard. This comprehensive platform showcases modern web development practices, secure authentication, real-time data synchronization, and an intuitive user interface designed for maximum efficiency and user satisfaction.",
     status: "completed",
     year: "2024-2025"
+  },
+  {
+    id: "Pyreus",
+    title: "Pyreus",
+    description: "Intelligent personal operating system combining productivity, knowledge management, and development tools with AI-powered insights.",
+    detailedDescription: "Pyreus is envisioned as an intelligent, all-encompassing hub designed to integrate and optimize both personal life management and professional development workflows. It acts as a 'personal operating system' that unifies tasks, knowledge, communication, and development tools into a cohesive, AI-powered experience. A critical distinguishing feature is its integrated, secure Code Sandboxing and Live UI Preview, elevating it beyond a traditional productivity suite to an interactive development environment.",
+    tags: ["React", "TypeScript", "Electron", "Node.js", "AI/ML", "Docker"],
+    imageUrl: getImagePath(IMAGE_PATHS.HEROES.PYREUS, IMAGE_PATHS.FALLBACKS.PYREUS_HERO),
+    projectUrl: "https://github.com/LidlDev/Pyreus",
+    githubUrl: "https://github.com/LidlDev/Pyreus",
+    featured: true,
+    logo: getImagePath(IMAGE_PATHS.LOGOS.PYREUS, IMAGE_PATHS.FALLBACKS.PYREUS_HERO),
+    screenshots: IMAGE_PATHS.SCREENSHOTS.PYREUS,
+    features: [
+      {
+        title: "Intelligent Task Management",
+        description: "AI-driven dynamic prioritization and smart scheduling with unified task & calendar interface.",
+        icon: "brain"
+      },
+      {
+        title: "Knowledge Management Hub",
+        description: "Comprehensive second brain with bi-directional linking, rich text editing, and AI-powered auto-tagging.",
+        icon: "book-open"
+      },
+      {
+        title: "Code Sandboxing & Live Preview",
+        description: "Secure code execution environment with live UI preview for multiple programming languages and frameworks.",
+        icon: "code"
+      },
+      {
+        title: "Mind Mapping & Whiteboard",
+        description: "Infinite canvas for visual thinking with integrated mind maps that convert directly to tasks.",
+        icon: "map"
+      },
+      {
+        title: "AI Development Assistant",
+        description: "Natural language command palette for code generation, analysis, and development workflow automation.",
+        icon: "bot"
+      },
+      {
+        title: "Integrated Development Environment",
+        description: "Git integration, IDE plugins, and comprehensive development workflow management.",
+        icon: "git-branch"
+      }
+    ],
+    techStack: [
+      {
+        category: "Frontend",
+        technologies: ["React.js", "TypeScript", "Electron", "Tailwind CSS", "Radix UI", "Framer Motion"]
+      },
+      {
+        category: "Backend",
+        technologies: ["Node.js", "NestJS", "Python", "FastAPI", "PostgreSQL", "Neo4j", "Redis"]
+      },
+      {
+        category: "AI & Machine Learning",
+        technologies: ["OpenAI API", "Anthropic Claude", "TensorFlow.js", "Natural Language Processing"]
+      },
+      {
+        category: "Code Execution & Security",
+        technologies: ["Docker", "Kubernetes", "Puppeteer", "Playwright", "Container Orchestration"]
+      },
+      {
+        category: "Development Tools",
+        technologies: ["Vite", "Zustand", "React Query", "Prisma", "Git", "VS Code Extensions"]
+      }
+    ],
+    demoDescription: "Pyreus represents the future of personal productivity and development environments. This ambitious project combines the best of task management, knowledge organization, and development tools into a single, AI-powered platform. With its unique code sandboxing capabilities and live UI preview features, Pyreus goes beyond traditional productivity apps to become a true 'personal operating system' for developers and knowledge workers.",
+    status: "in-progress",
+    year: "2024-2025"
   }
 ];

@@ -13,6 +13,7 @@ export const IMAGE_PATHS = {
     CHESS_APP: '/images/projects/chess-app/logo.png',
     UNCHARTED: '/images/projects/uncharted/logo.png',
     AGENT_APP: '/images/projects/agent-app/logo.svg',
+    PYREUS: '/images/projects/pyreus/icon.png',
   },
   
   // Project hero images
@@ -21,6 +22,7 @@ export const IMAGE_PATHS = {
     CHESS_APP: '/images/projects/chess-app/hero.jpg',
     UNCHARTED: '/images/projects/uncharted/hero.png',
     AGENT_APP: '/images/projects/agent-app/hero.jpg',
+    PYREUS: '/images/projects/pyreus/Screenshot 2025-07-30 at 8.08.44 pm.png',
   },
   
   // Project screenshots
@@ -54,6 +56,26 @@ export const IMAGE_PATHS = {
       '/images/projects/agent-app/spending-payments.jpg',
       '/images/projects/agent-app/calendar.jpg',
     ],
+    PYREUS: [
+      '/images/projects/pyreus/Screenshot 2025-07-30 at 8.08.44 pm.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.06.56 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.09.50 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.09.59 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.10.06 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.10.10 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.10.18 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.10.29 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.10.35 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.10.38 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.10.41 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.11.23 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.11.29 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.11.35 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.11.44 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.12.07 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.12.13 am.png',
+      '/images/projects/pyreus/Screenshot 2025-07-31 at 1.12.18 am.png',
+    ],
   },
   
   // Fallback images (using Unsplash for now, replace with your actual images)
@@ -62,6 +84,7 @@ export const IMAGE_PATHS = {
     CHESS_HERO: 'https://images.unsplash.com/photo-1586165368502-1bad197a6461?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200&h=600',
     UNCHARTED_HERO: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200&h=600',
     AGENT_APP_HERO: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200&h=600',
+    PYREUS_HERO: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=1200&h=600',
     
     // Volleyball-themed screenshots
     VOLLEYBALL_SCREENSHOTS: [
