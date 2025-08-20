@@ -310,7 +310,7 @@ export const projectsData: ProjectData[] = [
     detailedDescription: "Pyreus represents the next evolution of personal productivity platforms, designed as an intelligent 'personal operating system' that seamlessly integrates task management, knowledge organization, and development tools into a unified, AI-powered experience. Built with cutting-edge technologies including React, Electron, and advanced AI models, Pyreus goes far beyond traditional productivity apps by offering unique features like secure Docker-based code sandboxing, real-time UI preview, and intelligent workflow automation. The platform leverages machine learning for dynamic task prioritization, uses Neo4j for sophisticated knowledge graphs, and provides a comprehensive development environment with Git integration, IDE plugins, and AI-assisted coding. With its infinite canvas whiteboard, mind mapping capabilities, and smart notification system, Pyreus transforms how developers and knowledge workers organize their digital lives while maintaining the highest standards of security and privacy.",
     tags: ["React", "TypeScript", "Electron", "Node.js", "AI/ML", "Docker"],
     imageUrl: getImagePath(IMAGE_PATHS.HEROES.PYREUS, IMAGE_PATHS.FALLBACKS.PYREUS_HERO),
-    projectUrl: "https://github.com/LidlDev/Pyreus",
+    projectUrl: "https://pyreus.dev",
     githubUrl: "https://github.com/LidlDev/Pyreus",
     featured: true,
     logo: getImagePath(IMAGE_PATHS.LOGOS.PYREUS, IMAGE_PATHS.FALLBACKS.PYREUS_HERO),
