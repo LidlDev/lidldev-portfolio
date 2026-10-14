@@ -27,7 +27,7 @@ const SpikePrivacyPolicy: React.FC = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Spike! Privacy Policy"
-        url="https://lidldev.com/spike/privacy-policy"
+        url="https://portfolio.lidldev.com/spike/privacy-policy"
       />
       <NavigationBar />
       <main id="main-content" tabIndex={-1}>
@@ -427,10 +427,10 @@ const SpikePrivacyPolicy: React.FC = () => {
                   <p>
                     <strong>Website:</strong>{" "}
                     <a
-                      href="https://lidldev.com"
+                      href="https://portfolio.lidldev.com"
                       className="text-primary hover:underline"
                     >
-                      https://lidldev.com
+                      https://portfolio.lidldev.com
                     </a>
                   </p>
                   <p>

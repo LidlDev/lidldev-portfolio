@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Sitemap: https://lidldev.com/sitemap.xml
+Sitemap: https://portfolio.lidldev.com/sitemap.xml

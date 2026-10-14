@@ -129,7 +129,7 @@ function Home() {
           "@type": "Person",
           name: "Harry",
           alternateName: "LidlDev",
-          url: "https://lidldev.com",
+          url: "https://portfolio.lidldev.com",
           sameAs: ["https://github.com/LidlDev"],
         }}
       />
@@ -283,7 +283,7 @@ function ProjectPage() {
       <SEO
         title={project.title + " — " + project.tagline}
         description={project.summary}
-        url={"https://lidldev.com/project/" + project.id}
+        url={"https://portfolio.lidldev.com/project/" + project.id}
       />
       <NavigationBar />
       <main id="main-content" className="case-study section" tabIndex={-1}>
@@ -455,7 +455,7 @@ function InfoPage({
       <SEO
         title={content.title}
         description={content.intro}
-        url={"https://lidldev.com/" + (kind === "retired" ? "agent" : kind)}
+        url={"https://portfolio.lidldev.com/" + (kind === "retired" ? "agent" : kind)}
       />
       <NavigationBar />
       <main id="main-content" className="info-page section" tabIndex={-1}>

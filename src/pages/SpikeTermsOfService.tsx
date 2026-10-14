@@ -21,7 +21,7 @@ const SpikeTermsOfService: React.FC = () => {
       <SEO
         title="Spike! Terms of Service"
         description="Terms of Service for Spike! volleyball app - Learn about the terms and conditions for using our volleyball team management and statistics application."
-        url="https://lidldev.com/spike/terms-of-service"
+        url="https://portfolio.lidldev.com/spike/terms-of-service"
       />
       <NavigationBar />
       <main id="main-content" tabIndex={-1}>
@@ -337,10 +337,10 @@ const SpikeTermsOfService: React.FC = () => {
                   <p>
                     <strong>Website:</strong>{" "}
                     <a
-                      href="https://lidldev.com"
+                      href="https://portfolio.lidldev.com"
                       className="text-primary hover:underline"
                     >
-                      https://lidldev.com
+                      https://portfolio.lidldev.com
                     </a>
                   </p>
                   <p>

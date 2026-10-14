@@ -9,7 +9,7 @@ This is the running project document. Update phase status, decisions, validation
 - Repository: https://github.com/LidlDev/lidldev-portfolio.git
 - Checkout: `Portfolio/lidldev-portfolio/`; branch: `redesign/portfolio`.
 - Baseline: `main` at `01a7efd` (Adding live link to pyreus).
-- Production target: https://lidldev.com, served through Cloudflare.
+- Production target: https://portfolio.lidldev.com, served through Cloudflare.
 - Use portable project-local tools only. No Windows administrator/UAC prompts, system installers, global npm installs, machine PATH changes, or execution-policy changes.
 - Portable Git lives at `../.tools/mingit/cmd/git.exe`. Tool downloads stay outside the repository.
 - Retain this repository, its history, and its existing `origin` remote.
@@ -61,7 +61,7 @@ Existing `example.com` demo URLs must not ship. Existing 2024–2025 statuses an
 - **Priority:** `vite.config.ts` loads all environment variables with `loadEnv(..., '')` and injects them as `process.env`. Remove this broad exposure before building with real credentials; expose only intentionally public values.
 - CI runs `npm run test || true`, although no test script exists. Replace the misleading pass condition with real checks during implementation.
 - A GitHub Pages workflow, `public/CNAME`, and Vercel config/docs coexist. Cloudflare proxying the domain does not establish the current origin. Confirm hosting before changing deployment/DNS.
-- SEO currently uses `www.lidldev.com`; align canonical metadata, sitemap and redirects with the requested `lidldev.com` domain.
+- Original-site SEO used `www.lidldev.com`; the current production origin is `https://portfolio.lidldev.com`.
 
 ## Proposed experience
 
@@ -158,7 +158,7 @@ Official references checked 14 October 2026:
 | 3 — Work and content | Complete locally | Selected work, case studies, about/contact, image treatment | Real links/assets, factual copy, retained support/policy URLs |
 | 4 — 3D and motion | Complete locally | Lazy Three.js hero and scoped motion | Reduced motion, WebGL failure, touch, resize/pause/disposal, payload/frame measurements |
 | 5 — Quality and preview | Local QA passed; hosted preview pending | Metadata, social card/favicon, sitemap, real CI checks, Cloudflare preview | Build/typecheck, browser route/theme/accessibility checks, no client secrets, direct URLs work |
-| 6 — Production | Pending Pages access/review | lidldev.com release and rollback record | Preview reviewed, hosting confirmed, HTTPS/redirects/cache/service-worker migration verified |
+| 6 — Production | Pending Pages access/review | portfolio.lidldev.com release and rollback record | Preview reviewed, hosting confirmed, HTTPS/redirects/cache/service-worker migration verified |
 
 ### Phase 1 checklist
 
@@ -266,7 +266,7 @@ Next increment:
 - Review screenshots and browser-results.json are in ignored .artifacts/. Snapshot capture now decodes lazy images and settles finite text animation before saving.
 - Cadence and Local Brain source clones remain unchanged and retain their original origin remotes. Source descriptions are recorded in docs/PROJECT_SOURCES.md.
 - Cloudflare plugin discovery returned no available connection. Cloudflare Pages project/account access, branch preview, real-domain redirects/headers, old production worker migration, and production release/rollback validation remain pending. No push, merge, DNS change or production deployment was performed.
-- Next increment: review the local design, publish the tested redesign branch through the existing repository process, verify the Cloudflare Pages preview, then release to lidldev.com with the preceding deployment retained for rollback.
+- Next increment: review the local design, publish the tested redesign branch through the existing repository process, verify the Cloudflare Pages preview, then release to portfolio.lidldev.com with the preceding deployment retained for rollback.
 
 ### 14 October 2026 - GitHub publication and production hold
 
@@ -281,3 +281,11 @@ Next increment:
 - User authorized merging redesign/portfolio into main and will handle production publication separately.
 - Fetched origin, confirmed main was current, and fast-forwarded main from 01a7efd to tested redesign commit 126fa22 without conflicts. Pushed main to GitHub successfully.
 - Updated the Cloudflare setup guide to reflect the completed merge. Existing local and branch CI acceptance applies to the unchanged implementation. No Cloudflare deployment or DNS action was taken.
+
+### 14 October 2026 - Portfolio production subdomain
+
+- User changed the production origin to https://portfolio.lidldev.com. Application routes remain rooted at /, not /portfolio.
+- Updated canonical/Open Graph URLs, social images, structured data, sitemap, robots, policy website links, legacy CNAME and redirect destinations. Contact email addresses and the PyrOS product domain remain their actual existing addresses.
+- Updated browser canonical expectations and Cloudflare instructions for the portfolio CNAME and custom-domain association. Old-origin service workers require separate retirement on their own origin.
+- Strict typecheck and production build passed. Edge verified canonical/Open Graph/social-image URLs across all 12 public routes, homepage structured data and static build URLs; actual contact and PyrOS links remain valid in the rendered pages. Fixed duplicate static/dynamic metadata tags found by these checks.
+- Prepared for publication to main; no Cloudflare or DNS action was taken for this URL correction.

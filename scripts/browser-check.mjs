@@ -180,7 +180,7 @@ try {
         }
         assert.equal(
           await page.locator('link[rel="canonical"]').getAttribute("href"),
-          "https://lidldev.com/project/" + route,
+          "https://portfolio.lidldev.com/project/" + route,
         );
         assert.equal(
           await page.getByRole("link", { name: "View repository" }).count(),

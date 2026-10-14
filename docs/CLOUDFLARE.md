@@ -4,7 +4,7 @@ The Pages project has not been created. GitHub publication is authorized; produc
 
 ## 1. Review the GitHub branch
 
-Review https://github.com/LidlDev/lidldev-portfolio/tree/redesign/portfolio and its GitHub Actions checks. Local strict typecheck/build and all 14 Edge browser checks passed on 14 October 2026. Hosted CI, real-device checks and a Cloudflare preview still need verification.
+Review https://github.com/LidlDev/lidldev-portfolio/tree/main and its GitHub Actions checks. Local strict typecheck/build and all 14 Edge browser checks passed on 14 October 2026. Hosted CI, real-device checks and a Cloudflare preview still need verification.
 
 The portable tooling lives in the parent workspace, outside the repository. Cloudflare uses its own Node runtime and does not need those Windows tools.
 
@@ -28,17 +28,21 @@ No Supabase, Gmail, OAuth or EmailJS secrets are required. The build prepares th
 
 ## 3. Deploy for review when publication is approved
 
-The merge into `main` is complete. When you are ready to publish, return to setup, confirm the settings above, then select Save and Deploy. Review the resulting `pages.dev` site before adding either custom domain. This initial deployment is considered production by Pages, even though lidldev.com has not been connected.
+The merge into `main` is complete. When you are ready to publish, return to setup, confirm the settings above, then select Save and Deploy. Review the resulting `pages.dev` site before adding the custom domain. This initial deployment is considered production by Pages, even though portfolio.lidldev.com has not been connected.
 
 Once created, open **Settings > Builds & deployments**. Keep `main` as the production branch. You can turn off automatic production branch deployments to require a deliberate release. Configure preview branches to include `redesign/portfolio` or all non-production branches as preferred. Subsequent pushes to an enabled preview branch generate preview deployments.
 
 If you want a hosted preview before merging, use a separate staging Pages project, with the redesign branch selected and no custom domain. Its initial Save and Deploy also publishes a public pages.dev site; do this only when preview publication is approved.
 
-## 4. Connect lidldev.com only at launch
+## 4. Connect portfolio.lidldev.com only at launch
 
-When the hosted site has been approved, open the Pages project's **Custom domains > Set up a domain** and add `lidldev.com`. For an apex domain, the domain must be a zone in the same Cloudflare account; follow the dashboard's DNS instructions. Add `www.lidldev.com` through the same Pages flow if you want www supported. Use the Pages custom-domain flow before manually changing DNS.
+Production origin: **https://portfolio.lidldev.com**. This is a hostname; the application stays at the root path, with project URLs such as /project/cadence-mobile. No /portfolio path prefix is needed.
 
-The tracked `_redirects` file redirects www to the apex. Verify HTTPS and the redirect after both domains become active. Keep existing DNS and hosting in place until the cutover is authorized and record the prior DNS values for rollback.
+When the hosted site has been approved, open the Pages project's **Custom domains > Set up a domain** and add portfolio.lidldev.com. Complete the Pages association before changing DNS. In the lidldev.com DNS zone, confirm a CNAME named portfolio pointing to the actual `<project-name>.pages.dev` hostname. Cloudflare can create it automatically for a zone it manages; otherwise add it at your DNS provider. Wait for the custom domain and HTTPS certificate to become active.
+
+Canonical URLs, social-image URLs, structured data, robots and sitemap use the portfolio subdomain. The legacy CNAME file also matches it; Cloudflare custom-domain binding is still configured in its dashboard. Historical apex/www redirect rules target the portfolio subdomain and only run if those old hosts are served by this Pages project. They do not change DNS or redirect the existing apex site on another host. Only the portfolio subdomain is required for this launch.
+
+Verify HTTPS, deep links and metadata on the new domain. Service workers and caches are scoped by origin: the new subdomain cannot unregister workers on lidldev.com or www.lidldev.com. Retiring an old installation requires serving the retirement worker on that old origin separately.
 
 ## Acceptance and rollback
 
