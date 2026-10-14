@@ -1,24 +1,32 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import { init as initEmailJS } from '@emailjs/browser';
-import { pwaManager, performanceMonitor, preloadCriticalResources } from './utils/pwa';
-
-// Initialize EmailJS with your public key from environment variables
-// This ensures the key is not hardcoded in the source code
-initEmailJS(import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '');
-
-// Initialize PWA and performance monitoring
-pwaManager; // This initializes the PWA manager
-performanceMonitor; // This initializes performance monitoring
-
-// Preload critical resources
-preloadCriticalResources();
-
-// Performance monitoring
-performanceMonitor.startMeasure('app-initialization');
-
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
+// Retire only this portfolio's legacy caches and workers, leaving unrelated origin data alone.
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((registrations) =>
+      Promise.all(
+        registrations
+          .filter((r) =>
+            [r.active, r.waiting, r.installing].some(
+              (w) => w && new URL(w.scriptURL).pathname === "/sw.js",
+            ),
+          )
+          .map((r) => r.unregister()),
+      ),
+    )
+    .catch(() => {});
+}
+if ("caches" in window)
+  caches
+    .keys()
+    .then((keys) =>
+      Promise.all(
+        keys
+          .filter((k) => /^lidldev-(portfolio|static|dynamic)-/.test(k))
+          .map((k) => caches.delete(k)),
+      ),
+    )
+    .catch(() => {});
 createRoot(document.getElementById("root")!).render(<App />);
-
-// End performance measurement
-performanceMonitor.endMeasure('app-initialization');

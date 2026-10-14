@@ -1,47 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LidlDev Portfolio</title>
-
-    <!-- Favicons and Icons -->
-    <link rel="icon" type="image/png" href="/harry-profile.png" />
-    <link rel="apple-touch-icon" href="/harry-profile.png" />
-    <link rel="manifest" href="/manifest.json" />
-
-    <!-- Basic Meta Tags (will be overridden by react-helmet-async) -->
-    <meta name="description" content="Harry - Full Stack Developer specializing in React, TypeScript, Swift, and modern web technologies. Building beautiful, scalable applications and mobile experiences." />
-    <meta name="author" content="Harry - LidlDev" />
-    <meta name="robots" content="index, follow" />
-    <meta name="googlebot" content="index, follow" />
-
-    <!-- Theme and Color -->
-    <meta name="theme-color" content="#0066CC" />
-    <meta name="msapplication-TileColor" content="#0066CC" />
-
-    <!-- Open Graph (will be overridden by react-helmet-async) -->
-    <meta property="og:title" content="LidlDev - Full Stack Developer & Software Engineer" />
-    <meta property="og:description" content="Harry - Full Stack Developer specializing in React, TypeScript, Swift, and modern web technologies." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LidlDev — Personal projects, built with intent</title>
+    <meta
+      name="description"
+      content="The personal project portfolio of Harry. Mobile experiences, local-first tools and ideas brought to life."
+    />
+    <meta name="theme-color" content="#F6F3EE" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      try {
+        var t = localStorage.getItem("lidldev-theme");
+        var d =
+          t === "dark" ||
+          (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = d ? "dark" : "light";
+        document.documentElement.style.colorScheme = d ? "dark" : "light";
+      } catch (e) {
+        document.documentElement.dataset.theme = matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches
+          ? "dark"
+          : "light";
+      }
+    </script>
+    <meta
+      property="og:title"
+      content="LidlDev — Personal projects, built with intent"
+    />
+    <meta
+      property="og:description"
+      content="Mobile experiences, local-first tools and ideas brought to life."
+    />
+    <meta property="og:url" content="https://lidldev.com" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://www.lidldev.com/harry-profile.png" />
-    <meta property="og:url" content="https://www.lidldev.com" />
-    <meta property="og:site_name" content="LidlDev Portfolio" />
-
-    <!-- Twitter Card (will be overridden by react-helmet-async) -->
+    <meta property="og:image" content="https://lidldev.com/social-card.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lidldev" />
-    <meta name="twitter:creator" content="@lidldev" />
-    <meta name="twitter:image" content="https://www.lidldev.com/harry-profile.png" />
-
-    <!-- Handle transition from hash routing to browser routing -->
-    <script src="/hash-redirect.js"></script>
   </head>
-
   <body>
     <div id="root"></div>
-    <!-- GPT Engineer script commented out for troubleshooting -->
-    <!-- <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script> -->
+    <noscript
+      >This portfolio needs JavaScript for its interactive project pages. You
+      can find the projects at
+      <a href="https://github.com/LidlDev">LidlDev on GitHub</a> or email
+      <a href="mailto:harry@lidldev.com">Harry</a>.</noscript
+    >
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

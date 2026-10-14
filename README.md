@@ -1,127 +1,27 @@
-# LidlDev Portfolio
+# LidlDev portfolio
 
-*Repository renamed from funky-flow-folio to lidldev-portfolio*
+A personal projects portfolio for Harry / LidlDev, rebuilt around orange branding, fluid typography, light/dark themes and a lazy-loaded Three.js sculpture.
 
-## Project info
+[Running plan and work log](docs/REDESIGN.md) · [Project sources](docs/PROJECT_SOURCES.md) · [Cloudflare Pages rollout](docs/CLOUDFLARE.md)
 
-**URL**: https://www.lidldev.com
+## Local development
 
-## Features
+Portable Git and Node live in the parent workspace's .tools folder. The launchers require no administrator elevation, global installation or PowerShell policy change.
 
-- Portfolio website showcasing projects and skills
-- Agent dashboard with:
-  - Task management
-  - Financial goal tracking
-  - Spending tracker
-  - Upcoming payments management
-  - User authentication (email/password, Google, GitHub)
-  - Database persistence with Supabase
+From this checkout:
 
-## Environment Setup
-
-This project uses environment variables for configuration. Before running the application, you need to set up your environment:
-
-1. Copy the `.env.example` file to a new file named `.env`:
-   ```sh
-   cp .env.example .env
-   ```
-
-2. Edit the `.env` file with your Supabase credentials:
-   ```
-   VITE_SUPABASE_URL=https://your-project-id.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   ```
-
-3. For detailed environment setup instructions, see [docs/ENV_SETUP.md](docs/ENV_SETUP.md)
-
-4. For OAuth setup (Google and GitHub authentication), follow the instructions in [docs/OAUTH_SETUP.md](docs/OAUTH_SETUP.md)
-
-## How can I edit this code?
-
-There are several ways of editing this portfolio application.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone https://github.com/LidlDev/lidldev-portfolio.git
-
-# Step 2: Navigate to the project directory.
-cd lidldev-portfolio
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Set up environment variables (see Environment Setup section)
-cp .env.example .env
-# Edit .env with your credentials
-
-# Step 5: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```powershell
+.\scripts\run.cmd ci
+.\scripts\run.cmd run dev
+.\scripts\run.cmd run build
+.\scripts\run.cmd run preview
+.\scripts\run.cmd run test:browser
 ```
 
-**Edit a file directly in GitHub**
+Development: http://127.0.0.1:5173. Production preview: http://127.0.0.1:4173. Browser checks use installed Microsoft Edge; start the production preview first. Ordinary npm commands also work when Node is on PATH.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The frontend builds to dist/. Cloudflare Pages build command: npm run build; output: dist; Node: 24. No environment secrets, Supabase, OAuth or email service are required. Contact opens the visitor's email application.
 
-**Use GitHub Codespaces**
+Project source clones live alongside the portfolio in ../projects/cadence-mobile and ../projects/local-brain. They are independent repositories and are not embedded in this site.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-- Supabase (authentication and database)
-- React Router
-- React Hook Form with Zod validation
-
-## Database and Authentication
-
-The Agent dashboard uses Supabase for:
-
-- User authentication (email/password, Google, GitHub)
-- Database storage for tasks, financial goals, expenses, and payments
-- Row Level Security (RLS) to ensure data privacy
-
-For database setup instructions, see [supabase/README.md](supabase/README.md).
-
-## How is this project deployed?
-
-This project is deployed using Vercel with a custom domain (www.lidldev.com).
-
-When changes are pushed to the main branch, Vercel automatically builds and deploys the site.
-
-**Important Note**: When deploying to production, make sure to:
-1. Set up the proper environment variables in Vercel
-2. Configure OAuth providers with the production domain
-3. Update the Supabase project settings for production use
-
-For detailed deployment instructions, see [docs/VERCEL_SETUP.md](docs/VERCEL_SETUP.md).
-
-## Custom Domain
-
-This project uses a custom domain (www.lidldev.com) configured in the Vercel settings.
-
-## Security Considerations
-
-- Never commit your `.env` file or any files containing API keys to version control
-- Always use environment variables for sensitive information
-- Follow the security best practices outlined in the OAuth setup guide
+The Agent app and scanning endpoints are removed. /agent explains the retirement; Spike's product policies remain at their existing URLs. sw.js is a retirement worker for old cache-first clients, not a new offline application.
