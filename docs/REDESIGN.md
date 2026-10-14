@@ -274,3 +274,4 @@ Next increment:
 - User authorized pushing the latest work to GitHub, with production deployment held. Publish only redesign/portfolio; do not merge main, create a Cloudflare deployment or change DNS.
 - Rewrote docs/CLOUDFLARE.md with new-project settings, the Save and Deploy publication boundary, branch controls, review steps and a later domain cutover.
 - Authenticated GitHub profile verified as LidlDev / Harry / harry@lidldev.com; use this identity only in this repository's local Git configuration.
+- Portable Git pushed implementation commit ba09976 to origin/redesign/portfolio successfully. main was not changed. Latest source and the new-project Cloudflare setup guide are available on GitHub; production remains on hold.
