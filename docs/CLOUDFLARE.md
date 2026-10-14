@@ -1,6 +1,6 @@
-﻿# Cloudflare Pages setup and release
+# Cloudflare Pages setup and release
 
-The Pages project has not been created. GitHub publication is authorized; production deployment and domain changes are on hold. Work is on `redesign/portfolio`; `main` remains unchanged until a separately approved release.
+The Pages project has not been created. GitHub publication is authorized; production deployment and domain changes are on hold. The redesign was merged into `main` and pushed to GitHub on 14 October 2026. Cloudflare publication remains a separate step for the user.
 
 ## 1. Review the GitHub branch
 
@@ -24,11 +24,11 @@ In Cloudflare, open **Workers & Pages > Create application > Pages > Connect to 
 
 No Supabase, Gmail, OAuth or EmailJS secrets are required. The build prepares the licensed local fonts itself.
 
-**Stop before Save and Deploy while the release is on hold.** That button starts a deployment and publishes the project's `pages.dev` address. `main` currently contains the old site; do not deploy it expecting the redesign. Connecting a repository does not merge the redesign branch.
+**Stop before Save and Deploy while the release is on hold.** That button starts a deployment and publishes the project's `pages.dev` address. `main` now contains the tested redesign. Connecting the repository does not itself authorize deployment.
 
 ## 3. Deploy for review when publication is approved
 
-After design approval and passing GitHub checks, merge `redesign/portfolio` into `main`. Return to setup, confirm the settings above, then select Save and Deploy. Review the resulting `pages.dev` site before adding either custom domain. This initial deployment is considered production by Pages, even though lidldev.com has not been connected.
+The merge into `main` is complete. When you are ready to publish, return to setup, confirm the settings above, then select Save and Deploy. Review the resulting `pages.dev` site before adding either custom domain. This initial deployment is considered production by Pages, even though lidldev.com has not been connected.
 
 Once created, open **Settings > Builds & deployments**. Keep `main` as the production branch. You can turn off automatic production branch deployments to require a deliberate release. Configure preview branches to include `redesign/portfolio` or all non-production branches as preferred. Subsequent pushes to an enabled preview branch generate preview deployments.
 
@@ -56,4 +56,4 @@ The tracked `_redirects` file redirects www to the apex. Verify HTTPS and the re
 - [SPA serving behavior](https://developers.cloudflare.com/pages/configuration/serving-pages/)
 - [Headers](https://developers.cloudflare.com/pages/configuration/headers/) and [redirects](https://developers.cloudflare.com/pages/configuration/redirects/)
 
-No Cloudflare project, deployment, merge or DNS change has been performed by this workspace.
+The GitHub merge is complete. No Cloudflare project, Cloudflare deployment or DNS change has been performed by this workspace.

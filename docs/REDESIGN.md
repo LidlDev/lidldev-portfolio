@@ -275,3 +275,9 @@ Next increment:
 - Rewrote docs/CLOUDFLARE.md with new-project settings, the Save and Deploy publication boundary, branch controls, review steps and a later domain cutover.
 - Authenticated GitHub profile verified as LidlDev / Harry / harry@lidldev.com; use this identity only in this repository's local Git configuration.
 - Portable Git pushed implementation commit ba09976 to origin/redesign/portfolio successfully. main was not changed. Latest source and the new-project Cloudflare setup guide are available on GitHub; production remains on hold.
+
+### 14 October 2026 - Redesign merged into main
+
+- User authorized merging redesign/portfolio into main and will handle production publication separately.
+- Fetched origin, confirmed main was current, and fast-forwarded main from 01a7efd to tested redesign commit 126fa22 without conflicts. Pushed main to GitHub successfully.
+- Updated the Cloudflare setup guide to reflect the completed merge. Existing local and branch CI acceptance applies to the unchanged implementation. No Cloudflare deployment or DNS action was taken.
