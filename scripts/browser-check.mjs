@@ -66,6 +66,18 @@ try {
         .count(),
       1,
     );
+    assert.equal(await page.locator("#skills .skill-group").count(), 4);
+    assert.equal(
+      await page
+        .getByRole("navigation", { name: "Main navigation" })
+        .getByRole("link", { name: "Skills", exact: true })
+        .getAttribute("href"),
+      "/#skills",
+    );
+    assert.equal(
+      await page.locator(".pyros-icon").getAttribute("src"),
+      "/images/projects/pyros/icon.svg",
+    );
     assert.equal(await page.locator('a[href="/agent"]').count(), 0);
     assert.equal(await page.locator('a[href*="example.com"]').count(), 0);
   });
@@ -170,6 +182,19 @@ try {
           waitUntil: "networkidle",
         });
         assert.equal(await page.locator("main h1").count(), 1);
+        assert.equal(
+          await page
+            .getByRole("heading", { name: "Infrastructure & technology" })
+            .count(),
+          1,
+        );
+        assert.equal(
+          await page
+            .getByRole("heading", { name: "Features with a purpose" })
+            .count(),
+          1,
+        );
+        assert.equal(await page.locator(".technology-grid article").count(), 3);
         for (const image of await page.locator("main img").all()) {
           await image.scrollIntoViewIfNeeded();
           await image.evaluate((image) => image.decode());

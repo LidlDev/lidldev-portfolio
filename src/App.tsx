@@ -59,7 +59,7 @@ function Contact() {
   return (
     <section className="contact-section section" id="contact" tabIndex={-1}>
       <div className="section-label">
-        <span>03 / GET IN TOUCH</span>
+        <span>04 / GET IN TOUCH</span>
         <span>GOOD THINGS START WITH A CONVERSATION</span>
       </div>
       <div className="contact-content">
@@ -118,6 +118,84 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         </div>
       </div>
     </article>
+  );
+}
+function Skills() {
+  const groups = [
+    {
+      title: "Interfaces & interaction",
+      description:
+        "Fluid layouts, accessible controls and motion that supports the experience.",
+      items: ["React", "TypeScript", "CSS / Tailwind", "Three.js"],
+    },
+    {
+      title: "Mobile experiences",
+      description:
+        "Native-aware apps that connect everyday workflows with device capabilities.",
+      items: ["React Native", "Expo", "Swift", "Java", "HealthKit"],
+    },
+    {
+      title: "Data & infrastructure",
+      description:
+        "Choosing the right foundation: shared cloud services or files that stay with their owner.",
+      items: [
+        "Supabase",
+        "Firebase",
+        "Cloudflare Workers",
+        "Markdown / YAML",
+        "File System Access",
+      ],
+    },
+    {
+      title: "Building & delivery",
+      description:
+        "Repeatable builds and browser checks, with careful attention to performance and data integrity.",
+      items: [
+        "Git / GitHub",
+        "Vite",
+        "Zustand",
+        "Playwright",
+        "Accessibility checks",
+      ],
+    },
+  ];
+  return (
+    <section
+      className="skills-section section"
+      id="skills"
+      tabIndex={-1}
+      aria-labelledby="skills-heading"
+    >
+      <div className="section-label">
+        <span>03 / SKILLS & PRACTICE</span>
+        <span>THE TOOLS BEHIND THE WORK</span>
+      </div>
+      <div className="section-heading">
+        <h2 id="skills-heading">
+          A practical toolkit.
+          <br />
+          <span>A thoughtful approach.</span>
+        </h2>
+        <p>
+          Technologies I work with across these projects, and the ways I bring
+          them together.
+        </p>
+      </div>
+      <div className="skills-grid">
+        {groups.map((group, index) => (
+          <article className="skill-group" key={group.title}>
+            <span className="eyebrow">0{index + 1}</span>
+            <h3>{group.title}</h3>
+            <p>{group.description}</p>
+            <ul>
+              {group.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 function Home() {
@@ -264,6 +342,7 @@ function Home() {
             </div>
           </div>
         </section>
+        <Skills />
         <Contact />
       </main>
       <Footer />
@@ -321,17 +400,45 @@ function ProjectPage() {
           <p className="visual-caption">
             {project.visual === "cadence"
               ? "Cadence brand exploration using the project’s original mark."
-              : "An illustration of the file-based, connected workspace."}
+              : "The original PyrOS flame mark used by the app and favicon."}
           </p>
         )}
         <div className="case-intro">
           <span className="eyebrow">THE IDEA</span>
-          <h2>{project.problem}</h2>
+          <div>
+            <h2>{project.problem}</h2>
+            <p>{project.overview}</p>
+          </div>
+        </div>
+        <section
+          className="case-architecture"
+          aria-labelledby="architecture-heading"
+        >
+          <div className="architecture-heading">
+            <span className="eyebrow">UNDER THE HOOD</span>
+            <h2 id="architecture-heading">Infrastructure & technology</h2>
+            <p>{project.infrastructure}</p>
+          </div>
+          <div className="technology-grid">
+            {project.technologies.map((technology) => (
+              <article key={technology.title}>
+                <h3>{technology.title}</h3>
+                <p>{technology.text}</p>
+              </article>
+            ))}
+          </div>
+          {project.evidence && (
+            <p className="project-evidence">{project.evidence}</p>
+          )}
+        </section>
+        <div className="case-feature-heading">
+          <span className="eyebrow">WHAT IT MAKES POSSIBLE</span>
+          <h2>Features with a purpose</h2>
         </div>
         <div className="case-decisions">
           {project.decisions.map((decision, i) => (
             <article key={decision.title}>
-              <span className="eyebrow">0{i + 1} / THE APPROACH</span>
+              <span className="eyebrow">0{i + 1} / THE FEATURES</span>
               <h3>{decision.title}</h3>
               <p>{decision.text}</p>
             </article>
@@ -455,7 +562,10 @@ function InfoPage({
       <SEO
         title={content.title}
         description={content.intro}
-        url={"https://portfolio.lidldev.com/" + (kind === "retired" ? "agent" : kind)}
+        url={
+          "https://portfolio.lidldev.com/" +
+          (kind === "retired" ? "agent" : kind)
+        }
       />
       <NavigationBar />
       <main id="main-content" className="info-page section" tabIndex={-1}>

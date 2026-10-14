@@ -1609,3 +1609,169 @@ main a.text-primary {
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
+
+/* Project stories and the toolkit behind them. */
+.pyros-art {
+  min-height: 240px;
+  padding-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: radial-gradient(
+    ellipse at 50% 42%,
+    #543121 0,
+    #201b1b 43%,
+    #10121a 80%
+  );
+  color: #fff3e6;
+}
+.pyros-icon {
+  width: clamp(78px, 11vw, 145px);
+  height: auto;
+  filter: drop-shadow(0 16px 28px #f5822428);
+}
+.pyros-name {
+  line-height: 1.15;
+  font-family: "Space Grotesk Variable", sans-serif;
+  font-size: clamp(28px, 3.5vw, 44px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  text-align: center;
+}
+.pyros-name small {
+  display: block;
+  font-family: "Inter Variable", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0;
+  color: #e1c7b5;
+  margin-top: 5px;
+}
+.case-study .pyros-icon {
+  width: clamp(90px, 17vw, 210px);
+}
+.case-study .pyros-name {
+  font-size: clamp(36px, 5vw, 62px);
+}
+.skills-section {
+  padding-top: 85px;
+  padding-bottom: 85px;
+  border-top: 1px solid var(--line);
+}
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 55px;
+  margin-top: 45px;
+}
+.skill-group {
+  padding: 28px 0 32px;
+  border-top: 1px solid var(--line);
+}
+.skill-group h3 {
+  font-family: "Space Grotesk Variable", sans-serif;
+  font-size: 25px;
+  letter-spacing: -0.04em;
+  margin: 14px 0 12px;
+}
+.skill-group p {
+  color: var(--muted);
+  max-width: 440px;
+  font-size: 14px;
+}
+.skill-group ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 22px;
+}
+.skill-group li {
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  padding: 7px 12px;
+  font-size: 11px;
+}
+.case-intro p {
+  margin-top: 24px;
+  max-width: 740px;
+  color: var(--muted);
+  font-size: 16px;
+}
+.case-architecture {
+  border-top: 1px solid var(--line);
+  padding: 45px 0 60px;
+}
+.architecture-heading {
+  max-width: 860px;
+}
+.architecture-heading h2,
+.case-feature-heading h2 {
+  font-family: "Space Grotesk Variable", sans-serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  margin: 15px 0 20px;
+  line-height: 1.15;
+}
+.architecture-heading p {
+  color: var(--muted);
+  font-size: 16px;
+}
+.technology-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 35px;
+  margin-top: 36px;
+}
+.technology-grid article {
+  border-left: 2px solid var(--accent);
+  padding-left: 18px;
+}
+.technology-grid h3 {
+  font-size: 19px;
+  line-height: 1.3;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.technology-grid p {
+  font-size: 14px;
+  color: var(--muted);
+}
+.project-evidence {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 28px;
+  max-width: 820px;
+}
+.case-feature-heading {
+  padding: 10px 0 15px;
+}
+@media (max-width: 700px) {
+  .skills-section {
+    padding-top: 55px;
+    padding-bottom: 55px;
+  }
+  .skills-grid,
+  .technology-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .skills-grid {
+    gap: 0;
+    margin-top: 30px;
+  }
+  .case-architecture {
+    padding-top: 30px;
+    padding-bottom: 45px;
+  }
+  .case-intro p,
+  .architecture-heading p {
+    font-size: 14px;
+  }
+  .pyros-art {
+    gap: 12px;
+  }
+}

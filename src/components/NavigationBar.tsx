@@ -72,6 +72,7 @@ export default function NavigationBar() {
         >
           <Link to="/#work">Work</Link>
           <Link to="/#about">About</Link>
+          <Link to="/#skills">Skills</Link>
           <Link className="nav-contact" to="/#contact">
             Let’s talk <ArrowUpRight size={15} />
           </Link>

@@ -35,27 +35,20 @@ export default function ProjectVisual({
     );
   if (project.visual === "brain")
     return (
-      <div
-        className="project-art brain-art"
-        role="img"
-        aria-label="Abstract connected notes illustration for PyrOS"
-      >
-        <div className="brain-grid" />
-        <svg
-          className="brain-connections"
-          viewBox="0 0 600 380"
-          aria-hidden="true"
-        >
-          <path d="M160 90L310 185L450 85M310 185L450 295M310 185L125 285M160 90L450 85M125 285L450 295" />
-        </svg>
-        <div className="brain-node node-one">ideas.md</div>
-        <div className="brain-node node-two">projects.md</div>
-        <div className="brain-core">
-          P<span>yr</span>OS<small>Knowledge, connected.</small>
-        </div>
-        <div className="brain-node node-three">notes.md</div>
-        <div className="brain-node node-four">tasks.md</div>
-        <span className="art-label">LOCAL FIRST. ALWAYS YOURS.</span>
+      <div className="project-art pyros-art">
+        <img
+          className="pyros-icon"
+          src="/images/projects/pyros/icon.svg"
+          width="192"
+          height="224"
+          alt="PyrOS app flame icon"
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+        />
+        <span className="pyros-name">
+          PyrOS<small>Your knowledge. Your files.</small>
+        </span>
+        <span className="art-label">A PRIVATE WORKSPACE</span>
       </div>
     );
   return (
