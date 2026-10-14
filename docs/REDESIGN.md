@@ -289,3 +289,10 @@ Next increment:
 - Updated browser canonical expectations and Cloudflare instructions for the portfolio CNAME and custom-domain association. Old-origin service workers require separate retirement on their own origin.
 - Strict typecheck and production build passed. Edge verified canonical/Open Graph/social-image URLs across all 12 public routes, homepage structured data and static build URLs; actual contact and PyrOS links remain valid in the rendered pages. Fixed duplicate static/dynamic metadata tags found by these checks.
 - Prepared for publication to main; no Cloudflare or DNS action was taken for this URL correction.
+
+### 14 October 2026 - Cloudflare Worker deployment correction
+
+- Supplied build log confirmed successful dependency installation, typecheck and Vite build. API publication failed with code 100324: absolute source URLs in _redirects lines 1 and 2 are invalid for Workers Static Assets.
+- Actual hosting setup is Workers Builds / portfolio, superseding the earlier Pages assumption. Removed both hostname redirect rules and retained the relative /api/* retirement redirect. Host-based redirects belong in separate zone Redirect Rules when needed.
+- Added explicit wrangler.jsonc serving dist with SPA fallback, avoiding automatic project conversion and a second build. Updated the guide with existing-Worker settings and Pages as an alternative. No custom-domain routes, account credentials or DNS changes are included.
+- Wrangler 4.150.0 dry run passed. Local runtime parsed one redirect and five header rules; HTTP checks passed for homepage, project SPA fallback, security header and API retirement redirect. Compatibility date is 2026-10-06, matching the supplied log and supported runtime. No remote deployment performed by this workspace.

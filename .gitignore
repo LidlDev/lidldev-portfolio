@@ -34,3 +34,4 @@ dist-ssr
 playwright-report/
 test-results/
 public/fonts/
+.wrangler/

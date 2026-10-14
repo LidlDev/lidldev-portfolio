@@ -1,6 +1,35 @@
-# Cloudflare Pages setup and release
+# Cloudflare hosting setup and release
 
-The Pages project has not been created. GitHub publication is authorized; production deployment and domain changes are on hold. The redesign was merged into `main` and pushed to GitHub on 14 October 2026. Cloudflare publication remains a separate step for the user.
+## Current setup: Cloudflare Workers
+
+The supplied 14 October 2026 log shows Workers Builds deploying a Worker named portfolio with npx wrangler deploy. The website build succeeded; deployment was rejected because hostname-based source URLs in _redirects are unsupported by Workers Static Assets. Those two rules have been removed. The retained /api/* to /agent redirect uses relative paths.
+
+The tracked wrangler.jsonc explicitly serves ./dist with single-page-application fallback. This avoids Wrangler's automatic project conversion, dependency additions and second build. The Vite project and Pages compatibility remain intact.
+
+For the existing Worker, use:
+
+| Setting | Value |
+| --- | --- |
+| Repository / production branch | LidlDev/lidldev-portfolio / main |
+| Worker name | portfolio |
+| Root directory | Repository root |
+| Build command | npm run build |
+| Deploy command | npx wrangler@4.150.0 deploy |
+| Node version | NODE_VERSION=24 |
+
+Retry the build from the latest main commit. Review the resulting workers.dev address and deep links. For production, open the portfolio Worker's Settings > Domains & Routes and add a Custom Domain for portfolio.lidldev.com. The Worker configuration intentionally contains no domain routes, so publishing the configuration does not itself attach the custom domain. Do not apply the Pages CNAME instructions below to a Worker.
+
+If old apex/www hosts need to redirect later, configure host-based Redirect Rules on those hosts separately. _redirects now contains only the local API retirement rule. The subdomain remains the canonical origin in metadata and sitemap.
+
+Wrangler dry run and local Worker HTTP checks passed (homepage, project SPA fallback, security header and API redirect). These checks do not establish successful Cloudflare API publication; verify the next remote build and live domain after retrying.
+
+References: https://developers.cloudflare.com/workers/static-assets/redirects/ and https://developers.cloudflare.com/workers/wrangler/configuration/ .
+
+## Alternative: Cloudflare Pages
+
+The following instructions apply only if you choose a Pages project instead of the existing Worker.
+
+The originally planned Pages project had not been created. GitHub publication is authorized; production deployment and domain changes are on hold. The redesign was merged into `main` and pushed to GitHub on 14 October 2026. Cloudflare publication remains a separate step for the user.
 
 ## 1. Review the GitHub branch
 
@@ -40,7 +69,7 @@ Production origin: **https://portfolio.lidldev.com**. This is a hostname; the ap
 
 When the hosted site has been approved, open the Pages project's **Custom domains > Set up a domain** and add portfolio.lidldev.com. Complete the Pages association before changing DNS. In the lidldev.com DNS zone, confirm a CNAME named portfolio pointing to the actual `<project-name>.pages.dev` hostname. Cloudflare can create it automatically for a zone it manages; otherwise add it at your DNS provider. Wait for the custom domain and HTTPS certificate to become active.
 
-Canonical URLs, social-image URLs, structured data, robots and sitemap use the portfolio subdomain. The legacy CNAME file also matches it; Cloudflare custom-domain binding is still configured in its dashboard. Historical apex/www redirect rules target the portfolio subdomain and only run if those old hosts are served by this Pages project. They do not change DNS or redirect the existing apex site on another host. Only the portfolio subdomain is required for this launch.
+Canonical URLs, social-image URLs, structured data, robots and sitemap use the portfolio subdomain. The legacy CNAME file also matches it; Cloudflare custom-domain binding is still configured in its dashboard. Apex/www hostname redirects are not shipped in _redirects; configure host-based Cloudflare Redirect Rules separately if required. Only the portfolio subdomain is required for this launch.
 
 Verify HTTPS, deep links and metadata on the new domain. Service workers and caches are scoped by origin: the new subdomain cannot unregister workers on lidldev.com or www.lidldev.com. Retiring an old installation requires serving the retirement worker on that old origin separately.
 
@@ -60,4 +89,4 @@ Verify HTTPS, deep links and metadata on the new domain. Service workers and cac
 - [SPA serving behavior](https://developers.cloudflare.com/pages/configuration/serving-pages/)
 - [Headers](https://developers.cloudflare.com/pages/configuration/headers/) and [redirects](https://developers.cloudflare.com/pages/configuration/redirects/)
 
-The GitHub merge is complete. No Cloudflare project, Cloudflare deployment or DNS change has been performed by this workspace.
+The GitHub merge is complete. The user initiated the Worker build shown above; this workspace has not deployed to Cloudflare or changed DNS.
